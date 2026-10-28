@@ -9,6 +9,7 @@ import {
   Tag,
 } from 'lucide-react';
 import { useApi } from '@/hooks/api';
+import { useStorefrontMotion } from '@/hooks/useStorefrontMotion';
 import type { Product } from '@/types/api';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
@@ -48,6 +49,7 @@ const promises = [
   { icon: Store, title: 'Dukung UMKM', text: 'Langkah kecil, dampak berarti' },
 ];
 export function HomePage() {
+  const motionRef = useStorefrontMotion();
   const products = useApi<Product[]>('/products?limit=18&availability=in_stock');
   const priority = [
     'rhea-mini-pack',
@@ -64,7 +66,7 @@ export function HomePage() {
     )
     .slice(0, 5);
   return (
-    <div className="store-home">
+    <div className="store-home" ref={motionRef}>
       <section className="shop-hero">
         <img
           className="hero-scene"

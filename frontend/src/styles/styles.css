@@ -3787,3 +3787,23 @@ textarea {
     min-height: 0;
   }
 }
+/* Scroll entrances are triggered on visibility, rather than when off-screen cards mount. */
+.store-home .collection-card,
+.store-home .shop-product {
+  animation: none;
+}
+.store-home .hero-scene {
+  will-change: transform;
+}
+.store-home .round-arrow {
+  transition:
+    transform 220ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .store-home .hero-scene {
+    transform: none !important;
+    will-change: auto;
+  }
+}
