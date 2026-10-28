@@ -1,0 +1,212 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  useAdminProducts,
+  useProducts,
+  useUpdateProduct,
+  useCreateCategory,
+  useUpdateCategory,
+} from './features/products/useProducts';
+import { useUpdateProfile } from './features/auth/useAuth';
+import { useUpdateShippingRate } from './features/checkout/useCheckout';
+import { useSalesReport } from './features/analytics/useAnalytics';
+import { request } from './services/apiClient';
+
+const captureQuery = vi.hoisted(() =>
+  vi.fn((options: { queryFn: () => unknown }) => options),
+);
+const captureMutation = vi.hoisted(() =>
+  vi.fn((options: { mutationFn: (input: never) => unknown }) => options),
+);
+
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: captureQuery,
+  useMutation: captureMutation,
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+}));
+
+vi.mock('./services/apiClient', () => ({
+  request: vi.fn().mockResolvedValue({ data: [] }),
+  ApiError: class extends Error {},
+}));
+import { formatRupiah, formatDate } from './lib/utils';
+import { nextStatus, statusLabels } from './lib/orders';
+import { useCartStore } from './features/cart/cartStore';
+import { usePosStore } from './features/pos/posStore';
+import type { Product } from './types/api';
+
+const mockProduct: Product = {
+  id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  categoryId: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+  sku: 'BD-SL-001',
+  name: 'Arlo Crossbody',
+  slug: 'arlo-crossbody',
+  description: 'Kotak kecil satu resleting nilon hitam',
+  material: 'Nilon Hitam',
+  price: 159000,
+  stock: 12,
+  minimumStock: 5,
+  imagePath: null,
+  imageUrl: null,
+  isActive: true,
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+};
+
+describe('API hook contracts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it.each([useProducts, useAdminProducts])(
+    'maps product filters to backend query names',
+    async useHook => {
+      useHook({ categoryId: mockProduct.categoryId, limit: 8, offset: 16 });
+      await captureQuery.mock.calls.at(-1)![0].queryFn();
+      const path = vi.mocked(request).mock.calls.at(-1)![0];
+      const params = new URLSearchParams(path.split('?')[1]);
+      expect(params.get('category')).toBe(mockProduct.categoryId);
+      expect(params.get('limit')).toBe('8');
+      expect(params.get('page')).toBe('3');
+      expect(params.has('offset')).toBe(false);
+    },
+  );
+
+  it.each([
+    [useUpdateProfile, { name: 'Customer' }, '/auth/profile'],
+    [
+      useUpdateProduct,
+      { id: 'product', body: { name: 'Bag' } },
+      '/admin/products/product',
+    ],
+    [
+      useUpdateCategory,
+      { id: 'category', body: { name: 'Bags', slug: 'bags' } },
+      '/admin/categories/category',
+    ],
+    [
+      useUpdateShippingRate,
+      { id: 'rate', body: { rate: 10000 } },
+      '/admin/shipping/rates/rate',
+    ],
+  ] as const)('uses PATCH for backend update routes', async (useHook, input, path) => {
+    useHook();
+    await captureMutation.mock.calls.at(-1)![0].mutationFn(input as never);
+    expect(request).toHaveBeenCalledWith(
+      path,
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+  });
+
+  it('creates categories with required slug', async () => {
+    useCreateCategory();
+    const body = { name: 'Bags', slug: 'bags' };
+    await captureMutation.mock.calls.at(-1)![0].mutationFn(body as never);
+    expect(request).toHaveBeenCalledWith('/admin/categories', { method: 'POST', body });
+  });
+
+  it('sends report date filters as from and to', async () => {
+    useSalesReport('2026-01-01', '2026-02-01');
+    await captureQuery.mock.calls.at(-1)![0].queryFn();
+    expect(request).toHaveBeenCalledWith(
+      '/admin/reports/sales?from=2026-01-01&to=2026-02-01',
+    );
+  });
+});
+
+describe('Utility formatting', () => {
+  it('formats Rupiah currency cleanly', () => {
+    const formatted = formatRupiah(159000);
+    expect(formatted).toContain('159.000');
+  });
+
+  it('formats ISO dates', () => {
+    const formatted = formatDate('2026-05-15T10:30:00Z');
+    expect(formatted).toBeDefined();
+    expect(typeof formatted).toBe('string');
+  });
+});
+
+describe('Order state transitions', () => {
+  it('follows shipping flow awaiting_confirmation -> confirmed -> packed -> shipped -> completed', () => {
+    expect(
+      nextStatus({ status: 'awaiting_confirmation', deliveryMethod: 'shipping' }),
+    ).toBe('confirmed');
+    expect(nextStatus({ status: 'confirmed', deliveryMethod: 'shipping' })).toBe(
+      'packed',
+    );
+    expect(nextStatus({ status: 'packed', deliveryMethod: 'shipping' })).toBe('shipped');
+    expect(nextStatus({ status: 'shipped', deliveryMethod: 'shipping' })).toBe(
+      'completed',
+    );
+  });
+
+  it('follows pickup flow packed -> completed without shipped state', () => {
+    expect(nextStatus({ status: 'packed', deliveryMethod: 'pickup' })).toBe('completed');
+  });
+
+  it('provides Indonesian status labels', () => {
+    expect(statusLabels.awaiting_payment).toBe('Menunggu pembayaran');
+    expect(statusLabels.completed).toBe('Selesai');
+  });
+});
+
+describe('Cart stores independence and rules', () => {
+  beforeEach(() => {
+    useCartStore.getState().clearCart();
+    usePosStore.getState().resetSale();
+  });
+
+  it('customer cart adds, updates quantity, and computes subtotal without touching stock', () => {
+    const cart = useCartStore.getState();
+    cart.addItem(mockProduct, 2);
+
+    expect(useCartStore.getState().totalItems()).toBe(2);
+    expect(useCartStore.getState().subtotal()).toBe(318000);
+
+    useCartStore.getState().updateQuantity(mockProduct.id, 3);
+    expect(useCartStore.getState().totalItems()).toBe(3);
+    expect(useCartStore.getState().subtotal()).toBe(477000);
+
+    useCartStore.getState().removeItem(mockProduct.id);
+    expect(useCartStore.getState().totalItems()).toBe(0);
+    expect(mockProduct.stock).toBe(12);
+  });
+
+  it('cashier POS store manages cash, subtotal, and change independently', () => {
+    const pos = usePosStore.getState();
+    pos.addItem(mockProduct, 1);
+    expect(pos.subtotal()).toBe(159000);
+
+    pos.setCashReceived(200000);
+    expect(usePosStore.getState().changeAmount()).toBe(41000);
+
+    pos.resetSale();
+    expect(usePosStore.getState().items.length).toBe(0);
+    expect(usePosStore.getState().cashReceived).toBe(0);
+  });
+});
+
+describe('stock limits in shopping carts', () => {
+  beforeEach(() => {
+    useCartStore.getState().clearCart();
+    usePosStore.getState().resetSale();
+  });
+  it.each([useCartStore, usePosStore])(
+    'prevents overselling through repeated additions and quantity changes',
+    store => {
+      const product = { ...mockProduct, stock: 2 };
+      store.getState().addItem(product, 2);
+      store.getState().addItem(product, 1);
+      expect(store.getState().items[0]?.quantity).toBe(2);
+      store.getState().updateQuantity(product.id, 99);
+      expect(store.getState().items[0]?.quantity).toBe(2);
+    },
+  );
+  it.each([useCartStore, usePosStore])(
+    'ignores products that are out of stock',
+    store => {
+      store.getState().addItem({ ...mockProduct, stock: 0 });
+      expect(store.getState().items).toHaveLength(0);
+    },
+  );
+});

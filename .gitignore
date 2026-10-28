@@ -1,0 +1,13 @@
+node_modules/
+frontend/dist/
+backend/dist/
+backend/uploads/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+.taste-skill/
+prompt.md
+prd.md
+.qa-session.json
+.qa-complete

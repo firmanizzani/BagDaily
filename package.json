@@ -1,0 +1,13 @@
+{
+  "name": "bagdaily",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/run.mjs build",
+    "typecheck": "node scripts/run.mjs typecheck",
+    "test": "node scripts/run.mjs test",
+    "lint": "node scripts/run.mjs lint"
+  },
+  "engines": { "node": ">=22.12" }
+}
