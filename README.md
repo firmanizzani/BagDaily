@@ -86,7 +86,11 @@ Foto AI adalah ilustrasi katalog, bukan dokumentasi produk fisik yang telah dive
 
 ## Penyimpanan foto
 
-Pada development, jika Supabase Storage belum dikonfigurasi, foto produk disimpan di backend/uploads/product-images dan disajikan lewat /api/media/products. Folder upload tidak masuk Git. Pada produksi, atur Supabase Storage yang valid untuk penyimpanan permanen.
+Foto produk dan foto profil memakai dua bucket **privat** Supabase Storage: `SUPABASE_STORAGE_BUCKET=product-images` dan `SUPABASE_PROFILE_STORAGE_BUCKET=profile-images`. Foto produk berada di `product-images/products/<productId>/<nama-unik>`, sedangkan foto profil berada di `profile-images/avatars/<userId>/<nama-unik>`. Atur batas masing-masing bucket 3 MiB dan format `image/jpeg`, `image/png`, serta `image/webp`. `SUPABASE_SERVICE_ROLE_KEY` hanya tersedia di backend.
+
+Backend menyajikan foto melalui `/api/media/products/...`: foto katalog aktif dapat dilihat pengunjung, foto produk nonaktif hanya admin, dan foto profil hanya pemilik akun yang sedang login. Database menyimpan path file dan URL backend yang stabil. Tidak diperlukan bucket publik atau tautan Storage publik. Pada development tanpa Supabase Storage, file disimpan di `backend/uploads/product-images`; folder ini tidak masuk Git. Produksi memerlukan Supabase Storage.
+
+Admin dapat memilih foto di form Tambah/Edit Produk. Setelah data produk tersimpan, foto diunggah otomatis; jika upload gagal, form tetap terbuka untuk mencoba lagi tanpa membuat produk duplikat. Pengguna dapat memilih, melihat pratinjau, menyimpan, mengganti, dan menghapus foto melalui Profil saya. Migrasi `0002_add_user_avatars` menambahkan kolom penyimpan path dan URL foto profil.
 
 ## Performa dan verifikasi
 

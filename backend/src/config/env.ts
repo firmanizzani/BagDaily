@@ -15,6 +15,7 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SUPABASE_STORAGE_BUCKET: z.string().default('product-images'),
+  SUPABASE_PROFILE_STORAGE_BUCKET: z.string().default('profile-images'),
   SESSION_COOKIE_NAME: z.string().default('bagdaily_session'),
   SESSION_COOKIE_DOMAIN: z.string().optional(),
 }).refine(data => data.NODE_ENV === 'test' || (data.DATABASE_URL.length > 0 && data.JWT_SECRET.length >= 32), {

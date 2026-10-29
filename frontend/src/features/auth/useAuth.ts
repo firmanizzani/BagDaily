@@ -95,3 +95,21 @@ export function useUpdateProfile() {
     retry: false,
   });
 }
+
+export function useUpdateAvatar() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File | null) => {
+      if (!file) return request<User>('/auth/profile/avatar', { method: 'DELETE' });
+      const body = new FormData();
+      body.append('image', file);
+      return request<User>('/auth/profile/avatar', { method: 'POST', body });
+    },
+    onSuccess: async response => {
+      await client.cancelQueries({ queryKey: ['session'] });
+      client.setQueryData(['session'], response.data);
+    },
+    onError: (error: Error) => toast.error(error.message || 'Foto belum dapat disimpan.'),
+    retry: false,
+  });
+}

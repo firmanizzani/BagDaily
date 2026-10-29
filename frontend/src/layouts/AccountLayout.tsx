@@ -2,6 +2,7 @@ import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { MapPin, Package, Settings, UserRound, ChevronRight } from 'lucide-react';
 import { useUser } from '@/hooks/api';
 import { LoadingState } from '@/components/shared/states';
+import { UserAvatar } from '@/components/shared/UserAvatar';
 export function AccountLayout() {
   const user = useUser();
   const location = useLocation();
@@ -14,9 +15,7 @@ export function AccountLayout() {
     <div className="account-layout shop-width">
       <aside className="account-sidebar">
         <div className="account-identity">
-          <span>
-            <UserRound size={26} strokeWidth={1.4} />
-          </span>
+          <UserAvatar src={user.data.avatarUrl} />
           <div>
             <strong>Halo, {user.data.name.split(' ')[0]}!</strong>
             <p>{user.data.email}</p>

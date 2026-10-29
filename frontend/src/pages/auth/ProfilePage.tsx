@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useAction, useUser } from '@/hooks/api';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
+import { ProfilePhotoEditor } from '@/components/storefront/ProfilePhotoEditor';
 const schema = z
   .object({
     name: z.string().trim().min(2, 'Nama minimal 2 karakter'),
@@ -85,6 +86,7 @@ export function ProfilePage({
           <p className="muted">{description}</p>
         </div>
       </div>
+      {!address && !settings && <ProfilePhotoEditor src={user.data.avatarUrl} />}
       <form
         className="panel account-form"
         onSubmit={form.handleSubmit(async values => {

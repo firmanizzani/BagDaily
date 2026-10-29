@@ -10,12 +10,14 @@ import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
+import { useShopLogin } from '@/hooks/useShopLogin';
 
 export function ProductDetailPage() {
   const { id } = useParams();
   const product = useApi<Product>(`/products/${id}`);
   const [quantity, setQuantity] = useState(1);
   const add = useCartStore(state => state.addItem);
+  const requireLogin = useShopLogin();
   const related = useApi<Product[]>(
     `/products?category=${product.data?.data.categoryId || ''}&limit=5`,
     Boolean(product.data),
@@ -80,7 +82,8 @@ export function ProductDetailPage() {
             size="lg"
             className="w-full"
             disabled={!item.stock}
-            onClick={() => {
+            onClick={async () => {
+              if (!(await requireLogin('keranjang'))) return;
               add(item, quantity);
               toast.success('Produk ditambahkan ke keranjang');
             }}

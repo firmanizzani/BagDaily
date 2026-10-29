@@ -3,18 +3,25 @@ import bcrypt from 'bcrypt';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { rateLimit } from 'express-rate-limit';
+import multer from 'multer';
+import { fileTypeFromBuffer } from 'file-type';
 import { db } from '../../db/index.js';
 import { users } from '../../db/schema/index.js';
 import { env } from '../../config/env.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { credentialsSchema, registerSchema } from '../../utils/validation.js';
-import { AppError, unauthorized } from '../../utils/errors.js';
+import { AppError, badRequest, unauthorized } from '../../utils/errors.js';
 import { authenticate } from '../../middleware/auth.js';
 import { cookieOptions, createSession, publicUser } from './service.js';
+import { saveProductImage, removeProductImage } from '../products/media.js';
 
 export { publicUser } from './service.js';
 
 const router = Router();
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 3 * 1024 * 1024, files: 1 },
+});
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,
@@ -72,6 +79,48 @@ router.post('/login', limiter, a(async (req, res) => {
 }));
 
 router.use(a(authenticate));
+
+router.post('/profile/avatar', avatarUpload.single('image'), a(async (req, res) => {
+  if (!req.file) badRequest('NO_FILE', 'Pilih foto profil terlebih dahulu.');
+  const type = await fileTypeFromBuffer(req.file.buffer);
+  if (!type || !['image/jpeg', 'image/png', 'image/webp'].includes(type.mime)) {
+    badRequest('INVALID_FILE', 'Foto profil harus berupa JPEG, PNG, atau WebP.');
+  }
+  const image = await saveProductImage(`avatars/${req.user!.id}`, req.file.buffer, type.ext, type.mime);
+  let result;
+  try {
+    result = await db.transaction(async tx => {
+      const [current] = await tx.select().from(users).where(eq(users.id, req.user!.id)).for('update');
+      const [updated] = await tx.update(users).set({
+        avatarPath: image.imagePath,
+        avatarUrl: image.imageUrl,
+        updatedAt: new Date(),
+      }).where(eq(users.id, req.user!.id)).returning(publicUser);
+      return { current, updated };
+    });
+  } catch (error) {
+    await removeProductImage(image.imagePath).catch(() => {});
+    throw error;
+  }
+  if (result.current.avatarPath) {
+    await removeProductImage(result.current.avatarPath).catch(() => {});
+  }
+  res.json({ data: result.updated });
+}));
+
+router.delete('/profile/avatar', a(async (req, res) => {
+  const { current, updated } = await db.transaction(async tx => {
+    const [current] = await tx.select().from(users).where(eq(users.id, req.user!.id)).for('update');
+    const [updated] = await tx.update(users).set({
+      avatarPath: null,
+      avatarUrl: null,
+      updatedAt: new Date(),
+    }).where(eq(users.id, req.user!.id)).returning(publicUser);
+    return { current, updated };
+  });
+  if (current.avatarPath) await removeProductImage(current.avatarPath).catch(() => {});
+  res.json({ data: updated });
+}));
 
 router.get('/me', a(async (req, res) => {
   const [user] = await db.select(publicUser).from(users).where(eq(users.id, req.user!.id));

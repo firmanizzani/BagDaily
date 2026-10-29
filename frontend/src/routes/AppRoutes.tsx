@@ -5,6 +5,7 @@ import { StaffLayout } from '@/layouts/StaffLayout';
 import { AccountLayout } from '@/layouts/AccountLayout';
 import { HomePage } from '@/pages/storefront/HomePage';
 import { WishlistPage } from '@/pages/storefront/WishlistPage';
+import { ShopLoginRequired } from '@/components/storefront/ShopLoginRequired';
 import { CashierProductsPage } from '@/pages/cashier/CashierProductsPage';
 import { CatalogPage } from '@/pages/storefront/CatalogPage';
 import { ProductDetailPage } from '@/pages/storefront/ProductDetailPage';
@@ -47,9 +48,11 @@ export function AppRoutes() {
         <Route element={<StorefrontLayout />}>
           <Route index element={<HomePage />} />
           <Route path="catalog" element={<CatalogPage />} />
-          <Route path="wishlist" element={<WishlistPage />} />
+          <Route element={<ShopLoginRequired />}>
+            <Route path="wishlist" element={<WishlistPage />} />
+            <Route path="cart" element={<CartPage />} />
+          </Route>
           <Route path="product/:id" element={<ProductDetailPage />} />
-          <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="orders/:id/pay" element={<OrderDetailPage paymentOnly />} />

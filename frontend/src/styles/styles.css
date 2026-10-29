@@ -3556,7 +3556,7 @@ textarea {
   justify-content: center;
   border-radius: 5px;
   min-height: 37px;
-  padding: 8px 16px;
+  padding: 8px 22px;
   background: #ffedcc;
   color: #1a3a3e;
   font-size: 12px;
@@ -3564,6 +3564,54 @@ textarea {
 }
 .nav-login:hover {
   background: #edcc98;
+}
+.profile-photo-editor {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 8px;
+  background: #fff;
+}
+.profile-photo-editor .profile-photo-preview {
+  flex: 0 0 88px;
+  width: 88px;
+  height: 88px;
+}
+.profile-photo-editor .profile-photo-preview > svg {
+  width: 38px;
+  height: 38px;
+}
+.profile-photo-content {
+  min-width: 0;
+}
+.profile-photo-content h2 {
+  font-size: 15px;
+  font-weight: 700;
+}
+.profile-photo-content p {
+  margin-top: 6px;
+  color: var(--color-teal-dark);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.profile-photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.profile-photo-filename {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .profile-photo-editor {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
 }
 .profile-trigger:not(.has-avatar) {
   min-width: 25px;
@@ -3579,7 +3627,7 @@ textarea {
   .nav-login {
     font-size: 11px;
     min-height: 33px;
-    padding: 7px 12px;
+    padding: 7px 16px;
   }
   .profile-trigger.has-avatar {
     min-width: 33px;

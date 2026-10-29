@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { toast } from 'sonner';
 import { useAction, useApi } from '@/hooks/api';
@@ -46,6 +46,11 @@ export function AdminProductsPage() {
   const [imageModal, setImageModal] = useState<Product | null>(null);
   const [formData, setFormData] = useState<ProductFormState>(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [productPhoto, setProductPhoto] = useState<File | null>(null);
+  const [productPreview, setProductPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (productPreview) return () => URL.revokeObjectURL(productPreview);
+  }, [productPreview]);
 
   const queryParams = new URLSearchParams({
     page: String(page),
@@ -68,12 +73,16 @@ export function AdminProductsPage() {
   const updateProduct = useAction<Product>();
   const uploadImage = useAction<Product>();
   const removeImage = useAction<Product>();
+  const isSaving =
+    createProduct.isPending || updateProduct.isPending || uploadImage.isPending;
 
   const products = productsData?.data || [];
   const categories = categoriesData?.data || [];
   const pagination = productsData?.pagination;
 
   const handleOpenCreate = () => {
+    setProductPhoto(null);
+    setProductPreview(null);
     setEditing(null);
     setFormData({
       ...emptyForm,
@@ -83,6 +92,8 @@ export function AdminProductsPage() {
   };
 
   const handleOpenEdit = (p: Product) => {
+    setProductPhoto(null);
+    setProductPreview(null);
     setEditing(p);
     setFormData({
       categoryId: p.categoryId,
@@ -106,8 +117,9 @@ export function AdminProductsPage() {
     }
 
     try {
+      let saved: Product;
       if (editing) {
-        await updateProduct.mutateAsync({
+        const response = await updateProduct.mutateAsync({
           path: `/admin/products/${editing.id}`,
           method: 'PATCH',
           body: {
@@ -122,9 +134,9 @@ export function AdminProductsPage() {
             isActive: formData.isActive,
           },
         });
-        toast.success('Produk berhasil diperbarui.');
+        saved = response.data;
       } else {
-        await createProduct.mutateAsync({
+        const response = await createProduct.mutateAsync({
           path: '/admin/products',
           method: 'POST',
           body: {
@@ -134,8 +146,31 @@ export function AdminProductsPage() {
             minimumStock: Number(formData.minimumStock),
           },
         });
-        toast.success('Produk baru berhasil ditambahkan.');
+        saved = response.data;
       }
+      // If uploading fails, retry updates this product instead of creating a duplicate.
+      setEditing(saved);
+      if (productPhoto) {
+        const body = new FormData();
+        body.append('image', productPhoto);
+        try {
+          await uploadImage.mutateAsync({
+            path: `/admin/products/${saved.id}/image`,
+            method: 'POST',
+            body,
+          });
+        } catch {
+          toast.error(
+            'Data produk tersimpan, tetapi foto belum berhasil diunggah. Klik Simpan Produk untuk mencoba lagi.',
+          );
+          return;
+        }
+      }
+      toast.success(
+        editing ? 'Produk berhasil diperbarui.' : 'Produk baru berhasil ditambahkan.',
+      );
+      setProductPhoto(null);
+      setProductPreview(null);
       setIsOpen(false);
       void refetch();
     } catch {
@@ -376,9 +411,49 @@ export function AdminProductsPage() {
       <Modal
         title={editing ? 'Edit Data Produk' : 'Tambah Produk Baru'}
         open={isOpen}
-        onOpenChange={setIsOpen}
+        onOpenChange={open => {
+          if (!isSaving) setIsOpen(open);
+        }}
       >
         <form onSubmit={handleSave} className="space-y-3 text-xs">
+          <div className="space-y-2">
+            <label htmlFor="product-photo" className="block font-semibold">
+              Foto produk
+            </label>
+            {(productPreview || editing?.imageUrl) && (
+              <img
+                src={productPreview || editing?.imageUrl || ''}
+                alt="Pratinjau foto produk"
+                className="h-36 w-full rounded bg-[#FAF9F6] object-contain"
+              />
+            )}
+            <input
+              id="product-photo"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              aria-describedby="product-photo-help"
+              disabled={isSaving}
+              className="w-full text-xs"
+              onChange={event => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (
+                  !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+                  file.size > 3 * 1024 * 1024
+                ) {
+                  toast.error('Pilih foto JPG, PNG, atau WebP maksimal 3 MB.');
+                  event.target.value = '';
+                  return;
+                }
+                setProductPhoto(file);
+                setProductPreview(URL.createObjectURL(file));
+              }}
+            />
+            <p id="product-photo-help" className="text-[#6E7E8D]">
+              Opsional. JPG, PNG, atau WebP, maksimal 3 MB. Foto diunggah saat produk
+              disimpan.
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold mb-1">Nama Produk</label>
@@ -513,12 +588,13 @@ export function AdminProductsPage() {
               type="button"
               variant="outline"
               size="sm"
+              disabled={isSaving}
               onClick={() => setIsOpen(false)}
             >
               Batal
             </Button>
-            <Button type="submit" variant="teal" size="sm">
-              Simpan Produk
+            <Button type="submit" variant="teal" size="sm" disabled={isSaving}>
+              {isSaving ? 'Menyimpan…' : 'Simpan Produk'}
             </Button>
           </div>
         </form>
@@ -579,7 +655,7 @@ export function AdminProductsPage() {
               className="w-full"
               disabled={!imageFile || uploadImage.isPending}
             >
-              {uploadImage.isPending ? 'Mengunggah…' : 'Simpan ke Supabase'}
+              {uploadImage.isPending ? 'Mengunggah…' : 'Simpan foto'}
             </Button>
           </form>
         </div>

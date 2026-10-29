@@ -6,9 +6,11 @@ import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { formatRupiah } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlist } from '@/stores/wishlistStore';
+import { useShopLogin } from '@/hooks/useShopLogin';
 export function ProductCard({ product }: { product: Product }) {
   const add = useCartStore(s => s.addItem);
   const { ids, toggle } = useWishlist();
+  const requireLogin = useShopLogin();
   const saved = ids.includes(product.id);
   return (
     <article className="shop-product">
@@ -20,7 +22,9 @@ export function ProductCard({ product }: { product: Product }) {
           className={`wish-button ${saved ? 'saved' : ''}`}
           aria-label={`${saved ? 'Hapus' : 'Simpan'} ${product.name} ${saved ? 'dari' : 'ke'} favorit`}
           aria-pressed={saved}
-          onClick={() => toggle(product.id)}
+          onClick={async () => {
+            if (await requireLogin('favorit')) toggle(product.id);
+          }}
         >
           <Heart size={18} fill={saved ? 'currentColor' : 'none'} />
         </button>
@@ -44,7 +48,8 @@ export function ProductCard({ product }: { product: Product }) {
         <button
           className="add-to-cart"
           disabled={product.stock <= 0}
-          onClick={() => {
+          onClick={async () => {
+            if (!(await requireLogin('keranjang'))) return;
             const existing = useCartStore
               .getState()
               .items.find(i => i.product.id === product.id);

@@ -11,7 +11,7 @@ import { errorHandler } from './middleware/error.js';
 import { asyncRoute as a } from './utils/async.js';
 import authRouter from './modules/auth/index.js';
 import productsRouter from './modules/products/index.js';
-import { localProductImageRoot } from './modules/products/media.js';
+import productImagesRouter from './modules/products/images.js';
 import adminProductsRouter from './modules/products/admin.js';
 import { categoriesRouter, adminCategoriesRouter } from './modules/categories/index.js';
 import ordersRouter from './modules/orders/index.js';
@@ -45,7 +45,7 @@ const sendHealth = (_req: express.Request, res: express.Response) => {
   res.json({ data: { status: 'ok', env: env.NODE_ENV } });
 };
 app.get('/api/health', sendHealth);
-app.use('/api/media/products', express.static(localProductImageRoot, {index:false,redirect:false,dotfiles:'deny',maxAge:'1d',immutable:true,setHeaders:res=>res.setHeader('Cross-Origin-Resource-Policy','cross-origin')}));
+app.use('/api/media/products', productImagesRouter);
 app.get('/', (_req, res) => {
   res.json({ data: { name: 'BagDaily API', status: 'ok', app: allowedOrigins[0], health: '/api/health' } });
 });

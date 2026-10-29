@@ -10,6 +10,7 @@ export const publicUser = {
   isActive: users.isActive,
   phone: users.phone,
   address: users.address,
+  avatarUrl: users.avatarUrl,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
 };

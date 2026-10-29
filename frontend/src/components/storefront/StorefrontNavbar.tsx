@@ -32,8 +32,8 @@ export function StorefrontNavbar() {
               <Link to="/catalog?category=totebag">Totebag</Link>
             </div>
           </div>
-          <a href="/#tentang">Tentang kami</a>
-          <a href="#kontak">Kontak</a>
+          <a href="/#testimoni">Testimoni</a>
+          <a href="/#faq">FAQ</a>
         </nav>
         <div className="nav-actions">
           <form
@@ -64,8 +64,9 @@ export function StorefrontNavbar() {
             <ShoppingCart size={23} />
             {total > 0 && <span>{total}</span>}
           </Link>
-          <ProfileMenu />
-          {!user && (
+          {user ? (
+            <ProfileMenu />
+          ) : (
             <Link className="nav-login" to="/login">
               Login
             </Link>
@@ -97,6 +98,12 @@ export function StorefrontNavbar() {
           <Link to="/catalog?category=totebag" onClick={() => setMobileOpen(false)}>
             Totebag
           </Link>
+          <a href="/#testimoni" onClick={() => setMobileOpen(false)}>
+            Testimoni
+          </a>
+          <a href="/#faq" onClick={() => setMobileOpen(false)}>
+            FAQ
+          </a>
           <Link to="/customer/orders" onClick={() => setMobileOpen(false)}>
             Pesanan saya
           </Link>
