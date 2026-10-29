@@ -41,8 +41,12 @@ export function useLogin() {
   return useMutation({
     mutationFn: (body: LoginPayload) =>
       request<User>('/auth/login', { method: 'POST', body }),
-    onSuccess: () => {
-      void client.invalidateQueries();
+    onSuccess: async response => {
+      await client.cancelQueries({ queryKey: ['session'] });
+      client.setQueryData(['session'], response.data);
+      void client.invalidateQueries({
+        predicate: query => query.queryKey[0] !== 'session',
+      });
     },
     onError: (error: Error) => toast.error(error.message || 'Email atau password salah'),
     retry: false,
@@ -67,8 +71,12 @@ export function useLogout() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => request('/auth/logout', { method: 'POST' }),
-    onSuccess: () => {
-      void client.invalidateQueries();
+    onSuccess: async () => {
+      await client.cancelQueries({ queryKey: ['session'] });
+      client.setQueryData(['session'], null);
+      void client.invalidateQueries({
+        predicate: query => query.queryKey[0] !== 'session',
+      });
     },
     onError: (error: Error) => toast.error(error.message || 'Gagal keluar. Coba lagi.'),
     retry: false,

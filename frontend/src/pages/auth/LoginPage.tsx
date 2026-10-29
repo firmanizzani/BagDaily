@@ -1,15 +1,17 @@
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useLogin } from '@/features/auth/useAuth';
+import { useLogin, useUser } from '@/features/auth/useAuth';
+import { loginDestination } from '@/features/auth/loginDestination';
 import { DemoAccounts } from '@/features/auth/DemoAccounts';
 import { LoginForm, type LoginFormValues } from '@/features/auth/LoginForm';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
 export function LoginPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const login = useLogin();
+  const { data: user } = useUser();
 
   const handleLogin = async (data: LoginFormValues, demo = false) => {
     try {
@@ -18,23 +20,15 @@ export function LoginPage() {
       const returnUrl = demo
         ? null
         : params.get('from') || location.state?.from?.pathname;
-      if (
-        typeof returnUrl === 'string' &&
-        returnUrl.startsWith('/') &&
-        !returnUrl.startsWith('//')
-      ) {
-        navigate(returnUrl, { replace: true });
-      } else if (res.data.role === 'admin') {
-        navigate('/admin', { replace: true });
-      } else if (res.data.role === 'kasir') {
-        navigate('/pos', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      navigate(loginDestination(res.data.role, returnUrl), { replace: true });
     } catch {
       return;
     }
   };
+
+  if (user?.role === 'admin' || user?.role === 'kasir') {
+    return <Navigate to={loginDestination(user.role)} replace />;
+  }
 
   return (
     <div className="auth-page">

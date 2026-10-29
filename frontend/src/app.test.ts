@@ -6,7 +6,8 @@ import {
   useCreateCategory,
   useUpdateCategory,
 } from './features/products/useProducts';
-import { useUpdateProfile } from './features/auth/useAuth';
+import { useLogin, useLogout, useUpdateProfile } from './features/auth/useAuth';
+import { loginDestination } from './features/auth/loginDestination';
 import { useUpdateShippingRate } from './features/checkout/useCheckout';
 import { useSalesReport } from './features/analytics/useAnalytics';
 import { request } from './services/apiClient';
@@ -15,13 +16,24 @@ const captureQuery = vi.hoisted(() =>
   vi.fn((options: { queryFn: () => unknown }) => options),
 );
 const captureMutation = vi.hoisted(() =>
-  vi.fn((options: { mutationFn: (input: never) => unknown }) => options),
+  vi.fn(
+    (options: {
+      mutationFn: (input: never) => unknown;
+      onSuccess?: (response: never) => unknown;
+    }) => options,
+  ),
 );
+
+const sessionClient = vi.hoisted(() => ({
+  cancelQueries: vi.fn().mockResolvedValue(undefined),
+  setQueryData: vi.fn(),
+  invalidateQueries: vi.fn(),
+}));
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: captureQuery,
   useMutation: captureMutation,
-  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+  useQueryClient: () => sessionClient,
 }));
 
 vi.mock('./services/apiClient', () => ({
@@ -258,4 +270,55 @@ describe('POS receipts', async () => {
       expect(html.includes('Kembalian')).toBe(paymentMethod === 'cash');
     },
   );
+});
+
+describe('Staff login navigation', () => {
+  beforeEach(() => vi.clearAllMocks());
+  it.each(['admin', 'kasir'] as const)(
+    'publishes the %s session before login resolves',
+    async role => {
+      useLogin();
+      let finishCancellation!: () => void;
+      sessionClient.cancelQueries.mockReturnValueOnce(
+        new Promise<void>(resolve => {
+          finishCancellation = resolve;
+        }),
+      );
+      const user = { id: 'staff', role };
+      const success = captureMutation.mock.calls.at(-1)![0].onSuccess!({
+        data: user,
+      } as never);
+      expect(sessionClient.cancelQueries).toHaveBeenCalledWith({ queryKey: ['session'] });
+      expect(sessionClient.setQueryData).not.toHaveBeenCalled();
+      finishCancellation();
+      await success;
+      expect(sessionClient.setQueryData).toHaveBeenCalledWith(['session'], user);
+    },
+  );
+  it('clears the cached session on logout', async () => {
+    useLogout();
+    await captureMutation.mock.calls.at(-1)![0].onSuccess!(undefined as never);
+    expect(sessionClient.setQueryData).toHaveBeenCalledWith(['session'], null);
+  });
+  it.each([undefined, '/login', '/checkout', '/cashier/orders'])(
+    'sends staff to their dashboard regardless of return URL %s',
+    returnUrl => {
+      expect(loginDestination('admin', returnUrl)).toBe('/admin');
+      expect(loginDestination('kasir', returnUrl)).toBe('/pos');
+    },
+  );
+  it('preserves customer destinations and avoids returning to authentication pages', () => {
+    expect(loginDestination('pelanggan', '/checkout?step=payment')).toBe(
+      '/checkout?step=payment',
+    );
+    for (const url of [
+      '/login',
+      '/login?from=/checkout',
+      '/register',
+      '//example.com',
+      'https://example.com',
+    ]) {
+      expect(loginDestination('pelanggan', url)).toBe('/');
+    }
+  });
 });
