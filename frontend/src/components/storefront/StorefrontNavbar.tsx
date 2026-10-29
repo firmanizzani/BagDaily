@@ -1,14 +1,7 @@
+import { BrandLogo } from '@/components/shared/BrandLogo';
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import {
-  Backpack,
-  ChevronDown,
-  Heart,
-  Menu,
-  Search,
-  ShoppingCart,
-  X,
-} from 'lucide-react';
+import { ChevronDown, Heart, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { useUser } from '@/hooks/api';
 import { ProfileMenu } from '@/components/storefront/ProfileMenu';
 import { useCartStore } from '@/stores/cartStore';
@@ -22,10 +15,7 @@ export function StorefrontNavbar() {
     <header className="shop-header">
       <div className="shop-width shop-nav">
         <Link to="/" className="brand">
-          <Backpack size={30} strokeWidth={1.6} />
-          <span>
-            BagDaily<span className="brand-dot">.</span>
-          </span>
+          <BrandLogo />
         </Link>
         <nav className="desktop-links">
           <NavLink to="/" end>

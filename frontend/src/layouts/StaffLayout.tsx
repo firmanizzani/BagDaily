@@ -1,8 +1,8 @@
+import { BrandLogo } from '@/components/shared/BrandLogo';
 import { useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
   BarChart3,
-  Backpack,
   ChevronRight,
   Clock3,
   LayoutDashboard,
@@ -71,10 +71,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
       />
       <aside className={`staff-sidebar ${open ? 'open' : ''}`}>
         <Link className="brand" to="/">
-          <Backpack size={29} strokeWidth={1.6} />
-          <span>
-            BagDaily<span className="brand-dot">.</span>
-          </span>
+          <BrandLogo />
         </Link>
         <p className="workspace-label">
           {admin ? 'Ruang pengelola' : 'Operasional toko'}

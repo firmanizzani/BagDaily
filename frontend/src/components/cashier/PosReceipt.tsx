@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/shared/BrandLogo';
 import type { Order } from '@/types/api';
 import { formatRupiah } from '@/lib/utils';
 import { paymentMethodLabels } from '@/lib/payments';
@@ -14,7 +15,9 @@ export function PosReceipt({ order }: PosReceiptProps) {
   return (
     <article className="pos-receipt print-receipt" aria-label="Struk transaksi BagDaily">
       <header className="pos-receipt-header">
-        <h2>BagDaily</h2>
+        <h2>
+          <BrandLogo ink />
+        </h2>
         <p>Struk pembelian</p>
         <span>{order.paymentStatus === 'paid' ? 'LUNAS' : 'BELUM DIBAYAR'}</span>
       </header>

@@ -1,5 +1,6 @@
+import { BrandLogo } from '@/components/shared/BrandLogo';
 import { Link } from 'react-router-dom';
-import { Backpack, ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowUpRight, Mail } from 'lucide-react';
 export function StorefrontFooter() {
   return (
     <footer className="shop-footer" id="kontak">
@@ -7,10 +8,7 @@ export function StorefrontFooter() {
         <div className="footer-grid">
           <div>
             <Link to="/" className="brand">
-              <Backpack size={29} strokeWidth={1.5} />
-              <span>
-                BagDaily<span className="brand-dot">.</span>
-              </span>
+              <BrandLogo />
             </Link>
             <p>
               Teman setia untuk setiap langkahmu.
