@@ -37,37 +37,71 @@ const products = seed
     };
   });
 const now = new Date();
-const orders = products
-  .slice(0, 5)
-  .map((p, i) => ({
-    id: `visual-order-${i}`,
-    orderNumber: `BD-VISUAL-00${i + 1}`,
-    total: p.price * (i + 1),
-    subtotal: p.price * (i + 1),
-    shippingCost: 0,
-    channel: 'online',
-    status: ['completed', 'shipped', 'packed', 'confirmed', 'completed'][i],
-    paymentStatus: 'paid',
-    createdAt: new Date(now - i * 86400000).toISOString(),
-  }));
+const orders = products.slice(0, 5).map((p, i) => ({
+  id: `visual-order-${i}`,
+  orderNumber: `BD-VISUAL-00${i + 1}`,
+  total: p.price * (i + 1),
+  subtotal: p.price * (i + 1),
+  shippingCost: 0,
+  channel: 'online',
+  status: ['completed', 'shipped', 'packed', 'confirmed', 'completed'][i],
+  paymentStatus: 'paid',
+  createdAt: new Date(now - i * 86400000).toISOString(),
+}));
 const sum = orders.reduce((s, o) => s + o.total, 0);
-const top = products
-  .slice(0, 5)
-  .map((p, i) => ({
-    productId: p.id,
-    name: p.name,
-    quantity: i + 1,
-    revenue: p.price * (i + 1),
-  }));
-let role = 'admin';
+const top = products.slice(0, 5).map((p, i) => ({
+  productId: p.id,
+  name: p.name,
+  quantity: i + 1,
+  revenue: p.price * (i + 1),
+}));
+let role = 'pelanggan';
+const checkoutOrders = new Map();
+const makeCheckoutOrder = (id, input) => {
+  const items = input.items.map((item, index) => {
+    const product = products.find(product => product.id === item.productId);
+    return {
+      id: `${id}-item-${index}`,
+      productId: product.id,
+      productNameSnapshot: product.name,
+      skuSnapshot: product.sku,
+      quantity: item.quantity,
+      unitPrice: product.price,
+      subtotal: product.price * item.quantity,
+    };
+  });
+  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
+  const shippingCost = input.deliveryMethod === 'shipping' ? 15000 : 0;
+  return {
+    ...input,
+    id,
+    orderNumber: `BD-DEMO-${checkoutOrders.size + 1}`,
+    items,
+    subtotal,
+    shippingCost,
+    total: subtotal + shippingCost,
+    channel: 'online',
+    status: 'awaiting_payment',
+    paymentStatus: 'unpaid',
+    paymentMethod: null,
+    createdAt: new Date().toISOString(),
+    paymentDeadline: new Date(Date.now() + 15 * 60000).toISOString(),
+  };
+};
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   let data;
+  let extra = {};
   const p = url.pathname.replace('/api', '');
   if (req.method === 'POST' && p === '/auth/login') {
     let body = '';
     for await (const c of req) body += c;
-    role = JSON.parse(body).email.includes('kasir') ? 'kasir' : 'admin';
+    const email = JSON.parse(body).email;
+    role = email.includes('kasir')
+      ? 'kasir'
+      : email.includes('admin')
+        ? 'admin'
+        : 'pelanggan';
     data = {
       id: 'visual-user',
       name: 'Pratinjau UI',
@@ -75,6 +109,31 @@ createServer(async (req, res) => {
       email: 'visual@example.test',
       isActive: true,
     };
+  } else if (req.method === 'POST' && p === '/auth/logout') {
+    role = 'pelanggan';
+    data = null;
+  } else if (req.method === 'POST' && p === '/orders') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    const id = `visual-checkout-${checkoutOrders.size + 1}`;
+    data = makeCheckoutOrder(id, JSON.parse(body));
+    checkoutOrders.set(id, data);
+  } else if (
+    req.method === 'POST' &&
+    /^\/orders\/[^/]+\/(simulate-payment|cancel)$/.test(p)
+  ) {
+    const order = checkoutOrders.get(p.split('/')[2]);
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    if (p.endsWith('/simulate-payment')) {
+      Object.assign(order, {
+        status: 'awaiting_confirmation',
+        paymentStatus: 'paid',
+        paymentMethod: JSON.parse(body).method,
+        paidAt: new Date().toISOString(),
+      });
+    } else Object.assign(order, { status: 'cancelled' });
+    data = order;
   } else if (req.method !== 'GET') {
     res.writeHead(501, { 'Content-Type': 'application/json' });
     res.end(
@@ -95,7 +154,11 @@ createServer(async (req, res) => {
       email: 'visual@example.test',
       isActive: true,
     };
+  else if (p === '/orders/my') data = [...checkoutOrders.values()];
+  else if (/^\/orders\/[^/]+$/.test(p)) data = checkoutOrders.get(p.split('/')[2]);
   else if (p === '/categories') data = categories;
+  else if (p === '/shipping/rates')
+    data = [{ id: 'visual-rate', courier: 'JNE', zone: 'Jabodetabek', rate: 15000 }];
   else if (['/products', '/admin/products'].includes(p) || p === '/admin/inventory')
     data = products.filter(
       p =>
@@ -110,6 +173,8 @@ createServer(async (req, res) => {
       totalTransactions: orders.length,
       activeProducts: products.length,
       lowStockProducts: 0,
+      totalProductsSold: top.reduce((sum, row) => sum + row.quantity, 0),
+      newCustomers: 0,
       onlineSales: sum,
       posSales: 0,
     };
@@ -139,12 +204,25 @@ createServer(async (req, res) => {
       { channel: 'pos', revenue: 0, transactions: 0 },
     ];
   else if (p === '/admin/dashboard/restock-recommendations') data = [];
-  else if (p === '/cashier/orders' || p === '/cashier/transactions') data = orders;
+  else if (p === '/admin/reports/sales') {
+    data = url.searchParams.get('channel') === 'pos' ? [] : orders;
+    const totalSales = data.reduce((sum, order) => sum + order.total, 0);
+    extra = {
+      summary: {
+        totalSales,
+        totalTransactions: data.length,
+        onlineSales: totalSales,
+        posSales: 0,
+      },
+      products: data.length ? top : [],
+    };
+  } else if (p === '/cashier/orders' || p === '/cashier/transactions') data = orders;
   else data = [];
   res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
   res.end(
     JSON.stringify({
       data,
+      ...extra,
       pagination: Array.isArray(data)
         ? { page: 1, total: data.length, totalPages: 1, limit: 100 }
         : undefined,

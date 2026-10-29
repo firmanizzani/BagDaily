@@ -153,6 +153,8 @@ export interface ApiResponse<T> {
 }
 
 export interface DashboardOverview {
+  totalProductsSold: number;
+  newCustomers: number;
   totalSales: number;
   totalTransactions: number;
   activeProducts: number;

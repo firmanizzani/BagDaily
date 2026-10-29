@@ -1,3 +1,4 @@
+import { SummaryMetric } from '@/components/shared/SummaryMetric';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -15,7 +16,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowRight, CalendarDays, PackageCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  ChartNoAxesCombined,
+  ClipboardList,
+  PackageCheck,
+  ShoppingCart,
+  UserRound,
+} from 'lucide-react';
 import { useApi } from '@/hooks/api';
 import type {
   CategorySalesItem,
@@ -67,34 +76,38 @@ export function AdminDashboardPage() {
           onRetry={() => void overview.refetch()}
         />
       ) : (
-        <div className="metrics-grid">
+        <div className="metrics-grid summary-metric-grid">
           {[
             {
               title: 'Total penjualan',
               value: formatRupiah(metrics?.totalSales || 0),
               note: 'Dari seluruh pesanan berbayar',
+              icon: ChartNoAxesCombined,
+              tone: 'green' as const,
             },
             {
               title: 'Total pesanan',
               value: metrics?.totalTransactions ?? 0,
               note: 'Transaksi online & kasir',
+              icon: ShoppingCart,
+              tone: 'green' as const,
             },
             {
-              title: 'Produk aktif',
-              value: metrics?.activeProducts ?? 0,
-              note: 'Koleksi yang siap dipasarkan',
+              title: 'Produk terjual',
+              value: metrics?.totalProductsSold ?? 0,
+              note: 'Barang dari pesanan berbayar',
+              icon: ClipboardList,
+              tone: 'sand' as const,
             },
             {
-              title: 'Stok menipis',
-              value: metrics?.lowStockProducts ?? 0,
-              note: 'Pantau dan jadwalkan restock',
+              title: 'Pelanggan baru',
+              value: metrics?.newCustomers ?? 0,
+              note: 'Terdaftar dalam 30 hari terakhir',
+              icon: UserRound,
+              tone: 'sand' as const,
             },
-          ].map((m, i) => (
-            <article className={`metric-card ${i === 3 ? 'warning' : ''}`} key={m.title}>
-              <span>{m.title}</span>
-              <strong>{m.value}</strong>
-              <small>{m.note}</small>
-            </article>
+          ].map(metric => (
+            <SummaryMetric key={metric.title} {...metric} />
           ))}
         </div>
       )}

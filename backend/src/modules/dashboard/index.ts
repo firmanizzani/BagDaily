@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { and, asc, eq, gte, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/index.js';
-import { categories, orders, orderItems, products } from '../../db/schema/index.js';
+import { categories, orders, orderItems, products, users } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { ok } from '../../utils/response.js';
 
@@ -56,11 +56,25 @@ router.get('/overview', a(async (req, res) => {
     sql`${products.stock} <= ${products.minimumStock}`,
   ));
 
+  const [sold] = await db.select({
+    quantity: sql<number>`coalesce(sum(${orderItems.quantity}),0)::int`,
+  }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id)).where(where);
+
+  const [customers] = await db.select({
+    count: sql<number>`count(*)::int`,
+  }).from(users).where(and(
+    eq(users.role, 'pelanggan'),
+    gte(users.createdAt, v.from),
+    lt(users.createdAt, v.to),
+  ));
+
   res.json(ok({
     totalSales: total.totalSales,
     totalTransactions: total.totalTransactions,
     activeProducts: active.count,
     lowStockProducts: low.count,
+    totalProductsSold: sold.quantity,
+    newCustomers: customers.count,
     onlineSales: online.total,
     posSales: posT.total,
   }));

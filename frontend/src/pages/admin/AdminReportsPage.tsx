@@ -1,5 +1,6 @@
+import { SummaryMetric } from '@/components/shared/SummaryMetric';
 import { useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Banknote, ReceiptText, ShoppingBag, Store } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApi } from '@/hooks/api';
 import type { Order } from '@/types/api';
@@ -105,39 +106,33 @@ export function AdminReportsPage() {
         <EmptyState title="Tidak Ada Data" description="Pilih rentang tanggal lain." />
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-[#001524]/10 bg-white p-4 shadow-xs">
-              <span className="text-[11px] font-semibold text-[#6E7E8D]">
-                Total Pendapatan
-              </span>
-              <p className="mt-1 text-xl font-black text-[#15616D]">
-                {formatRupiah(report.summary.totalSales)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-[#001524]/10 bg-white p-4 shadow-xs">
-              <span className="text-[11px] font-semibold text-[#6E7E8D]">
-                Jumlah Transaksi
-              </span>
-              <p className="mt-1 text-xl font-bold text-[#001524]">
-                {report.summary.totalTransactions}
-              </p>
-            </div>
-            <div className="rounded-xl border border-[#001524]/10 bg-white p-4 shadow-xs">
-              <span className="text-[11px] font-semibold text-[#6E7E8D]">
-                Penjualan Online
-              </span>
-              <p className="mt-1 text-lg font-bold text-[#001524]">
-                {formatRupiah(report.summary.onlineSales)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-[#001524]/10 bg-white p-4 shadow-xs">
-              <span className="text-[11px] font-semibold text-[#6E7E8D]">
-                Penjualan Kasir POS
-              </span>
-              <p className="mt-1 text-lg font-bold text-[#001524]">
-                {formatRupiah(report.summary.posSales)}
-              </p>
-            </div>
+          <div className="metrics-grid summary-metric-grid">
+            <SummaryMetric
+              title="Total Pendapatan"
+              value={formatRupiah(report.summary.totalSales)}
+              icon={Banknote}
+              note="Seluruh transaksi berbayar"
+            />
+            <SummaryMetric
+              title="Jumlah Transaksi"
+              value={report.summary.totalTransactions}
+              icon={ReceiptText}
+              note="Pesanan sesuai filter"
+            />
+            <SummaryMetric
+              title="Penjualan Online"
+              value={formatRupiah(report.summary.onlineSales)}
+              icon={ShoppingBag}
+              tone="sand"
+              note="Dari toko online"
+            />
+            <SummaryMetric
+              title="Penjualan Kasir POS"
+              value={formatRupiah(report.summary.posSales)}
+              icon={Store}
+              tone="sand"
+              note="Dari transaksi di toko"
+            />
           </div>
 
           <div className="rounded-xl border border-[#001524]/10 bg-white p-5 shadow-xs space-y-3">

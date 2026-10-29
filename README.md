@@ -52,6 +52,10 @@ Kasir: pilih/cari/filter produk, jumlah barang, pembayaran Tunai, QRIS, Transfer
 
 Setelah memperbarui aplikasi, jalankan `npm run db:migrate` dari `backend/` untuk mengizinkan metode debit/kredit pada database.
 
+Setelah checkout, aplikasi langsung membuka `/orders/:id/pay`. QRIS dummy atau rekening transfer contoh, total tagihan, batas waktu, dan tombol simulasi bayar berada di halaman yang sama. Pengosongan keranjang menunggu tujuan pembayaran siap agar tidak beralih ke keranjang kosong.
+
+Dashboard dan Laporan memakai kartu ringkasan berikon tanpa persentase perubahan. Jumlah barang terjual dihitung dari item pesanan berbayar; pelanggan baru dihitung dari akun pelanggan yang dibuat selama 30 hari terakhir. Favorit tersedia melalui ikon hati di header, dengan menu duplikat di akun dihapus.
+
 ## Akun dan data
 
 Akses admin dan kasir tetap diperiksa oleh backend. Tidak ada login pintas, akun istimewa otomatis, atau data transaksi palsu pada aplikasi utama. Database memiliki 18 produk dan 9 tarif pengiriman. Tiga akun demo sudah dibuat sesuai permintaan.

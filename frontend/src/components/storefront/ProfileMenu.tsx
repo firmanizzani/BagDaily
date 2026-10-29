@@ -50,7 +50,6 @@ export function ProfileMenu() {
       icon: Package,
       label: user?.role === 'pelanggan' ? 'Pesanan saya' : 'Pesanan toko',
     },
-    { to: '/wishlist', icon: Heart, label: 'Favorit saya' },
     { to: '/addresses', icon: MapPin, label: 'Alamat pengiriman' },
     { to: '/account/settings', icon: Settings, label: 'Pengaturan akun' },
   ];

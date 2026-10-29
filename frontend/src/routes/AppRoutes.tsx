@@ -52,6 +52,7 @@ export function AppRoutes() {
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="orders/:id/pay" element={<OrderDetailPage paymentOnly />} />
           <Route element={<AccountLayout />}>
             <Route path="customer/orders" element={<CustomerOrdersPage />} />
             <Route path="profile" element={<ProfilePage section="profile" />} />

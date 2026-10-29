@@ -322,3 +322,45 @@ describe('Staff login navigation', () => {
     }
   });
 });
+
+describe('Online payment panel', async () => {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { OnlinePaymentPanel } =
+    await import('./components/storefront/OnlinePaymentPanel');
+  const defaults = {
+    total: 239000,
+    deadline: '2026-10-29T20:15:00Z',
+    method: 'qris' as const,
+    isProcessing: false,
+    isExpired: false,
+    onMethodChange: vi.fn(),
+    onPay: vi.fn(),
+  };
+  it('shows QR, payable total, and payment action on the same page', () => {
+    const html = renderToStaticMarkup(createElement(OnlinePaymentPanel, defaults));
+    expect(html).toContain('/images/qris-demo.svg');
+    expect(html).toContain('239.000');
+    expect(html).toContain('Bayar sekarang');
+    expect(html).toContain('tidak perlu mengirim uang');
+    expect(html).not.toContain('disabled=""');
+  });
+  it('shows transfer details when bank transfer is selected', () => {
+    const html = renderToStaticMarkup(
+      createElement(OnlinePaymentPanel, { ...defaults, method: 'bank_transfer' }),
+    );
+    expect(html).toContain('Rekening tujuan');
+    expect(html).toContain('0000 0000 0000');
+    expect(html).not.toContain('/images/qris-demo.svg');
+  });
+  it.each([
+    { isExpired: true, text: 'Waktu pembayaran habis' },
+    { isProcessing: true, text: 'Memproses pembayaran' },
+  ])('blocks payment when unavailable: $text', state => {
+    const html = renderToStaticMarkup(
+      createElement(OnlinePaymentPanel, { ...defaults, ...state }),
+    );
+    expect(html).toContain('disabled=""');
+    expect(html).toContain(state.text);
+  });
+});

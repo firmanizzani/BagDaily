@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Heart, MapPin, Package, Settings, UserRound, ChevronRight } from 'lucide-react';
+import { MapPin, Package, Settings, UserRound, ChevronRight } from 'lucide-react';
 import { useUser } from '@/hooks/api';
 import { LoadingState } from '@/components/shared/states';
 export function AccountLayout() {
@@ -30,7 +30,6 @@ export function AccountLayout() {
               icon: Package,
               label: user.data.role === 'pelanggan' ? 'Pesanan saya' : 'Pesanan toko',
             },
-            { to: '/wishlist', icon: Heart, label: 'Favorit saya' },
             { to: '/addresses', icon: MapPin, label: 'Alamat pengiriman' },
             { to: '/account/settings', icon: Settings, label: 'Pengaturan akun' },
           ].map(({ to, icon: Icon, label }) => (

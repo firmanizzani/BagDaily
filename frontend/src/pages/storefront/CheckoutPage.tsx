@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { flushSync } from 'react-dom';
+import { Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -47,7 +48,7 @@ export function CheckoutPage() {
   const { items, subtotal, clearCart } = useCartStore();
   const rates = useApi<ShippingRate[]>('/shipping/rates');
   const createOrder = useAction<Order>();
-  const navigate = useNavigate();
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const [selectedCourier, setSelectedCourier] = useState<Courier>('JNE');
   const [selectedZone, setSelectedZone] = useState<ShippingZone>('Jabodetabek');
@@ -71,6 +72,7 @@ export function CheckoutPage() {
 
   if (userLoading) return <LoadingState label="Memeriksa sesi checkout…" />;
   if (!user) return <Navigate to="/login?from=/checkout" replace />;
+  if (createdOrderId) return <Navigate to={`/orders/${createdOrderId}/pay`} replace />;
   if (items.length === 0) return <Navigate to="/cart" replace />;
 
   const currentRate = rates.data?.data?.find(
@@ -106,8 +108,11 @@ export function CheckoutPage() {
         body: payload,
       });
 
+      // Commit the destination before clearing the external cart store so that
+      // the empty-cart guard cannot override the payment redirect.
+      flushSync(() => setCreatedOrderId(res.data.id));
       clearCart();
-      navigate(`/orders/${res.data.id}`);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch {
       // The mutation displays the API error and keeps the cart available for retry.
       return;
@@ -119,8 +124,7 @@ export function CheckoutPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-[#001524]">Checkout Pesanan</h1>
         <p className="text-xs text-[#6E7E8D]">
-          Pastikan rincian pengiriman benar. Stok akan dialokasikan saat pembayaran
-          simulasi berhasil.
+          Lengkapi pengiriman, lalu lanjutkan ke halaman pembayaran.
         </p>
       </div>
 
@@ -298,10 +302,30 @@ export function CheckoutPage() {
                 variant="teal"
                 size="lg"
                 className="w-full"
-                disabled={createOrder.isPending}
+                disabled={
+                  createOrder.isPending || (deliveryMethod === 'shipping' && !currentRate)
+                }
               >
-                {createOrder.isPending ? 'Memproses Order…' : 'Buat Pesanan & Bayar'}
+                {createOrder.isPending
+                  ? 'Menyiapkan pembayaran…'
+                  : 'Lanjut ke pembayaran'}
               </Button>
+              {deliveryMethod === 'shipping' && !currentRate && (
+                <p className="text-xs text-[#805448]" role="status">
+                  {rates.isLoading
+                    ? 'Memuat tarif pengiriman…'
+                    : 'Tarif pengiriman belum tersedia. Coba lagi atau pilih ambil di toko.'}
+                  {!rates.isLoading && (
+                    <button
+                      type="button"
+                      className="underline ml-1"
+                      onClick={() => void rates.refetch()}
+                    >
+                      Coba lagi
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </div>
