@@ -9,6 +9,9 @@ const revealSelector = [
   '.collection-card',
   '.shop-product',
   '.reason',
+  '.customer-story',
+  '.faq-intro',
+  '.faq-item',
   '.closing-banner h2',
   '.closing-banner .shop-button',
 ].join(',');
@@ -54,7 +57,7 @@ export function useStorefrontMotion() {
         )
           return;
         const group = element.closest(
-          '.collection-grid,.featured-grid,.reason-grid,.promise-grid',
+          '.collection-grid,.featured-grid,.reason-grid,.promise-grid,.stories-grid,.faq-list',
         );
         const index = group ? Array.from(group.children).indexOf(element) : 0;
         const picture = element.matches('.collection-card,.shop-product');

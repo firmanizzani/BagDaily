@@ -4,6 +4,222 @@
 @import '@fontsource/plus-jakarta-sans/600.css';
 @import '@fontsource/plus-jakarta-sans/700.css';
 
+/* Community sections share the storefront's type, spacing, and teal palette. */
+.home-stories {
+  padding-block: 32px 0;
+  background: var(--color-warm-white);
+  scroll-margin-top: 100px;
+}
+.store-home .home-stories .section-title {
+  margin-bottom: 12px;
+}
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.customer-story {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 22px 24px;
+  border: 1px solid var(--color-sand);
+  border-radius: 10px;
+  background: #fff;
+}
+.customer-story blockquote {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 1.75;
+}
+.story-quote-mark {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  color: var(--color-sand);
+  fill: currentColor;
+}
+.story-stars {
+  display: flex;
+  gap: 3px;
+  margin-top: 7px;
+  color: #db7900;
+}
+.customer-story figcaption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.story-avatar {
+  display: block;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--color-teal-dark);
+}
+.customer-story figcaption strong {
+  display: block;
+  font-size: 13px;
+}
+.customer-story figcaption p {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-teal-dark);
+}
+.customer-story figcaption p {
+  margin-top: 4px;
+}
+.home-faq {
+  padding-block: 64px 48px;
+  scroll-margin-top: 100px;
+}
+.store-home .home-faq .section-title {
+  margin-bottom: 14px;
+}
+.store-home .home-stories h2,
+.store-home .home-faq h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+}
+.home-faq .section-title p {
+  max-width: none;
+  line-height: 1.8;
+}
+.faq-contact-copy {
+  margin: 30px 0 10px;
+  font-size: 13px;
+  color: var(--color-teal-dark);
+}
+.faq-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-teal);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 44px;
+}
+.faq-contact:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.faq-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  min-width: 0;
+}
+.faq-column {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.faq-item {
+  background: #fff;
+  color: var(--color-ink);
+  border: 1px solid var(--color-sand);
+  border-radius: 8px;
+}
+.faq-item[open] {
+  background: #fffbf5;
+}
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 24px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary:hover {
+  color: var(--color-teal);
+}
+.faq-item summary svg {
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+.faq-item[open] summary svg {
+  transform: rotate(180deg);
+}
+.faq-answer {
+  padding: 0 24px 18px;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.faq-answer a {
+  color: var(--color-teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.faq-item summary:focus-visible,
+.faq-contact:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 4px;
+}
+@media (max-width: 767px) {
+  .home-stories {
+    padding-block: 30px 0;
+  }
+  .home-stories .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stories-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .customer-story {
+    gap: 16px;
+  }
+  .customer-story blockquote {
+    font-size: 15px;
+  }
+  .home-faq {
+    padding-block: 48px 36px;
+  }
+  .faq-list {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .store-home .home-stories h2,
+  .store-home .home-faq h2 {
+    font-size: 24px;
+  }
+  .home-faq .section-title {
+    margin-bottom: 12px;
+  }
+  .faq-contact-copy {
+    margin-top: 16px;
+    margin-bottom: 0;
+  }
+  .faq-item summary {
+    padding: 19px 18px;
+    font-size: 13px;
+  }
+  .faq-answer {
+    padding: 0 18px 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item summary svg {
+    transition: none;
+  }
+}
+
 :root {
   --color-primary: #001524;
   --color-teal: #15616d;
@@ -2904,17 +3120,6 @@ textarea {
   display: block;
   margin-top: 4px;
   font-size: 12px;
-}
-.guest-wishlist {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 7px 2px;
-  border-top: 1px solid #e5e9df;
-  font-size: 12px;
-}
-.guest-wishlist > svg:last-child {
-  margin-left: auto;
 }
 .account-layout {
   display: grid;

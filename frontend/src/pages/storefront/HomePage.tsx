@@ -12,6 +12,7 @@ import { useApi } from '@/hooks/api';
 import { useStorefrontMotion } from '@/hooks/useStorefrontMotion';
 import type { Product } from '@/types/api';
 import { ProductCard } from '@/components/storefront/ProductCard';
+import { HomeCommunity } from '@/components/storefront/HomeCommunity';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 
@@ -206,6 +207,7 @@ export function HomePage() {
           ))}
         </div>
       </section>
+      <HomeCommunity />
       <section className="closing-banner">
         <div className="shop-width">
           <h2>

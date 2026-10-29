@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronRight,
-  Heart,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -140,11 +139,6 @@ export function ProfileMenu() {
                   Belum punya akun? <strong>Daftar sekarang</strong>
                 </Link>
               </div>
-              <Link className="guest-wishlist" to="/wishlist" onClick={close}>
-                <Heart size={18} />
-                Lihat tas favoritmu
-                <ChevronRight size={15} />
-              </Link>
             </>
           )}
         </div>
