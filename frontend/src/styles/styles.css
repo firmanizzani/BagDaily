@@ -3807,3 +3807,303 @@ textarea {
     will-change: auto;
   }
 }
+
+/* Cashier payment and shared printable receipt. */
+.pos-noncash {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #405d57;
+}
+.pos-noncash label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  font-weight: 650;
+}
+.pos-noncash input {
+  margin-top: 4px;
+  accent-color: #00594f;
+}
+.pos-completed > .no-print {
+  margin-bottom: 24px;
+}
+.pos-receipt {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 28px;
+  background: #fff;
+  color: #182e2a;
+  border: 1px solid #dce3df;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.pos-receipt-header {
+  text-align: center;
+  padding-bottom: 20px;
+}
+.pos-receipt-header h2 {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.pos-receipt-header p {
+  color: #52655f;
+  margin: 2px 0 12px;
+}
+.pos-receipt-header > span {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  color: #00594f;
+  border: 1px solid #b9cec5;
+  border-radius: 4px;
+  padding: 3px 10px;
+}
+.pos-receipt dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0;
+}
+.pos-receipt dt {
+  color: #52655f;
+  flex-shrink: 0;
+}
+.pos-receipt dd {
+  text-align: right;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  margin: 0;
+  font-weight: 600;
+}
+.pos-receipt-meta {
+  border-top: 1px dashed #bdc9c2;
+  padding: 14px 0;
+}
+.pos-receipt-meta > div:first-child {
+  display: block;
+}
+.pos-receipt-meta > div:first-child dd {
+  text-align: left;
+  margin-top: 2px;
+  font-size: 11px;
+}
+.pos-receipt-items {
+  border-top: 1px dashed #bdc9c2;
+  border-bottom: 1px dashed #bdc9c2;
+  padding: 12px 0;
+}
+.pos-receipt-columns {
+  display: flex;
+  justify-content: space-between;
+  color: #52655f;
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+.pos-receipt-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 16px;
+  padding: 9px 0;
+  break-inside: avoid;
+}
+.pos-receipt-item strong {
+  overflow-wrap: anywhere;
+  font-weight: 650;
+}
+.pos-receipt-item > span {
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 650;
+}
+.pos-receipt-item small {
+  font-size: 11px;
+  color: #52655f;
+}
+.pos-receipt-sku {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+}
+.pos-receipt-totals {
+  padding: 14px 0 10px;
+}
+.pos-receipt-totals .pos-receipt-grand-total {
+  font-size: 20px;
+  padding-top: 10px;
+  align-items: baseline;
+}
+.pos-receipt-grand-total dt,
+.pos-receipt-grand-total dd {
+  font-weight: 800;
+  color: #182e2a;
+}
+.pos-receipt-payment {
+  border-bottom: 1px dashed #bdc9c2;
+  padding: 4px 0 18px;
+}
+.pos-receipt-footer {
+  padding-top: 20px;
+  text-align: center;
+  font-size: 11px;
+}
+.pos-receipt-footer p {
+  margin-top: 4px;
+  color: #52655f;
+}
+@media (max-width: 420px) {
+  .pos-receipt {
+    padding: 20px 16px;
+  }
+}
+@media print {
+  .pos-receipt.print-receipt {
+    width: 80mm;
+    max-width: 100% !important;
+    margin: 0 auto;
+    padding: 4mm !important;
+    border-radius: 0;
+    color: #000;
+    box-shadow: none;
+  }
+  .pos-receipt dt,
+  .pos-receipt small,
+  .pos-receipt-header p,
+  .pos-receipt-header > span,
+  .pos-receipt-columns,
+  .pos-receipt-footer p {
+    color: #000;
+  }
+  .pos-completed {
+    margin-top: 0;
+  }
+}
+
+.pos-payment-methods {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.pos-payment-methods legend {
+  font-size: 12px;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.pos-payment-methods > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.pos-payment-methods label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 74px;
+  padding: 10px 5px;
+  border: 1px solid #d7e1db;
+  border-radius: 6px;
+  color: #405d57;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: center;
+}
+.pos-payment-methods label.selected {
+  border-color: #00594f;
+  background: #eaf3ed;
+  color: #00594f;
+}
+.pos-payment-methods label:hover {
+  border-color: #00594f;
+}
+.pos-payment-methods label:focus-within {
+  outline: 2px solid #00594f;
+  outline-offset: 2px;
+}
+.pos-payment-methods input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.pos-payment-methods:disabled {
+  opacity: 0.6;
+}
+.pos-qris-demo {
+  text-align: center;
+  padding: 18px;
+  border: 1px solid #d7e1db;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+.pos-qris-demo > strong {
+  display: block;
+  font-size: 20px;
+  color: #182e2a;
+}
+.pos-qris-demo > strong:first-child {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+.pos-qris-demo span,
+.pos-bank-details > strong span {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: #885424;
+  background: #fff1d8;
+  border-radius: 3px;
+  padding: 3px 6px;
+  vertical-align: middle;
+}
+.pos-qris-demo img {
+  display: block;
+  width: 180px;
+  max-width: 100%;
+  height: auto;
+  margin: 8px auto;
+}
+.pos-noncash small {
+  font-size: 11px;
+  display: block;
+  color: #885424;
+  margin-top: 6px;
+}
+.pos-bank-details {
+  padding: 16px;
+  background: #f2f5f0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.pos-bank-details > strong,
+.pos-card-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #182e2a;
+}
+.pos-bank-details dl {
+  margin: 12px 0;
+}
+.pos-bank-details dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.pos-bank-details dd {
+  font-weight: 650;
+  text-align: right;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.pos-card-heading {
+  margin-bottom: 8px;
+}

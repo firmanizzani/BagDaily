@@ -64,3 +64,21 @@ describe('Zod schemas', async () => {
     expect(r.email).toBe('test@example.com');
   });
 });
+
+
+describe('POS payment methods', async () => {
+  const { posInputSchema } = await import('../src/utils/validation.js');
+  const items = [{ productId: '00000000-0000-0000-0000-000000000001', quantity: 1 }];
+  it('preserves cash as the default for existing clients', () => {
+    expect(posInputSchema.parse({ items, cashReceived: 200000 }).paymentMethod).toBe('cash');
+  });
+  it.each(['qris', 'bank_transfer', 'debit', 'credit'])('accepts %s without cash received', paymentMethod => {
+    expect(posInputSchema.parse({ items, paymentMethod }).paymentMethod).toBe(paymentMethod);
+    expect(posInputSchema.safeParse({ items, paymentMethod, cashReceived: 200000 }).success).toBe(false);
+  });
+  it('requires a valid cash amount and rejects unsupported methods', () => {
+    for (const body of [{ items }, { items, cashReceived: -1 }, { items, paymentMethod: 'card' }]) {
+      expect(posInputSchema.safeParse(body).success).toBe(false);
+    }
+  });
+});

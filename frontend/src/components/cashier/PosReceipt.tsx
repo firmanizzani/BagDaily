@@ -1,58 +1,102 @@
 import type { Order } from '@/types/api';
 import { formatRupiah } from '@/lib/utils';
+import { paymentMethodLabels } from '@/lib/payments';
 
 export interface PosReceiptProps {
   order: Order;
 }
 
 export function PosReceipt({ order }: PosReceiptProps) {
+  const isCash =
+    order.paymentMethod === 'cash' ||
+    (!order.paymentMethod && order.cashReceived !== null);
+  const itemCount = order.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
   return (
-    <div className="mx-auto max-w-sm rounded-lg border border-dashed border-[#001524]/30 bg-white p-6 font-mono text-xs text-[#001524] space-y-3 shadow-xs">
-      <div className="text-center border-b border-dashed border-[#001524]/20 pb-3">
-        <p className="font-black text-base">BAGDAILY</p>
-        <p className="text-[10px] text-[#6E7E8D]">Toko Tas UMKM Keseharian</p>
-        <p className="text-[10px] text-[#6E7E8D]">Jl. UMKM Kreatif No. 24, Jakarta</p>
-      </div>
-
-      <div className="text-[11px] space-y-0.5">
-        <p>No: {order.orderNumber}</p>
-        <p>Kasir: {order.cashierName || 'Kasir'}</p>
-        <p>Waktu: {new Date(order.createdAt).toLocaleString('id-ID')}</p>
-      </div>
-
-      <div className="border-t border-dashed border-[#001524]/20 pt-2 space-y-1.5">
-        {order.items?.map(it => (
-          <div key={it.id} className="flex justify-between">
-            <div className="min-w-0 pr-2">
-              <p className="font-bold truncate">{it.productNameSnapshot}</p>
-              <p className="text-[10px] text-[#6E7E8D]">
-                {it.quantity} × {it.unitPrice}
-              </p>
-            </div>
-            <span className="font-bold">{it.subtotal}</span>
+    <article className="pos-receipt print-receipt" aria-label="Struk transaksi BagDaily">
+      <header className="pos-receipt-header">
+        <h2>BagDaily</h2>
+        <p>Struk pembelian</p>
+        <span>{order.paymentStatus === 'paid' ? 'LUNAS' : 'BELUM DIBAYAR'}</span>
+      </header>
+      <dl className="pos-receipt-meta">
+        <div>
+          <dt>No. transaksi</dt>
+          <dd>{order.orderNumber}</dd>
+        </div>
+        <div>
+          <dt>Tanggal</dt>
+          <dd>
+            {new Date(order.createdAt).toLocaleString('id-ID', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}
+          </dd>
+        </div>
+        <div>
+          <dt>Kasir</dt>
+          <dd>{order.cashierName || '—'}</dd>
+        </div>
+      </dl>
+      <section className="pos-receipt-items" aria-label="Rincian belanja">
+        <div className="pos-receipt-columns">
+          <span>Produk</span>
+          <span>Jumlah</span>
+        </div>
+        {order.items?.map(item => (
+          <div className="pos-receipt-item" key={item.id}>
+            <strong>{item.productNameSnapshot}</strong>
+            <span>{formatRupiah(item.subtotal)}</span>
+            <small>
+              {item.quantity} × {formatRupiah(item.unitPrice)}
+            </small>
+            <small className="pos-receipt-sku">{item.skuSnapshot}</small>
           </div>
         ))}
-      </div>
-
-      <div className="border-t border-dashed border-[#001524]/20 pt-2 space-y-1 text-right">
-        <p className="flex justify-between font-bold text-sm">
-          <span>TOTAL:</span>
-          <span>{formatRupiah(order.total)}</span>
-        </p>
-        <p className="flex justify-between text-[11px]">
-          <span>TUNAI:</span>
-          <span>{formatRupiah(order.cashReceived || order.total)}</span>
-        </p>
-        <p className="flex justify-between text-[11px]">
-          <span>KEMBALI:</span>
-          <span>{formatRupiah(order.changeAmount || 0)}</span>
-        </p>
-      </div>
-
-      <div className="text-center border-t border-dashed border-[#001524]/20 pt-3 text-[10px] text-[#6E7E8D]">
-        <p>Terima kasih telah berbelanja di BagDaily!</p>
-        <p>Barang yang sudah dibeli dapat ditukar jika cacat produksi maks 2 hari.</p>
-      </div>
-    </div>
+      </section>
+      <dl className="pos-receipt-totals">
+        <div>
+          <dt>Subtotal ({itemCount} barang)</dt>
+          <dd>{formatRupiah(order.subtotal)}</dd>
+        </div>
+        {order.shippingCost > 0 && (
+          <div>
+            <dt>Pengiriman</dt>
+            <dd>{formatRupiah(order.shippingCost)}</dd>
+          </div>
+        )}
+        <div className="pos-receipt-grand-total">
+          <dt>Total</dt>
+          <dd>{formatRupiah(order.total)}</dd>
+        </div>
+      </dl>
+      <dl className="pos-receipt-payment">
+        <div>
+          <dt>Metode pembayaran</dt>
+          <dd>
+            {order.paymentMethod
+              ? paymentMethodLabels[order.paymentMethod]
+              : isCash
+                ? 'Tunai'
+                : '—'}
+          </dd>
+        </div>
+        {isCash && (
+          <>
+            <div>
+              <dt>Tunai diterima</dt>
+              <dd>{formatRupiah(order.cashReceived ?? order.total)}</dd>
+            </div>
+            <div>
+              <dt>Kembalian</dt>
+              <dd>{formatRupiah(order.changeAmount ?? 0)}</dd>
+            </div>
+          </>
+        )}
+      </dl>
+      <footer className="pos-receipt-footer">
+        <strong>Terima kasih sudah berbelanja!</strong>
+        <p>Simpan struk ini sebagai bukti pembelian.</p>
+      </footer>
+    </article>
   );
 }

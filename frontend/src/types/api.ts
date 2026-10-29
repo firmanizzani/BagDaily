@@ -55,7 +55,7 @@ export type PaymentStatus = 'unpaid' | 'paid';
 
 export type DeliveryMethod = 'shipping' | 'pickup';
 
-export type PaymentMethod = 'bank_transfer' | 'qris' | 'cash';
+export type PaymentMethod = 'bank_transfer' | 'qris' | 'cash' | 'debit' | 'credit';
 
 export type Courier = 'JNE' | 'J&T' | 'SiCepat';
 

@@ -210,3 +210,52 @@ describe('stock limits in shopping carts', () => {
     },
   );
 });
+
+describe('POS receipts', async () => {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { PosReceipt } = await import('./components/cashier/PosReceipt');
+  const order = {
+    orderNumber: 'BD-TEST',
+    createdAt: '2026-10-29T10:00:00Z',
+    cashierName: 'Test Cashier',
+    paymentStatus: 'paid',
+    subtotal: 318000,
+    total: 318000,
+    shippingCost: 0,
+    cashReceived: 350000,
+    changeAmount: 32000,
+    items: [
+      {
+        id: 'item',
+        productNameSnapshot: 'Long product name',
+        skuSnapshot: 'SKU-1',
+        quantity: 2,
+        unitPrice: 159000,
+        subtotal: 318000,
+      },
+    ],
+  };
+  it.each([
+    ['cash', 'Tunai'],
+    ['qris', 'QRIS'],
+    ['bank_transfer', 'Transfer Bank'],
+    ['debit', 'Kartu Debit'],
+    ['credit', 'Kartu Kredit'],
+  ] as const)(
+    'prints %s with correct currency and cash details',
+    (paymentMethod, label) => {
+      const html = renderToStaticMarkup(
+        createElement(PosReceipt, {
+          order: { ...order, paymentMethod } as import('./types/api').Order,
+        }),
+      );
+      expect(html).toContain(label);
+      expect(html).toContain('159.000');
+      expect(html).toContain('318.000');
+      expect(html).toContain('SKU-1');
+      expect(html.includes('Tunai diterima')).toBe(paymentMethod === 'cash');
+      expect(html.includes('Kembalian')).toBe(paymentMethod === 'cash');
+    },
+  );
+});

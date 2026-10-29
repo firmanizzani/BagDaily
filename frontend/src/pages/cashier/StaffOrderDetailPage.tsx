@@ -1,3 +1,4 @@
+import { PosReceipt } from '@/components/cashier/PosReceipt';
 import { useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAction, useApi } from '@/hooks/api';
@@ -30,71 +31,61 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
         </div>
         {receipt && <Button onClick={() => window.print()}>Cetak struk</Button>}
       </div>
-      <article className={receipt ? 'receipt print-receipt' : 'panel'}>
-        <h2>BagDaily</h2>
-        <p className="font-bold mt-3 break-all">{order.orderNumber}</p>
-        <p className="muted">{formatDate(order.createdAt)}</p>
-        {receipt && <p>Kasir: {order.cashierName || '—'}</p>}
-        <div className="summary-line">
-          <span>Status</span>
-          <strong>{statusLabels[order.status]}</strong>
-        </div>
-        <div className="summary-line">
-          <span>Pembayaran</span>
-          <strong>{order.paymentStatus === 'paid' ? 'Dibayar' : 'Belum dibayar'}</strong>
-        </div>
-        <div className="table-wrap mt-5">
-          <table>
-            <thead>
-              <tr>
-                <th>Produk / SKU</th>
-                <th>Jumlah</th>
-                <th>Harga</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items?.map(item => (
-                <tr key={item.id}>
-                  <td>
-                    {item.productNameSnapshot}
-                    <p className="muted">{item.skuSnapshot}</p>
-                  </td>
-                  <td>{item.quantity}</td>
-                  <td>{formatRupiah(item.unitPrice)}</td>
-                  <td>{formatRupiah(item.subtotal)}</td>
+      {receipt ? (
+        <PosReceipt order={order} />
+      ) : (
+        <article className="panel">
+          <h2>BagDaily</h2>
+          <p className="font-bold mt-3 break-all">{order.orderNumber}</p>
+          <p className="muted">{formatDate(order.createdAt)}</p>
+          <div className="summary-line">
+            <span>Status</span>
+            <strong>{statusLabels[order.status]}</strong>
+          </div>
+          <div className="summary-line">
+            <span>Pembayaran</span>
+            <strong>
+              {order.paymentStatus === 'paid' ? 'Dibayar' : 'Belum dibayar'}
+            </strong>
+          </div>
+          <div className="table-wrap mt-5">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produk / SKU</th>
+                  <th>Jumlah</th>
+                  <th>Harga</th>
+                  <th>Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="summary-line">
-          <span>Subtotal</span>
-          <strong>{formatRupiah(order.subtotal)}</strong>
-        </div>
-        <div className="summary-line">
-          <span>Pengiriman</span>
-          <strong>{formatRupiah(order.shippingCost)}</strong>
-        </div>
-        <div className="summary-line text-lg">
-          <span>Total</span>
-          <strong>{formatRupiah(order.total)}</strong>
-        </div>
-        {receipt ? (
-          <>
-            <div className="summary-line">
-              <span>Tunai</span>
-              <strong>{formatRupiah(order.cashReceived ?? 0)}</strong>
-            </div>
-            <div className="summary-line">
-              <span>Kembalian</span>
-              <strong>{formatRupiah(order.changeAmount ?? 0)}</strong>
-            </div>
-            <p className="mt-6 text-center text-sm">
-              Terima kasih telah berbelanja di BagDaily.
-            </p>
-          </>
-        ) : (
+              </thead>
+              <tbody>
+                {order.items?.map(item => (
+                  <tr key={item.id}>
+                    <td>
+                      {item.productNameSnapshot}
+                      <p className="muted">{item.skuSnapshot}</p>
+                    </td>
+                    <td>{item.quantity}</td>
+                    <td>{formatRupiah(item.unitPrice)}</td>
+                    <td>{formatRupiah(item.subtotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="summary-line">
+            <span>Subtotal</span>
+            <strong>{formatRupiah(order.subtotal)}</strong>
+          </div>
+          <div className="summary-line">
+            <span>Pengiriman</span>
+            <strong>{formatRupiah(order.shippingCost)}</strong>
+          </div>
+          <div className="summary-line text-lg">
+            <span>Total</span>
+            <strong>{formatRupiah(order.total)}</strong>
+          </div>
+
           <>
             <div className="notice mt-6">
               {order.deliveryMethod === 'pickup' ? (
@@ -133,8 +124,8 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
               </Button>
             )}
           </>
-        )}
-      </article>
+        </article>
+      )}
       {!receipt && (
         <section className="panel">
           <h2>Riwayat status</h2>

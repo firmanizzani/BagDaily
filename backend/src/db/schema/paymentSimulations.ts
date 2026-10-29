@@ -11,7 +11,7 @@ export const paymentSimulations = pgTable('payment_simulations', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   completedAt: timestamp('completed_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => ({
-  valid: check('payment_values_valid', sql`${t.status} = 'completed' and ${t.method} in ('cash','bank_transfer','qris')`),
+  valid: check('payment_values_valid', sql`${t.status} = 'completed' and ${t.method} in ('cash','bank_transfer','qris','debit','credit')`),
 }));
 
 export const payments = paymentSimulations;

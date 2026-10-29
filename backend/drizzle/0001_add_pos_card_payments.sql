@@ -1,0 +1,2 @@
+ALTER TABLE "payment_simulations" DROP CONSTRAINT "payment_values_valid";--> statement-breakpoint
+ALTER TABLE "payment_simulations" ADD CONSTRAINT "payment_values_valid" CHECK ("payment_simulations"."status" = 'completed' and "payment_simulations"."method" in ('cash','bank_transfer','qris','debit','credit'));

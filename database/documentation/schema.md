@@ -103,7 +103,7 @@ Pooler compatibility: Transaction Mode on port 6543 (`prepare: false`, `max: 1` 
 ### 8. `payment_simulations`
 - `id` uuid PK default gen_random_uuid()
 - `order_id` uuid NOT NULL UNIQUE FK -> orders(id)
-- `method` text NOT NULL CHECK in ('cash','bank_transfer','qris')
+- `method` text NOT NULL CHECK in ('cash','bank_transfer','qris','debit','credit')
 - `status` text NOT NULL DEFAULT 'completed' CHECK (status = 'completed')
 - `idempotency_key` uuid NOT NULL UNIQUE
 - `created_at`, `completed_at` timestamptz NOT NULL DEFAULT now()

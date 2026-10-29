@@ -8,6 +8,13 @@
       "when": 1793144770380,
       "tag": "0000_tan_chimera",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793287796441,
+      "tag": "0001_add_pos_card_payments",
+      "breakpoints": true
     }
   ]
 }

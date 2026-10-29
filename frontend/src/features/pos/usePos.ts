@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { request } from '@/services/apiClient';
-import type { Order } from '@/types/api';
+import type { Order, PaymentMethod } from '@/types/api';
 
 export interface PosCheckoutPayload {
   items: Array<{ productId: string; quantity: number }>;
-  cashReceived: number;
+  paymentMethod: PaymentMethod;
+  cashReceived?: number;
 }
 
 export function useCreatePosTransaction() {

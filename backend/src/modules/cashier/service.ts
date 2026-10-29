@@ -12,6 +12,7 @@ export async function pos(actor: string, key: string, input: PosInput) {
     actor,
     items: [...input.items].sort((a, b) => a.productId.localeCompare(b.productId)),
     cashReceived: input.cashReceived,
+    paymentMethod: input.paymentMethod,
   });
 
   const id = await transaction(async (tx) => {
@@ -27,7 +28,9 @@ export async function pos(actor: string, key: string, input: PosInput) {
 
     const items = await snapshots(tx, input.items);
     const total = items.reduce((sum, i) => sum + i.subtotal, 0);
-    if (input.cashReceived < total) {
+    const isCash = input.paymentMethod === 'cash';
+    const cashReceived = isCash ? (input.cashReceived ?? 0) : null;
+    if (isCash && cashReceived! < total) {
       conflict('INSUFFICIENT_CASH', 'Cash received is below total');
     }
 
@@ -39,19 +42,19 @@ export async function pos(actor: string, key: string, input: PosInput) {
       subtotal: total,
       total,
       deliveryMethod: 'pickup',
-      cashReceived: input.cashReceived,
-      changeAmount: input.cashReceived - total,
+      cashReceived,
+      changeAmount: isCash ? cashReceived! - total : null,
       idempotencyKey: key,
       requestHash,
     }).returning();
 
     await tx.insert(orderItems).values(items.map((i) => ({ ...i, orderId: inserted.id })));
     await deduct(tx, inserted.id, actor);
-    await tx.insert(payments).values({ orderId: inserted.id, method: 'cash', idempotencyKey: key });
+    await tx.insert(payments).values({ orderId: inserted.id, method: input.paymentMethod, idempotencyKey: key });
     await tx.update(orders).set({
       status: 'completed',
       paymentStatus: 'paid',
-      paymentMethod: 'cash',
+      paymentMethod: input.paymentMethod,
       paidAt: new Date(),
       updatedAt: new Date(),
     }).where(eq(orders.id, inserted.id));
