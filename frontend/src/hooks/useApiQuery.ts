@@ -10,6 +10,7 @@ export function useApiQuery<T>(path: string, enabled = true) {
       '/admin/products',
       '/admin/inventory',
       '/admin/orders',
+      '/admin/customers',
       '/cashier/transactions',
       '/orders/my',
     ].includes(path.split('?')[0] || '')

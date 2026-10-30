@@ -25,6 +25,8 @@ import { AdminInventoryPage } from '@/pages/admin/AdminInventoryPage';
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 import { AdminShippingPage } from '@/pages/admin/AdminShippingPage';
 import { AdminReportsPage } from '@/pages/admin/AdminReportsPage';
+import { AdminCustomersPage } from '@/pages/admin/AdminCustomersPage';
+import { AdminCustomerTransactionsPage } from '@/pages/admin/AdminCustomerTransactionsPage';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 
 const AdminDashboardPage = lazy(() =>
@@ -81,6 +83,8 @@ export function AppRoutes() {
           <Route path="admin" element={<AdminDashboardPage />} />
           <Route path="admin/orders" element={<StaffOrdersPage />} />
           <Route path="admin/orders/:id" element={<StaffOrderDetailPage />} />
+          <Route path="admin/customers" element={<AdminCustomersPage />} />
+          <Route path="admin/customers/:id" element={<AdminCustomerTransactionsPage />} />
           <Route path="cashier/orders" element={<LegacyOnlineOrderRedirect />} />
           <Route path="cashier/orders/:id" element={<LegacyOnlineOrderRedirect />} />
           <Route path="admin/settings" element={<ProfilePage />} />

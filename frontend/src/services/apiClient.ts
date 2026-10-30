@@ -1,4 +1,9 @@
-import type { ApiResponse, SalesReportSummary, TopProductItem } from '@/types/api';
+import type {
+  ApiResponse,
+  CustomerSummary,
+  SalesReportSummary,
+  TopProductItem,
+} from '@/types/api';
 
 export class ApiError extends Error {
   constructor(
@@ -23,6 +28,7 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
 export interface Result<T> extends ApiResponse<T> {
   summary?: SalesReportSummary;
   products?: TopProductItem[];
+  customer?: CustomerSummary;
 }
 
 export async function request<T>(

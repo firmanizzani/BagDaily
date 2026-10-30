@@ -62,6 +62,8 @@ describe('online orders belong to admins and offline POS belongs to cashiers', (
 
   it.each([
     ['/api/admin/orders', 'GET'],
+    ['/api/admin/customers', 'GET'],
+    [`/api/admin/customers/${id}/orders`, 'GET'],
     [`/api/admin/orders/${id}`, 'GET'],
     [`/api/admin/orders/${id}/status`, 'PATCH'],
     ['/api/cashier/orders', 'GET'],
@@ -77,6 +79,7 @@ describe('online orders belong to admins and offline POS belongs to cashiers', (
 
   it.each([['pelanggan', 403], [undefined, 401]] as const)('blocks unauthorized online order management for %s', async (role, status) => {
     expect((await request('/api/admin/orders', role)).status).toBe(status);
+    expect((await request('/api/admin/customers', role)).status).toBe(status);
   });
 
   it('allows admins to list, inspect, and process online orders', async () => {

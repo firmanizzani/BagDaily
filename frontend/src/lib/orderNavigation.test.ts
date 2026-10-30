@@ -5,7 +5,7 @@ describe('order navigation by role', () => {
   it('sends admins to online order management', () => {
     expect(orderNavigation('admin')).toEqual({
       to: '/admin/orders',
-      label: 'Pesanan online',
+      label: 'Pesanan',
     });
   });
   it('sends cashiers to offline transaction history', () => {

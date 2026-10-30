@@ -50,6 +50,8 @@ Admin: Dashboard, Produk, Pesanan, Laporan, Pengaturan. Kategori dan inventaris 
 
 Pesanan online dikelola khusus admin melalui `/admin/orders`, termasuk persiapan barang, pengiriman, dan pengambilan di toko. Kasir hanya menangani POS, melihat produk, riwayat transaksi offline, dan mencetak struk. Backend menolak akses kasir ke pesanan online, termasuk melalui endpoint lama `/api/cashier/orders`; alias lama tetap tersedia khusus admin. Pelanggan tetap hanya dapat membaca pesanan miliknya sendiri.
 
+Halaman admin `/admin/customers` menampilkan pelanggan, pencarian nama/email/telepon, filter status akun, jumlah pesanan, serta total belanja. Klik pelanggan atau tombol riwayat untuk membuka `/admin/customers/:id`. Jumlah pesanan mencakup semua status; total belanja hanya menghitung transaksi berbayar. Riwayat hanya memuat transaksi yang terhubung ke akun tersebut, sehingga transaksi POS tanpa `user_id` tidak dikaitkan ke pelanggan secara otomatis. Kedua endpoint pelanggan dibatasi khusus admin.
+
 Kasir: pilih/cari/filter produk, jumlah barang, pembayaran Tunai, QRIS, Transfer Bank, Kartu Debit, atau Kartu Kredit. Tunai menyediakan nominal cepat dan kembalian. QRIS menampilkan QR dummy berisi teks demo; transfer menampilkan rekening contoh. Keduanya ditandai simulasi dan tidak dapat digunakan untuk pembayaran asli. Debit/kredit dicatat setelah kasir mengonfirmasi pembayaran berhasil di EDC. Metode pembayaran disimpan pada transaksi dan ditampilkan pada struk yang sama di kasir maupun riwayat, dengan format cetak 80 mm.
 
 Setelah memperbarui aplikasi, jalankan `npm run db:migrate` dari `backend/` untuk mengizinkan metode debit/kredit pada database.

@@ -12,6 +12,7 @@ import {
   Settings,
   ShoppingBag,
   Store,
+  UsersRound,
   X,
 } from 'lucide-react';
 import { useUser } from '@/hooks/api';
@@ -41,7 +42,8 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
     ? [
         { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/admin/products', icon: ShoppingBag, label: 'Produk' },
-        { to: '/admin/orders', icon: Package, label: 'Pesanan online' },
+        { to: '/admin/orders', icon: Package, label: 'Pesanan' },
+        { to: '/admin/customers', icon: UsersRound, label: 'Pelanggan' },
         { to: '/admin/reports', icon: BarChart3, label: 'Laporan' },
       ]
     : [
@@ -56,12 +58,14 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
   const current =
     location.pathname === '/pos'
       ? 'Kasir'
-      : productSection
-        ? 'Produk'
-        : settingsSection
-          ? 'Pengaturan'
-          : links.find(l => l.to === location.pathname)?.label ||
-            (location.pathname.endsWith('settings') ? 'Pengaturan' : 'Detail pesanan');
+      : location.pathname.startsWith('/admin/customers/')
+        ? 'Transaksi pelanggan'
+        : productSection
+          ? 'Produk'
+          : settingsSection
+            ? 'Pengaturan'
+            : links.find(l => l.to === location.pathname)?.label ||
+              (location.pathname.endsWith('settings') ? 'Pengaturan' : 'Detail pesanan');
   return (
     <div className="staff-shell">
       <button
@@ -85,7 +89,10 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
               className={({ isActive }) =>
                 isActive ||
                 (to === '/admin/products' && productSection) ||
-                (to === '/admin/orders' && location.pathname.startsWith('/admin/orders/'))
+                (to === '/admin/orders' &&
+                  location.pathname.startsWith('/admin/orders/')) ||
+                (to === '/admin/customers' &&
+                  location.pathname.startsWith('/admin/customers/'))
                   ? 'active'
                   : ''
               }

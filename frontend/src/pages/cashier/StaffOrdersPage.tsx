@@ -28,7 +28,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
     <div className="space-y-6">
       <div className="page-heading">
         <div>
-          <h1>{history ? 'Riwayat transaksi POS' : 'Pesanan online'}</h1>
+          <h1>{history ? 'Riwayat transaksi POS' : 'Pesanan'}</h1>
           <p className="muted">
             {history
               ? 'Lihat detail transaksi dan cetak ulang struk.'
