@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { env } from "../../config/env.js";
 import { AppError, badRequest } from "../../utils/errors.js";
+import { imageUrlFromPath } from './image-url.js';
 
 // Prefer the working IPv4 route while retaining DNS fallback for other hosts.
 setDefaultResultOrder("ipv4first");
@@ -34,10 +35,16 @@ export async function saveProductImage(
   data: Buffer,
   extension: string,
   mime: string,
+  slug?: string,
 ) {
-  const folder = id.startsWith("avatars/") ? id : `products/${id}`;
-  const path = `${folder}/${randomUUID()}.${extension}`;
-  const imageUrl = `/api/media/products/${path.replace(/^products\//, "")}`;
+  const profile = id.startsWith("avatars/");
+  const readable = slug?.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 180);
+  const folder = profile ? id : '';
+  const filename = !profile
+    ? `${readable || id}-${randomUUID().replaceAll('-', '').slice(0, 12)}`
+    : randomUUID();
+  const path = `${folder ? `${folder}/` : ''}${filename}.${extension}`;
+  const imageUrl = imageUrlFromPath(path)!;
   if (cloud) {
     const { error } = await cloud.storage
       .from(bucketFor(path))

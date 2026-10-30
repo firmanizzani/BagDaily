@@ -70,6 +70,17 @@ describe('private storage image delivery', () => {
     expect((await fetch(`${url}/${productId}/photo.png`)).status).toBe(401);
     expect(mocks.read).not.toHaveBeenCalled();
   });
+  it('serves a product image stored directly at bucket root', async () => {
+    mocks.row = { path: 'arlo-crossbody-abc123.png', isActive: true };
+    const response = await fetch(`${url}/arlo-crossbody-abc123.png`);
+    expect(response.status).toBe(200);
+    expect(mocks.read).toHaveBeenCalledWith('arlo-crossbody-abc123.png');
+  });
+  it('rejects a filename that does not match the product record', async () => {
+    mocks.row = { path: 'arlo-crossbody-current.png', isActive: true };
+    expect((await fetch(`${url}/arlo-crossbody-old.png`)).status).toBe(404);
+    expect(mocks.read).not.toHaveBeenCalled();
+  });
   it('allows admins to preview inactive products with private caching', async () => {
     mocks.row = { path: `products/${productId}/photo.png`, isActive: false };
     const response = await fetch(`${url}/${productId}/photo.png`, { headers: { authorization: 'admin' } });

@@ -14,7 +14,6 @@ export const products = pgTable('products', {
   stock: integer('stock').notNull().default(0),
   minimumStock: integer('minimum_stock').notNull().default(5),
   imagePath: text('image_path'),
-  imageUrl: text('image_url'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

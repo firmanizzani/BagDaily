@@ -239,7 +239,7 @@ export function CheckoutPage() {
                 </h2>
                 <p className="text-xs text-[#6E7E8D] leading-relaxed">
                   Gerai BagDaily: Jl. UMKM Kreatif No. 24, Jakarta Selatan. Bawa bukti
-                  order setelah status berubah menjadi &quot;Siap Diambil/Dikemas&quot;.
+                  order setelah status berubah menjadi &quot;Siap diambil&quot;.
                 </p>
               </div>
             )}

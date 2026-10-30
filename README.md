@@ -86,11 +86,15 @@ Foto AI adalah ilustrasi katalog, bukan dokumentasi produk fisik yang telah dive
 
 ## Penyimpanan foto
 
-Foto produk dan foto profil memakai dua bucket **privat** Supabase Storage: `SUPABASE_STORAGE_BUCKET=product-images` dan `SUPABASE_PROFILE_STORAGE_BUCKET=profile-images`. Foto produk berada di `product-images/products/<productId>/<nama-unik>`, sedangkan foto profil berada di `profile-images/avatars/<userId>/<nama-unik>`. Atur batas masing-masing bucket 3 MiB dan format `image/jpeg`, `image/png`, serta `image/webp`. `SUPABASE_SERVICE_ROLE_KEY` hanya tersedia di backend.
+Foto produk dan foto profil memakai dua bucket **privat** Supabase Storage: `SUPABASE_STORAGE_BUCKET=product-images` dan `SUPABASE_PROFILE_STORAGE_BUCKET=profile-images`. Foto produk berada langsung di bucket `product-images` dengan nama seperti `arlo-crossbody-a83f21c94b70.png`, tanpa subfolder. Foto profil berada di `profile-images/avatars/<userId>/<nama-unik>`. Atur batas masing-masing bucket 3 MiB dan format `image/jpeg`, `image/png`, serta `image/webp`. `SUPABASE_SERVICE_ROLE_KEY` hanya tersedia di backend.
 
-Backend menyajikan foto melalui `/api/media/products/...`: foto katalog aktif dapat dilihat pengunjung, foto produk nonaktif hanya admin, dan foto profil hanya pemilik akun yang sedang login. Database menyimpan path file dan URL backend yang stabil. Tidak diperlukan bucket publik atau tautan Storage publik. Pada development tanpa Supabase Storage, file disimpan di `backend/uploads/product-images`; folder ini tidak masuk Git. Produksi memerlukan Supabase Storage.
+Backend menyajikan foto melalui `/api/media/products/...`: foto katalog aktif dapat dilihat pengunjung, foto produk nonaktif hanya admin, dan foto profil hanya pemilik akun yang sedang login. Tabel `products` hanya menyimpan `image_path`; properti `imageUrl` dihitung dari path tersebut pada semua respons produk. Migrasi `0003_derive_product_image_urls` menghapus kolom `image_url` yang sebelumnya berulang. Tidak diperlukan bucket publik atau tautan Storage publik. Pada development tanpa Supabase Storage, file disimpan di `backend/uploads/product-images`; folder ini tidak masuk Git. Produksi memerlukan Supabase Storage.
 
 Admin dapat memilih foto di form Tambah/Edit Produk. Setelah data produk tersimpan, foto diunggah otomatis; jika upload gagal, form tetap terbuka untuk mencoba lagi tanpa membuat produk duplikat. Pengguna dapat memilih, melihat pratinjau, menyimpan, mengganti, dan menghapus foto melalui Profil saya. Migrasi `0002_add_user_avatars` menambahkan kolom penyimpan path dan URL foto profil.
+
+Untuk memindahkan 18 foto katalog bawaan ke Storage, jalankan `scripts/export-catalog-images.ps1` dari root proyek, lalu `npx tsx scripts/upload-catalog-images.ts` dari folder backend. Script memisahkan lembar katalog sesuai pemetaan produk, memverifikasi isi setiap upload, dan menghubungkan hasilnya ke database. Produk yang sudah punya foto dilewati. File hasil pemisahan dan catatan import berada di `backend/uploads/catalog-import` yang tidak masuk Git.
+
+Untuk merapikan upload lama dari subfolder menjadi file langsung dalam bucket, jalankan `npx tsx scripts/flatten-product-images.ts` dari folder backend. Setiap file baru diverifikasi sebelum path database diperbarui dan file lama dihapus. Cadangan pemetaan path disimpan di `backend/uploads/catalog-import`.
 
 ## Performa dan verifikasi
 

@@ -18,6 +18,7 @@ import { useUser } from '@/hooks/api';
 import { useLogout } from '@/features/auth/useAuth';
 import { LoadingState } from '@/components/shared/states';
 import { Button } from '@/components/ui/button';
+import { formatShortDate } from '@/lib/utils';
 export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir')[] }) {
   const { data: user, isLoading } = useUser();
   const logout = useLogout();
@@ -148,12 +149,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
               <i /> Stok tersinkronisasi
             </span>
             <span className="topbar-date">
-              {new Intl.DateTimeFormat('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-                timeZone: 'Asia/Jakarta',
-              }).format(new Date())}
+              {formatShortDate(new Date().toISOString())}
             </span>
             <Link
               to={admin ? '/admin/settings' : '/cashier/settings'}

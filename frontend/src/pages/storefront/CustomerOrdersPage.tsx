@@ -6,6 +6,7 @@ import type { Order } from '@/types/api';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 import { formatDate, formatRupiah } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { orderStatusLabel } from '@/lib/orders';
 
 export function CustomerOrdersPage() {
   const [page, setPage] = useState(1);
@@ -65,9 +66,9 @@ export function CustomerOrdersPage() {
         >
           <option value="">Semua Status</option>
           <option value="awaiting_payment">Menunggu Pembayaran</option>
-          <option value="awaiting_confirmation">Menunggu Konfirmasi</option>
+          <option value="awaiting_confirmation">Menunggu Diproses</option>
           <option value="confirmed">Dikonfirmasi</option>
-          <option value="packed">Dikemas</option>
+          <option value="packed">Siap Dikirim / Diambil</option>
           <option value="shipped">Dikirim</option>
           <option value="completed">Selesai</option>
           <option value="cancelled">Dibatalkan</option>
@@ -112,7 +113,7 @@ export function CustomerOrdersPage() {
                         : 'bg-amber-100 text-amber-900'
                   }`}
                 >
-                  {order.status.replace('_', ' ')}
+                  {orderStatusLabel(order)}
                 </span>
               </div>
 

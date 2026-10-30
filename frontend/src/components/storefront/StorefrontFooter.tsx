@@ -1,6 +1,7 @@
 import { BrandLogo } from '@/components/shared/BrandLogo';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail } from 'lucide-react';
+import { APP_TIME_ZONE } from '@/lib/utils';
 export function StorefrontFooter() {
   return (
     <footer className="shop-footer" id="kontak">
@@ -49,7 +50,14 @@ export function StorefrontFooter() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} BagDaily. Setiap langkah punya cerita.</span>
+          <span>
+            ©{' '}
+            {new Intl.DateTimeFormat('en', {
+              year: 'numeric',
+              timeZone: APP_TIME_ZONE,
+            }).format(new Date())}{' '}
+            BagDaily. Setiap langkah punya cerita.
+          </span>
           <span>Dibuat dengan perhatian, dipakai setiap hari.</span>
         </div>
       </div>

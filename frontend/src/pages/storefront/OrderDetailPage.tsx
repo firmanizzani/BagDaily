@@ -14,7 +14,7 @@ import {
 } from '@/components/storefront/OnlinePaymentPanel';
 import { formatDate, formatRupiah } from '@/lib/utils';
 import { paymentMethodLabels } from '@/lib/payments';
-import { statusLabels } from '@/lib/orders';
+import { orderStatusLabel } from '@/lib/orders';
 
 export function OrderDetailPage({ paymentOnly = false }: { paymentOnly?: boolean }) {
   const { id } = useParams<{ id: string }>();
@@ -123,7 +123,7 @@ function OrderDetails({
             cancelled ? 'order-payment-status cancelled' : 'order-payment-status'
           }
         >
-          {statusLabels[order.status]}
+          {orderStatusLabel(order)}
         </span>
       </header>
       <div className="order-payment-layout">

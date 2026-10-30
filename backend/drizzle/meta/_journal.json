@@ -22,6 +22,13 @@
       "when": 1793316518241,
       "tag": "0002_add_user_avatars",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793318406742,
+      "tag": "0003_derive_product_image_urls",
+      "breakpoints": true
     }
   ]
 }

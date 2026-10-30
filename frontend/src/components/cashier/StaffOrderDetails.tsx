@@ -2,7 +2,7 @@ import { PosReceipt } from '@/components/cashier/PosReceipt';
 import type { Order } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { formatDate, formatRupiah } from '@/lib/utils';
-import { nextStatus, statusLabels } from '@/lib/orders';
+import { nextStatus, nextStatusAction, orderStatusLabel } from '@/lib/orders';
 
 export interface StaffOrderDetailsProps {
   order: Order;
@@ -27,7 +27,7 @@ export function StaffOrderDetails({
       <p className="muted">{formatDate(order.createdAt)}</p>
       <div className="summary-line">
         <span>Status</span>
-        <strong>{statusLabels[order.status]}</strong>
+        <strong>{orderStatusLabel(order)}</strong>
       </div>
       <div className="summary-line">
         <span>Pembayaran</span>
@@ -94,7 +94,7 @@ export function StaffOrderDetails({
             disabled={isUpdating}
             onClick={() => onUpdateStatus(next)}
           >
-            {isUpdating ? 'Menyimpan…' : `Ubah: ${statusLabels[next]}`}
+            {isUpdating ? 'Menyimpan…' : nextStatusAction(order)}
           </Button>
         )}
       </>

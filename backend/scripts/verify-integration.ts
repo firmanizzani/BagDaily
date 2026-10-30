@@ -154,7 +154,7 @@ try {
     (await api("/admin/dashboard/overview", "admin")).data.lowStockProducts,
     before.lowStockProducts + 1,
   );
-  for (const status of ["confirmed", "packed", "shipped", "completed"]) {
+  for (const status of ["packed", "shipped", "completed"]) {
     const updated = (
       await api(`/cashier/orders/${order.id}/status`, "kasir", "PATCH", {
         status,

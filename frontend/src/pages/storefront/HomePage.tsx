@@ -130,7 +130,14 @@ export function HomePage() {
               key={c.slug}
               to={`/catalog?category=${c.slug}`}
             >
-              <ProductPhoto name={c.product} className="collection-photo" />
+              <ProductPhoto
+                name={c.product}
+                src={
+                  products.data?.data.find(product => product.name === c.product)
+                    ?.imageUrl
+                }
+                className="collection-photo"
+              />
               <div>
                 <h3>{c.name}</h3>
                 <p>{c.text}</p>

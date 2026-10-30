@@ -1,6 +1,6 @@
 import { BrandLogo } from '@/components/shared/BrandLogo';
 import type { Order } from '@/types/api';
-import { formatRupiah } from '@/lib/utils';
+import { formatDate, formatRupiah } from '@/lib/utils';
 import { paymentMethodLabels } from '@/lib/payments';
 
 export interface PosReceiptProps {
@@ -28,12 +28,7 @@ export function PosReceipt({ order }: PosReceiptProps) {
         </div>
         <div>
           <dt>Tanggal</dt>
-          <dd>
-            {new Date(order.createdAt).toLocaleString('id-ID', {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })}
-          </dd>
+          <dd>{formatDate(order.createdAt)}</dd>
         </div>
         <div>
           <dt>Kasir</dt>

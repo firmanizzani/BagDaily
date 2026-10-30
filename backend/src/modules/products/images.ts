@@ -1,11 +1,11 @@
-import { Router, type Response } from 'express';
-import { eq } from 'drizzle-orm';
+import { Router, type Request, type Response } from 'express';
+import { eq, inArray } from 'drizzle-orm';
+import { z } from 'zod';
 import { db } from '../../db/index.js';
 import { products, users } from '../../db/schema/index.js';
 import { authenticate } from '../../middleware/auth.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { notFound } from '../../utils/errors.js';
-import { idSchema } from '../../utils/validation.js';
 import { readProductImage } from './media.js';
 
 const router = Router();
@@ -29,12 +29,9 @@ router.get('/avatars/:userId/:filename', a(authenticate), a(async (req, res) => 
   await sendImage(res, user.path, true);
 }));
 
-// Catalog images remain visible to shoppers; storage credentials stay on the server.
-router.get('/:productId/:filename', a(async (req, res) => {
-  const id = idSchema.parse(req.params['productId']);
+async function sendProductImage(req: Request, res: Response, expected: string) {
   const [product] = await db.select({ path: products.imagePath, isActive: products.isActive }).from(products)
-    .where(eq(products.id, id));
-  const expected = `${id}/${req.params['filename']}`;
+    .where(inArray(products.imagePath, [expected, `products/${expected}`, `local/${expected}`, `local/products/${expected}`]));
   // Continue serving earlier uploads stored without the products/ prefix.
   const stored = product?.path?.replace(/^local\//, '').replace(/^products\//, '');
   if (!product?.path || stored !== expected) notFound('Foto tidak ditemukan.');
@@ -43,6 +40,20 @@ router.get('/:productId/:filename', a(async (req, res) => {
     if (req.user?.role !== 'admin') notFound('Foto tidak ditemukan.');
   }
   await sendImage(res, product.path, !product.isActive);
+}
+
+const filenameSchema = z.string().max(240).regex(/^[a-z0-9-]+\.(png|jpe?g|webp)$/);
+
+// New product files live directly in the bucket; keep legacy folder URLs readable.
+router.get('/:filename', a(async (req, res) => {
+  const filename = filenameSchema.parse(req.params['filename']);
+  await sendProductImage(req, res, filename);
+}));
+
+router.get('/:productId/:filename', a(async (req, res) => {
+  const folder = z.string().min(1).max(180).regex(/^[a-z0-9-]+$/).parse(req.params['productId']);
+  const filename = filenameSchema.parse(req.params['filename']);
+  await sendProductImage(req, res, `${folder}/${filename}`);
 }));
 
 export default router;

@@ -4,6 +4,7 @@ import { db } from "../../db/index.js";
 import { categories, products } from "../../db/schema/index.js";
 import { paginated } from "../../utils/response.js";
 import { notFound } from "../../utils/errors.js";
+import { withProductImageUrl } from './image-url.js';
 
 const filters = z.object({
   search: z.string().max(100).optional(),
@@ -64,7 +65,6 @@ export async function getProducts(
       stock: products.stock,
       minimumStock: products.minimumStock,
       imagePath: products.imagePath,
-      imageUrl: products.imageUrl,
       isActive: products.isActive,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -86,7 +86,7 @@ export async function getProducts(
     total = count.count;
   }
   return paginated(
-    rows.map(({ totalCount: _totalCount, ...row }) => row),
+    rows.map(({ totalCount: _totalCount, ...row }) => withProductImageUrl(row)),
     total,
     f.page,
     f.limit,
@@ -107,7 +107,6 @@ export async function getProduct(id: string) {
       stock: products.stock,
       minimumStock: products.minimumStock,
       imagePath: products.imagePath,
-      imageUrl: products.imageUrl,
       isActive: products.isActive,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
@@ -122,5 +121,5 @@ export async function getProduct(id: string) {
       ),
     );
   if (!p) notFound("Product not found");
-  return p;
+  return withProductImageUrl(p);
 }

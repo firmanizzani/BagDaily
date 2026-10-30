@@ -6,7 +6,7 @@ import type { Order } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 import { formatDate, formatRupiah } from '@/lib/utils';
-import { nextStatus, statusLabels } from '@/lib/orders';
+import { nextStatus, nextStatusAction, orderStatusLabel } from '@/lib/orders';
 
 export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean }) {
   const { id } = useParams();
@@ -40,7 +40,7 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
           <p className="muted">{formatDate(order.createdAt)}</p>
           <div className="summary-line">
             <span>Status</span>
-            <strong>{statusLabels[order.status]}</strong>
+            <strong>{orderStatusLabel(order)}</strong>
           </div>
           <div className="summary-line">
             <span>Pembayaran</span>
@@ -102,6 +102,13 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
                 </>
               )}
             </div>
+            {(order.status === 'awaiting_confirmation' ||
+              order.status === 'confirmed') && (
+              <p className="muted mt-3">
+                Periksa produk dan jumlahnya. Lanjutkan setelah semua barang siap{' '}
+                {order.deliveryMethod === 'pickup' ? 'diambil' : 'dikirim'}.
+              </p>
+            )}
             {next && order.paymentStatus === 'paid' && (
               <Button
                 className="mt-5"
@@ -120,7 +127,7 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
                   }
                 }}
               >
-                {action.isPending ? 'Menyimpan…' : `Ubah: ${statusLabels[next]}`}
+                {action.isPending ? 'Menyimpan…' : nextStatusAction(order)}
               </Button>
             )}
           </>
@@ -132,7 +139,12 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
           <ol className="timeline">
             {order.history?.map(item => (
               <li key={item.id}>
-                <strong>{statusLabels[item.newStatus]}</strong>
+                <strong>
+                  {orderStatusLabel({
+                    status: item.newStatus,
+                    deliveryMethod: order.deliveryMethod,
+                  })}
+                </strong>
                 <p className="muted">{formatDate(item.createdAt)}</p>
               </li>
             ))}

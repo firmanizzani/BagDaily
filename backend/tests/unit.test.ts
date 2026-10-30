@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { validTransition } from '../src/modules/orders/service.js';
 
 describe('validTransition', () => {
-  it('allows awaiting_confirmation → confirmed', () => { expect(validTransition('awaiting_confirmation', 'confirmed', 'shipping')).toBe(true); });
+  it.each(['shipping', 'pickup'])('combines confirmation and packing for %s', delivery => { expect(validTransition('awaiting_confirmation', 'packed', delivery)).toBe(true); });
+  it('does not require a new confirmed step', () => { expect(validTransition('awaiting_confirmation', 'confirmed', 'shipping')).toBe(false); });
   it('allows confirmed → packed', () => { expect(validTransition('confirmed', 'packed', 'shipping')).toBe(true); });
   it('allows packed → shipped for shipping', () => { expect(validTransition('packed', 'shipped', 'shipping')).toBe(true); });
   it('allows packed → completed for pickup', () => { expect(validTransition('packed', 'completed', 'pickup')).toBe(true); });
@@ -11,6 +12,10 @@ describe('validTransition', () => {
   it('disallows awaiting_payment → confirmed', () => { expect(validTransition('awaiting_payment', 'confirmed', 'shipping')).toBe(false); });
   it('disallows completed → anything', () => { expect(validTransition('completed', 'cancelled', 'shipping')).toBe(false); });
   it('disallows skipping steps', () => { expect(validTransition('confirmed', 'shipped', 'shipping')).toBe(false); });
+  it('blocks processing unpaid orders', () => { expect(validTransition('awaiting_payment', 'packed', 'shipping')).toBe(false); });
+  it.each(['shipping', 'pickup'])('cannot finish %s orders before they are ready', delivery => { expect(validTransition('awaiting_confirmation', 'completed', delivery)).toBe(false); });
+  it('requires dispatch before completing a shipping order', () => { expect(validTransition('packed', 'completed', 'shipping')).toBe(false); });
+  it('does not offer a dispatch step for pickup', () => { expect(validTransition('awaiting_confirmation', 'shipped', 'pickup')).toBe(false); });
 });
 
 describe('hashObject deterministic', async () => {

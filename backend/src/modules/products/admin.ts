@@ -10,6 +10,7 @@ import { productInputSchema, idSchema } from '../../utils/validation.js';
 import { notFound, badRequest } from '../../utils/errors.js';
 import { saveProductImage, removeProductImage } from './media.js';
 import { getProducts } from './service.js';
+import { withProductImageUrl } from './image-url.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,7 +46,7 @@ router.post('/', a(async (req, res) => {
       createdBy: req.user!.id,
     });
   }
-  res.status(201).json(ok(product));
+  res.status(201).json(ok(withProductImageUrl(product)));
 }));
 
 router.patch('/:id', a(async (req, res) => {
@@ -61,7 +62,7 @@ router.patch('/:id', a(async (req, res) => {
     updatedAt: new Date(),
   }).where(eq(products.id, id)).returning();
   if (!product) notFound('Product not found');
-  res.json(ok(product));
+  res.json(ok(withProductImageUrl(product)));
 }));
 
 router.delete('/:id', a(async (req, res) => {
@@ -71,7 +72,7 @@ router.delete('/:id', a(async (req, res) => {
     updatedAt: new Date(),
   }).where(eq(products.id, id)).returning();
   if (!product) notFound('Product not found');
-  res.json(ok(product));
+  res.json(ok(withProductImageUrl(product)));
 }));
 
 router.post('/:id/image', upload.single('image'), a(async (req, res) => {
@@ -83,15 +84,15 @@ router.post('/:id/image', upload.single('image'), a(async (req, res) => {
   if (!result || !ALLOWED.includes(result.mime)) {
     badRequest('INVALID_FILE', 'Only JPEG, PNG, and WebP images are allowed');
   }
-  const image = await saveProductImage(id,req.file.buffer,result.ext,result.mime);
+  const image = await saveProductImage(id,req.file.buffer,result.ext,result.mime,product.slug);
   const [updated] = await db.update(products).set({
-    ...image,
+    imagePath: image.imagePath,
     updatedAt: new Date(),
   }).where(eq(products.id, id)).returning();
   if (product.imagePath) {
     await removeProductImage(product.imagePath).catch(() => {});
   }
-  res.json(ok(updated));
+  res.json(ok(withProductImageUrl(updated)));
 }));
 
 router.delete('/:id/image', a(async (req, res) => {
@@ -103,10 +104,9 @@ router.delete('/:id/image', a(async (req, res) => {
   }
   const [updated] = await db.update(products).set({
     imagePath: null,
-    imageUrl: null,
     updatedAt: new Date(),
   }).where(eq(products.id, id)).returning();
-  res.json(ok(updated));
+  res.json(ok(withProductImageUrl(updated)));
 }));
 
 export default router;

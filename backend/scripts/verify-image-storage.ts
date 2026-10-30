@@ -80,7 +80,7 @@ try {
   productId = product.data['id'];
   const uploadedProduct = await api(`/api/admin/products/${productId}/image`, 'POST', admin.cookie, imageBody());
   const productPath = uploadedProduct.data['imagePath'] as string;
-  check(productPath.startsWith(`products/${productId}/`), 'Product database path has the expected folder');
+  check(!productPath.includes('/') && productPath.startsWith(`storage-qa-${stamp}-`), 'Product file has a readable name at bucket root');
   const { data: storedProduct, error: productError } = await storage.storage.from(env.SUPABASE_STORAGE_BUCKET).download(productPath);
   if (productError) throw productError;
   check(Buffer.from(await storedProduct.arrayBuffer()).equals(bytes), 'Product bytes persisted in product-images');

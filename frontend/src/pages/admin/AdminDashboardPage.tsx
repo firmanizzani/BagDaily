@@ -35,8 +35,8 @@ import type {
   SalesTrendItem,
   TopProductItem,
 } from '@/types/api';
-import { formatRupiah, formatDate } from '@/lib/utils';
-import { statusLabels, statusClass } from '@/lib/orders';
+import { formatRupiah, formatDate, formatShortDate } from '@/lib/utils';
+import { orderStatusLabel, statusClass } from '@/lib/orders';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 const COLORS = ['#006052', '#38a27e', '#8fd1ae'];
@@ -148,12 +148,7 @@ export function AdminDashboardPage() {
                   <XAxis
                     dataKey="date"
                     interval={Math.max(0, Math.ceil(trend.data.data.length / 5) - 1)}
-                    tickFormatter={v =>
-                      new Intl.DateTimeFormat('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                      }).format(new Date(v))
-                    }
+                    tickFormatter={v => formatShortDate(String(v), false)}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -163,7 +158,10 @@ export function AdminDashboardPage() {
                     axisLine={false}
                     tickLine={false}
                   />
-                  <Tooltip formatter={v => formatRupiah(Number(v))} />
+                  <Tooltip
+                    labelFormatter={value => formatShortDate(String(value))}
+                    formatter={v => formatRupiah(Number(v))}
+                  />
                   <Area
                     type="monotone"
                     dataKey="revenue"
@@ -253,7 +251,7 @@ export function AdminDashboardPage() {
                       <td>{formatRupiah(o.total)}</td>
                       <td>
                         <span className={statusClass(o.status)}>
-                          {statusLabels[o.status]}
+                          {orderStatusLabel(o)}
                         </span>
                       </td>
                     </tr>

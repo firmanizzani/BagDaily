@@ -41,7 +41,12 @@ vi.mock('./services/apiClient', () => ({
   ApiError: class extends Error {},
 }));
 import { formatRupiah, formatDate } from './lib/utils';
-import { nextStatus, statusLabels } from './lib/orders';
+import {
+  nextStatus,
+  nextStatusAction,
+  orderStatusLabel,
+  statusLabels,
+} from './lib/orders';
 import { useCartStore } from './features/cart/cartStore';
 import { usePosStore } from './features/pos/posStore';
 import type { Product } from './types/api';
@@ -139,10 +144,10 @@ describe('Utility formatting', () => {
 });
 
 describe('Order state transitions', () => {
-  it('follows shipping flow awaiting_confirmation -> confirmed -> packed -> shipped -> completed', () => {
+  it('follows shipping flow awaiting_confirmation -> packed -> shipped -> completed', () => {
     expect(
       nextStatus({ status: 'awaiting_confirmation', deliveryMethod: 'shipping' }),
-    ).toBe('confirmed');
+    ).toBe('packed');
     expect(nextStatus({ status: 'confirmed', deliveryMethod: 'shipping' })).toBe(
       'packed',
     );
@@ -153,7 +158,36 @@ describe('Order state transitions', () => {
   });
 
   it('follows pickup flow packed -> completed without shipped state', () => {
+    expect(
+      nextStatus({ status: 'awaiting_confirmation', deliveryMethod: 'pickup' }),
+    ).toBe('packed');
     expect(nextStatus({ status: 'packed', deliveryMethod: 'pickup' })).toBe('completed');
+  });
+
+  it.each([
+    ['awaiting_confirmation', 'shipping', 'Proses pesanan'],
+    ['awaiting_confirmation', 'pickup', 'Siap diambil'],
+    ['confirmed', 'shipping', 'Proses pesanan'],
+    ['packed', 'shipping', 'Kirim pesanan'],
+    ['packed', 'pickup', 'Sudah diambil'],
+    ['shipped', 'shipping', 'Selesaikan pesanan'],
+    ['awaiting_payment', 'shipping', null],
+    ['completed', 'pickup', null],
+    ['cancelled', 'shipping', null],
+  ] as const)(
+    'labels %s / %s with its cashier action',
+    (status, deliveryMethod, expected) => {
+      expect(nextStatusAction({ status, deliveryMethod })).toBe(expected);
+    },
+  );
+
+  it('shows readiness according to the delivery method', () => {
+    expect(orderStatusLabel({ status: 'packed', deliveryMethod: 'pickup' })).toBe(
+      'Siap diambil',
+    );
+    expect(orderStatusLabel({ status: 'packed', deliveryMethod: 'shipping' })).toBe(
+      'Siap dikirim',
+    );
   });
 
   it('provides Indonesian status labels', () => {

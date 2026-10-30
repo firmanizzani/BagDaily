@@ -5,7 +5,7 @@ import type { Order } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 import { formatDate, formatRupiah } from '@/lib/utils';
-import { statusLabels } from '@/lib/orders';
+import { orderStatusLabel, statusLabels } from '@/lib/orders';
 
 export function StaffOrdersPage({ history = false }: { history?: boolean }) {
   const [search, setSearch] = useState('');
@@ -117,7 +117,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
                   <td className="font-semibold">{order.orderNumber}</td>
                   <td>{formatDate(order.createdAt)}</td>
                   <td>
-                    <span className="badge">{statusLabels[order.status]}</span>
+                    <span className="badge">{orderStatusLabel(order)}</span>
                   </td>
                   <td>{formatRupiah(order.total)}</td>
                   <td>

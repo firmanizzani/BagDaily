@@ -62,11 +62,13 @@ export async function snapshots(tx: Tx, items: { productId: string; quantity: nu
 }
 
 export function validTransition(current: string, next: string, delivery: string): boolean {
+  if (!['shipping', 'pickup'].includes(delivery)) return false;
   const transitions: Record<string, string[]> = {
-    awaiting_confirmation: ['confirmed'],
+    awaiting_confirmation: ['packed'],
+    // Existing confirmed orders can continue without changing their history.
     confirmed: ['packed'],
     packed: delivery === 'pickup' ? ['completed'] : ['shipped'],
-    shipped: ['completed'],
+    shipped: delivery === 'shipping' ? ['completed'] : [],
   };
   return transitions[current]?.includes(next) ?? false;
 }
