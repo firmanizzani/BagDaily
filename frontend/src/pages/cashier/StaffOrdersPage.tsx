@@ -22,7 +22,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
   });
   if (!history && status) params.set('status', status);
   const query = useApi<Order[]>(
-    `/cashier/${history ? 'transactions' : 'orders'}?${params}`,
+    `${history ? '/cashier/transactions' : '/admin/orders'}?${params}`,
   );
   return (
     <div className="space-y-6">
@@ -32,7 +32,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
           <p className="muted">
             {history
               ? 'Lihat detail transaksi dan cetak ulang struk.'
-              : 'Kelola pesanan dibayar dari konfirmasi sampai selesai.'}
+              : 'Proses pesanan online, pengiriman, dan pengambilan di toko.'}
           </p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
                         to={
                           history
                             ? `/cashier/receipt/${order.id}`
-                            : `/cashier/orders/${order.id}`
+                            : `/admin/orders/${order.id}`
                         }
                       >
                         {history ? 'Struk' : 'Proses'}

@@ -39,7 +39,7 @@ router.get('/my', requireRole('pelanggan'), a(async (req, res) => {
   res.json(paginated(rows, count.count, f.page, f.limit));
 }));
 
-router.get('/:id', a(async (req, res) => {
+router.get('/:id', requireRole('pelanggan', 'admin'), a(async (req, res) => {
   const id = idSchema.parse(req.params['id']);
   const detail = await orderDetail(id);
   if (req.user!.role === 'pelanggan' && detail.userId !== req.user!.id) {

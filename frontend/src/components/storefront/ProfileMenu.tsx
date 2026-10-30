@@ -13,6 +13,7 @@ import {
 import { useUser } from '@/hooks/api';
 import { useLogout } from '@/features/auth/useAuth';
 import { UserAvatar } from '@/components/shared/UserAvatar';
+import { orderNavigation } from '@/lib/orderNavigation';
 
 export function ProfileMenu() {
   const [open, setOpen] = useState(false);
@@ -45,9 +46,8 @@ export function ProfileMenu() {
   const entries = [
     { to: '/profile', icon: UserRound, label: 'Profil saya' },
     {
-      to: user?.role === 'pelanggan' ? '/customer/orders' : '/cashier/orders',
+      ...orderNavigation(user?.role),
       icon: Package,
-      label: user?.role === 'pelanggan' ? 'Pesanan saya' : 'Pesanan toko',
     },
     { to: '/addresses', icon: MapPin, label: 'Alamat pengiriman' },
     { to: '/account/settings', icon: Settings, label: 'Pengaturan akun' },

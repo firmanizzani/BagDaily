@@ -48,6 +48,8 @@ Toko: beranda, katalog, detail, favorit, keranjang, checkout, pesanan, profil, a
 
 Admin: Dashboard, Produk, Pesanan, Laporan, Pengaturan. Kategori dan inventaris berada di tab Produk. Pengguna/kasir dan tarif pengiriman berada di tab Pengaturan. Tombol Buka kasir tersedia di bagian bawah sidebar.
 
+Pesanan online dikelola khusus admin melalui `/admin/orders`, termasuk persiapan barang, pengiriman, dan pengambilan di toko. Kasir hanya menangani POS, melihat produk, riwayat transaksi offline, dan mencetak struk. Backend menolak akses kasir ke pesanan online, termasuk melalui endpoint lama `/api/cashier/orders`; alias lama tetap tersedia khusus admin. Pelanggan tetap hanya dapat membaca pesanan miliknya sendiri.
+
 Kasir: pilih/cari/filter produk, jumlah barang, pembayaran Tunai, QRIS, Transfer Bank, Kartu Debit, atau Kartu Kredit. Tunai menyediakan nominal cepat dan kembalian. QRIS menampilkan QR dummy berisi teks demo; transfer menampilkan rekening contoh. Keduanya ditandai simulasi dan tidak dapat digunakan untuk pembayaran asli. Debit/kredit dicatat setelah kasir mengonfirmasi pembayaran berhasil di EDC. Metode pembayaran disimpan pada transaksi dan ditampilkan pada struk yang sama di kasir maupun riwayat, dengan format cetak 80 mm.
 
 Setelah memperbarui aplikasi, jalankan `npm run db:migrate` dari `backend/` untuk mengizinkan metode debit/kredit pada database.

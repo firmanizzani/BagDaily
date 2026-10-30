@@ -156,7 +156,7 @@ try {
   );
   for (const status of ["packed", "shipped", "completed"]) {
     const updated = (
-      await api(`/cashier/orders/${order.id}/status`, "kasir", "PATCH", {
+      await api(`/admin/orders/${order.id}/status`, "admin", "PATCH", {
         status,
       })
     ).data;
@@ -210,7 +210,7 @@ try {
     "/admin/reports/sales",
     "/admin/users",
     "/admin/shipping/rates",
-    "/cashier/orders",
+    "/admin/orders",
     "/cashier/transactions",
   ])
     await api(path, path.startsWith("/admin") ? "admin" : "kasir");

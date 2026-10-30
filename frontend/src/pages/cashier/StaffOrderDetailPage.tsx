@@ -10,7 +10,9 @@ import { nextStatus, nextStatusAction, orderStatusLabel } from '@/lib/orders';
 
 export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean }) {
   const { id } = useParams();
-  const query = useApi<Order>(receipt ? `/cashier/transactions/${id}` : `/orders/${id}`);
+  const query = useApi<Order>(
+    receipt ? `/cashier/transactions/${id}` : `/admin/orders/${id}`,
+  );
   const action = useAction<Order>();
   if (query.isLoading) return <LoadingState />;
   if (query.isError || !query.data)
@@ -22,7 +24,7 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
       <div className="page-heading no-print">
         <div>
           <Link
-            to={receipt ? '/cashier/history' : '/cashier/orders'}
+            to={receipt ? '/cashier/history' : '/admin/orders'}
             className="text-sm text-[#15616D]"
           >
             Kembali ke daftar
@@ -117,7 +119,7 @@ export function StaffOrderDetailPage({ receipt = false }: { receipt?: boolean })
                 onClick={async () => {
                   try {
                     await action.mutateAsync({
-                      path: `/cashier/orders/${order.id}/status`,
+                      path: `/admin/orders/${order.id}/status`,
                       method: 'PATCH',
                       body: { status: next },
                     });

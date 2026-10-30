@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { StorefrontLayout } from '@/layouts/StorefrontLayout';
 import { StaffLayout } from '@/layouts/StaffLayout';
@@ -32,6 +32,11 @@ const AdminDashboardPage = lazy(() =>
     default: module.AdminDashboardPage,
   })),
 );
+
+function LegacyOnlineOrderRedirect() {
+  const { id } = useParams();
+  return <Navigate to={id ? `/admin/orders/${id}` : '/admin/orders'} replace />;
+}
 
 function NotFoundPage() {
   return (
@@ -69,13 +74,15 @@ export function AppRoutes() {
           <Route path="pos" element={<PosPage />} />
           <Route path="cashier/products" element={<CashierProductsPage />} />
           <Route path="cashier/settings" element={<ProfilePage />} />
-          <Route path="cashier/orders" element={<StaffOrdersPage />} />
-          <Route path="cashier/orders/:id" element={<StaffOrderDetailPage />} />
           <Route path="cashier/history" element={<StaffOrdersPage history />} />
           <Route path="cashier/receipt/:id" element={<StaffOrderDetailPage receipt />} />
         </Route>
         <Route element={<StaffLayout allowedRoles={['admin']} />}>
           <Route path="admin" element={<AdminDashboardPage />} />
+          <Route path="admin/orders" element={<StaffOrdersPage />} />
+          <Route path="admin/orders/:id" element={<StaffOrderDetailPage />} />
+          <Route path="cashier/orders" element={<LegacyOnlineOrderRedirect />} />
+          <Route path="cashier/orders/:id" element={<LegacyOnlineOrderRedirect />} />
           <Route path="admin/settings" element={<ProfilePage />} />
           <Route path="admin/products" element={<AdminProductsPage />} />
           <Route path="admin/categories" element={<AdminCategoriesPage />} />

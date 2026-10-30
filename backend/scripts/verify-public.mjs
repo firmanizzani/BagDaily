@@ -40,6 +40,7 @@ await get("/products?sort=invalid", 400);
 await get("/auth/me", 401);
 for (const p of [
   "/admin/products",
+  "/admin/orders",
   "/admin/dashboard/overview",
   "/admin/categories",
   "/admin/inventory",

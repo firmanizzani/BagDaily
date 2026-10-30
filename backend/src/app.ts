@@ -15,6 +15,7 @@ import productImagesRouter from './modules/products/images.js';
 import adminProductsRouter from './modules/products/admin.js';
 import { categoriesRouter, adminCategoriesRouter } from './modules/categories/index.js';
 import ordersRouter from './modules/orders/index.js';
+import adminOrdersRouter from './modules/orders/admin.js';
 import paymentsRouter from './modules/payments/index.js';
 import cashierRouter from './modules/cashier/index.js';
 import inventoryRouter from './modules/inventory/index.js';
@@ -57,9 +58,12 @@ app.use('/api/shipping', publicShippingRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/orders', paymentsRouter);
 app.use('/api/payments', paymentsRouter);
+const adminGuard = [a(authenticate), requireRole('admin')];
+// Keep old admin bookmarks/API clients working, with the same admin-only boundary.
+app.use('/api/cashier/orders', adminGuard, adminOrdersRouter);
 app.use('/api/cashier', cashierRouter);
 
-const adminGuard = [a(authenticate), requireRole('admin')];
+app.use('/api/admin/orders', adminGuard, adminOrdersRouter);
 app.use('/api/admin/products', adminGuard, adminProductsRouter);
 app.use('/api/admin/categories', adminGuard, adminCategoriesRouter);
 app.use('/api/admin/inventory', adminGuard, inventoryRouter);

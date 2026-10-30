@@ -3,6 +3,7 @@ import { MapPin, Package, Settings, UserRound, ChevronRight } from 'lucide-react
 import { useUser } from '@/hooks/api';
 import { LoadingState } from '@/components/shared/states';
 import { UserAvatar } from '@/components/shared/UserAvatar';
+import { orderNavigation } from '@/lib/orderNavigation';
 export function AccountLayout() {
   const user = useUser();
   const location = useLocation();
@@ -25,9 +26,8 @@ export function AccountLayout() {
           {[
             { to: '/profile', icon: UserRound, label: 'Profil saya' },
             {
-              to: user.data.role === 'pelanggan' ? '/customer/orders' : '/cashier/orders',
+              ...orderNavigation(user.data.role),
               icon: Package,
-              label: user.data.role === 'pelanggan' ? 'Pesanan saya' : 'Pesanan toko',
             },
             { to: '/addresses', icon: MapPin, label: 'Alamat pengiriman' },
             { to: '/account/settings', icon: Settings, label: 'Pengaturan akun' },

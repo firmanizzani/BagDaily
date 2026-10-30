@@ -41,13 +41,12 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
     ? [
         { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/admin/products', icon: ShoppingBag, label: 'Produk' },
-        { to: '/cashier/orders', icon: Package, label: 'Pesanan' },
+        { to: '/admin/orders', icon: Package, label: 'Pesanan online' },
         { to: '/admin/reports', icon: BarChart3, label: 'Laporan' },
       ]
     : [
         { to: '/pos', icon: Store, label: 'Kasir' },
         { to: '/cashier/products', icon: ShoppingBag, label: 'Produk' },
-        { to: '/cashier/orders', icon: Package, label: 'Pesanan online' },
         { to: '/cashier/history', icon: Clock3, label: 'Transaksi' },
       ];
   const productPaths = ['/admin/products', '/admin/categories', '/admin/inventory'];
@@ -86,8 +85,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
               className={({ isActive }) =>
                 isActive ||
                 (to === '/admin/products' && productSection) ||
-                (to === '/cashier/orders' &&
-                  location.pathname.startsWith('/cashier/orders/'))
+                (to === '/admin/orders' && location.pathname.startsWith('/admin/orders/'))
                   ? 'active'
                   : ''
               }

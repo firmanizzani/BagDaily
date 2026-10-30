@@ -52,7 +52,7 @@ export function AdminDashboardPage() {
   const recommendations = useApi<RestockRecommendation[]>(
     '/admin/dashboard/restock-recommendations',
   );
-  const orders = useApi<Order[]>('/cashier/orders?limit=5');
+  const orders = useApi<Order[]>('/admin/orders?limit=5');
   const metrics = overview.data?.data;
   const categoryRows = categories.data?.data || [];
   const topRows = top.data?.data || [];
@@ -218,7 +218,7 @@ export function AdminDashboardPage() {
         <section className="panel dashboard-orders">
           <div className="panel-title">
             <h2>Pesanan terbaru</h2>
-            <Link to="/cashier/orders">
+            <Link to="/admin/orders">
               Lihat semua <ArrowRight size={12} className="inline" />
             </Link>
           </div>
@@ -243,7 +243,7 @@ export function AdminDashboardPage() {
                   {orders.data.data.slice(0, 5).map(o => (
                     <tr key={o.id}>
                       <td>
-                        <Link className="font-semibold" to={`/cashier/orders/${o.id}`}>
+                        <Link className="font-semibold" to={`/admin/orders/${o.id}`}>
                           {o.orderNumber}
                         </Link>
                       </td>
