@@ -39,8 +39,10 @@ const schema = z
 type Values = z.infer<typeof schema>;
 export function ProfilePage({
   section = 'all',
+  embedded = false,
 }: {
   section?: 'profile' | 'address' | 'settings' | 'all';
+  embedded?: boolean;
 }) {
   const user = useUser();
   const action = useAction();
@@ -67,11 +69,13 @@ export function ProfilePage({
       : section === 'all'
         ? 'Pengaturan akun'
         : 'Profil saya';
-  const description = address
-    ? 'Simpan alamat utama agar belanja berikutnya lebih praktis.'
-    : settings
-      ? 'Jaga akunmu tetap aman dan nyaman digunakan.'
-      : 'Lengkapi informasi pribadimu untuk pengalaman belanja yang lebih mudah.';
+  const description = embedded
+    ? 'Perbarui profil administrator dan keamanan akun Anda.'
+    : address
+      ? 'Simpan alamat utama agar belanja berikutnya lebih praktis.'
+      : settings
+        ? 'Jaga akunmu tetap aman dan nyaman digunakan.'
+        : 'Lengkapi informasi pribadimu untuk pengalaman belanja yang lebih mudah.';
   const FieldError = ({ name }: { name: keyof Values }) =>
     form.formState.errors[name] ? (
       <p role="alert" className="field-error">
@@ -82,7 +86,11 @@ export function ProfilePage({
     <div className="profile-page">
       <div className="page-heading">
         <div>
-          <h1>{title}</h1>
+          {embedded ? (
+            <h2 className="admin-settings-title">Akun admin</h2>
+          ) : (
+            <h1>{title}</h1>
+          )}
           <p className="muted">{description}</p>
         </div>
       </div>

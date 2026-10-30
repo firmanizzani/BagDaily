@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import App from './app/App';
 import { ApiError } from './services/apiClient';
 import './styles/styles.css';
+import './styles/admin.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

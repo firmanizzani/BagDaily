@@ -73,6 +73,7 @@ export type Courier = 'JNE' | 'J&T' | 'SiCepat';
 export type ShippingZone = 'Jabodetabek' | 'Jawa' | 'Luar Jawa';
 
 export interface OrderItem {
+  imageUrl?: string | null;
   id: string;
   orderId: string;
   productId: string;
@@ -93,6 +94,13 @@ export interface OrderStatusHistoryItem {
 }
 
 export interface Order {
+  customerName?: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
+  productCount?: number;
+  productName?: string | null;
+  productImageUrl?: string | null;
   id: string;
   orderNumber: string;
   userId: string | null;
@@ -188,6 +196,7 @@ export interface CategorySalesItem {
 }
 
 export interface TopProductItem {
+  imageUrl?: string | null;
   productId: string;
   name: string;
   quantity: number;
@@ -212,10 +221,19 @@ export interface RestockRecommendation {
 }
 
 export interface SalesReportSummary {
+  totalProductsSold?: number;
   totalSales: number;
   totalTransactions: number;
   onlineSales: number;
   posSales: number;
+}
+
+export interface CustomerSalesItem {
+  customerId: string | null;
+  name: string;
+  email: string | null;
+  transactions: number;
+  revenue: number;
 }
 
 export interface SalesReportData {

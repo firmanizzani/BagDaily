@@ -1,3 +1,4 @@
+import { UserAvatar } from '@/components/shared/UserAvatar';
 import { BrandLogo } from '@/components/shared/BrandLogo';
 import { useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
@@ -11,6 +12,7 @@ import {
   Package,
   Settings,
   ShoppingBag,
+  Search,
   Store,
   UsersRound,
   X,
@@ -25,6 +27,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
   const logout = useLogout();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   if (isLoading) return <LoadingState label="Memeriksa sesi…" />;
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   if (!allowedRoles.includes(user.role as 'admin' | 'kasir'))
@@ -67,7 +70,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             : links.find(l => l.to === location.pathname)?.label ||
               (location.pathname.endsWith('settings') ? 'Pengaturan' : 'Detail pesanan');
   return (
-    <div className="staff-shell">
+    <div className={`staff-shell ${admin ? 'admin-shell' : ''}`}>
       <button
         className={`sidebar-scrim ${open ? 'shown' : ''}`}
         aria-label="Tutup navigasi"
@@ -122,7 +125,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             <Store size={17} /> Lihat toko online <ChevronRight size={15} />
           </Link>
           <div className="staff-account">
-            <span className="staff-avatar">{user.name.charAt(0)}</span>
+            <UserAvatar src={user.avatarUrl} className="staff-avatar" />
             <div>
               <strong>{user.name}</strong>
               <span>{admin ? 'Administrator' : 'Kasir toko'}</span>
@@ -144,6 +147,35 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             >
               {open ? <X size={22} /> : <Menu size={22} />}
             </button>
+            {admin && (
+              <div className="admin-global-search">
+                <Search size={16} />
+                <input
+                  aria-label="Cari di panel admin"
+                  placeholder="Cari pesanan, produk, pelanggan…"
+                  value={search}
+                  onChange={event => setSearch(event.target.value)}
+                />
+                {search.trim() && (
+                  <div className="admin-search-destinations">
+                    {[
+                      { to: '/admin/orders', label: 'pesanan' },
+                      { to: '/admin/products', label: 'produk' },
+                      { to: '/admin/customers', label: 'pelanggan' },
+                    ].map(item => (
+                      <Link
+                        key={item.to}
+                        to={item.to + '?search=' + encodeURIComponent(search.trim())}
+                        onClick={() => setSearch('')}
+                      >
+                        Cari {item.label}: <strong>{search}</strong>
+                        <ChevronRight size={14} />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <span className="breadcrumb-root">
               {admin ? 'Admin' : 'Toko'} <ChevronRight size={14} />
             </span>
@@ -161,35 +193,47 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
               className="staff-avatar"
               aria-label="Pengaturan akun"
             >
-              {user.name.charAt(0)}
+              <UserAvatar src={user.avatarUrl} />
             </Link>
           </div>
         </header>
         <main className="staff-content">
-          {(productSection || settingsSection) && (
-            <nav
-              className="staff-section-tabs"
-              aria-label={productSection ? 'Pengelolaan produk' : 'Pengaturan toko'}
-            >
-              {(productSection
-                ? [
-                    { to: '/admin/products', label: 'Daftar produk' },
-                    { to: '/admin/categories', label: 'Kategori' },
-                    { to: '/admin/inventory', label: 'Inventaris & stok' },
-                  ]
-                : [
-                    { to: '/admin/settings', label: 'Akun admin' },
-                    { to: '/admin/users', label: 'Pengguna & kasir' },
-                    { to: '/admin/shipping', label: 'Pengiriman' },
-                  ]
-              ).map(tab => (
-                <NavLink key={tab.to} to={tab.to}>
-                  {tab.label}
-                </NavLink>
-              ))}
-            </nav>
+          {settingsSection && (
+            <header className="admin-page-heading">
+              <div>
+                <h1>Pengaturan</h1>
+                <p>Kelola akun, akses pengguna, dan pengiriman toko.</p>
+              </div>
+            </header>
           )}
-          <Outlet />
+          <div className={settingsSection ? 'admin-settings-layout' : undefined}>
+            {(productSection || settingsSection) && (
+              <nav
+                className={settingsSection ? 'admin-settings-nav' : 'staff-section-tabs'}
+                aria-label={productSection ? 'Pengelolaan produk' : 'Pengaturan toko'}
+              >
+                {(productSection
+                  ? [
+                      { to: '/admin/products', label: 'Daftar produk' },
+                      { to: '/admin/categories', label: 'Kategori' },
+                      { to: '/admin/inventory', label: 'Inventaris & stok' },
+                    ]
+                  : [
+                      { to: '/admin/settings', label: 'Akun admin' },
+                      { to: '/admin/users', label: 'Pengguna & kasir' },
+                      { to: '/admin/shipping', label: 'Pengiriman' },
+                    ]
+                ).map(tab => (
+                  <NavLink key={tab.to} to={tab.to}>
+                    {tab.label}
+                  </NavLink>
+                ))}
+              </nav>
+            )}
+            <div className={settingsSection ? 'admin-settings-content' : undefined}>
+              <Outlet key={location.key} />
+            </div>
+          </div>
         </main>
       </div>
     </div>

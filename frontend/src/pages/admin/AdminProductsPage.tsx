@@ -1,3 +1,5 @@
+import { useSearchParams } from 'react-router-dom';
+import { RowMenu } from '@/components/admin/RowMenu';
 import { useEffect, useState } from 'react';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { toast } from 'sonner';
@@ -37,7 +39,8 @@ const emptyForm: ProductFormState = {
 
 export function AdminProductsPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [url] = useSearchParams();
+  const [search, setSearch] = useState(() => url.get('search') || '');
   const settledSearch = useDebouncedValue(search);
   const [category, setCategory] = useState('');
   const [active, setActive] = useState('');
@@ -235,8 +238,8 @@ export function AdminProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#001524]/10 pb-4">
+    <div className="space-y-6 admin-page admin-products-page">
+      <div className="admin-page-heading">
         <div>
           <h1 className="text-xl font-extrabold text-[#001524]">Produk</h1>
           <p className="text-xs text-[#6E7E8D]">
@@ -244,7 +247,7 @@ export function AdminProductsPage() {
           </p>
         </div>
         <Button size="sm" variant="teal" onClick={handleOpenCreate}>
-          + Tambah Produk Baru
+          + Tambah Produk
         </Button>
       </div>
 
@@ -303,8 +306,7 @@ export function AdminProductsPage() {
           <table className="w-full text-left text-xs">
             <thead className="border-b border-[#001524]/10 bg-[#FAF9F6] text-[#001524] font-bold">
               <tr>
-                <th className="p-3">Foto</th>
-                <th className="p-3">Nama Produk / SKU</th>
+                <th className="p-3">Produk</th>
                 <th className="p-3">Kategori</th>
                 <th className="p-3">Harga</th>
                 <th className="p-3">Stok Riil</th>
@@ -316,20 +318,22 @@ export function AdminProductsPage() {
               {products.map(p => (
                 <tr key={p.id} className="hover:bg-[#FAF9F6]/50 transition">
                   <td className="p-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageModal(p);
-                        setImageFile(null);
-                      }}
-                      className="h-10 w-10 rounded border border-[#6E7E8D]/20 overflow-hidden flex items-center justify-center bg-[#FAF9F6] hover:border-[#15616D]"
-                    >
-                      <ProductPhoto name={p.name} src={p.imageUrl} />
-                    </button>
-                  </td>
-                  <td className="p-3">
-                    <p className="font-bold text-[#001524]">{p.name}</p>
-                    <p className="text-[10px] text-[#6E7E8D]">{p.sku}</p>
+                    <div className="admin-product-identity">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageModal(p);
+                          setImageFile(null);
+                        }}
+                        className="h-10 w-10 rounded border border-[#6E7E8D]/20 overflow-hidden flex items-center justify-center bg-[#FAF9F6] hover:border-[#15616D]"
+                      >
+                        <ProductPhoto name={p.name} src={p.imageUrl} />
+                      </button>
+                      <div>
+                        <p className="font-bold text-[#001524]">{p.name}</p>
+                        <p className="text-[10px] text-[#6E7E8D]">{p.sku}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="p-3 text-[#15616D] font-medium">
                     {p.category?.name || '-'}
@@ -360,22 +364,27 @@ export function AdminProductsPage() {
                     </span>
                   </td>
                   <td className="p-3 text-right space-x-1.5">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
-                      onClick={() => handleOpenEdit(p)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs text-rose-600 hover:bg-rose-50"
-                      onClick={() => handleToggleStatus(p)}
-                    >
-                      {p.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-                    </Button>
+                    <RowMenu label={`Aksi produk ${p.name}`}>
+                      <button type="button" onClick={() => handleOpenEdit(p)}>
+                        Edit produk
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageModal(p);
+                          setImageFile(null);
+                        }}
+                      >
+                        Kelola foto
+                      </button>
+                      <button
+                        type="button"
+                        disabled={updateProduct.isPending}
+                        onClick={() => void handleToggleStatus(p)}
+                      >
+                        {p.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                    </RowMenu>
                   </td>
                 </tr>
               ))}

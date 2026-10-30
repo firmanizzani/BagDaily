@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, getTableColumns } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { db, type Tx } from '../../db/index.js';
 import { orders, orderItems, products, shippingRates, history, users } from '../../db/schema/index.js';
@@ -6,6 +6,7 @@ import { env } from '../../config/env.js';
 import { conflict, notFound, forbidden } from '../../utils/errors.js';
 import { sleepMs, delay } from '../../utils/misc.js';
 import type { OrderInput } from '../../utils/validation.js';
+import { imageUrlFromPath } from '../products/image-url.js';
 
 export function databaseCode(error: unknown): string | undefined {
   if (!error || typeof error !== 'object') return;
@@ -30,15 +31,23 @@ export async function orderDetail(id: string) {
   const [order] = await db.select().from(orders).where(eq(orders.id, id));
   if (!order) notFound('Order not found');
 
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id)).orderBy(asc(orderItems.productId));
+  const itemRows = await db.select({ ...getTableColumns(orderItems), imagePath: products.imagePath })
+    .from(orderItems).leftJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, id)).orderBy(asc(orderItems.productId));
+  const items = itemRows.map(({ imagePath, ...item }) => ({ ...item, imageUrl: imageUrlFromPath(imagePath) }));
   const events = await db.select().from(history).where(eq(history.orderId, id)).orderBy(asc(history.createdAt));
   const [cashier] = order.cashierId ? await db.select({ name: users.name }).from(users).where(eq(users.id, order.cashierId)) : [];
+  const [customer] = order.userId ? await db.select({ name: users.name, email: users.email, phone: users.phone, address: users.address }).from(users).where(eq(users.id, order.userId)) : [];
 
   return {
     ...order,
     items,
     history: events,
     cashierName: cashier?.name ?? null,
+    customerName: customer?.name ?? order.recipientName,
+    customerEmail: customer?.email ?? null,
+    customerPhone: customer?.phone ?? order.recipientPhone,
+    customerAddress: customer?.address ?? null,
   };
 }
 

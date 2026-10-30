@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAction, useApi } from '@/hooks/api';
@@ -9,7 +10,10 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states
 import { formatDate } from '@/lib/utils';
 
 export function AdminInventoryPage() {
-  const [tab, setTab] = useState<'inventory' | 'lowStock' | 'movements'>('inventory');
+  const [url] = useSearchParams();
+  const [tab, setTab] = useState<'inventory' | 'lowStock' | 'movements'>(() =>
+    url.get('tab') === 'lowStock' ? 'lowStock' : 'inventory',
+  );
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [type, setType] = useState<'restock' | 'correction'>('restock');

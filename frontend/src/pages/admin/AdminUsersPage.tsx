@@ -103,11 +103,9 @@ export function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#001524]/10 pb-4">
+      <div className="admin-page-heading">
         <div>
-          <h1 className="text-xl font-extrabold text-[#001524]">
-            Manajemen Pengguna & Staf
-          </h1>
+          <h2 className="admin-settings-title">Pengguna & kasir</h2>
           <p className="text-xs text-[#6E7E8D]">
             Kelola akses pelanggan, staf kasir gerai fisik, dan administrator sistem
             BagDaily.

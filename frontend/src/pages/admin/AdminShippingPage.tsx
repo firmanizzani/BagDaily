@@ -71,11 +71,9 @@ export function AdminShippingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#001524]/10 pb-4">
+      <div className="admin-page-heading">
         <div>
-          <h1 className="text-xl font-extrabold text-[#001524]">
-            Manajemen Tarif Pengiriman
-          </h1>
+          <h2 className="admin-settings-title">Tarif pengiriman</h2>
           <p className="text-xs text-[#6E7E8D]">
             Atur ongkos kirim flat per kurir (JNE, J&T, SiCepat) dan zona wilayah
             Indonesia.

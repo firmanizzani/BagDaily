@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronRight, ReceiptText, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useApi } from '@/hooks/api';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -9,7 +9,8 @@ import { DataPagination } from '@/components/admin/DataPagination';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 
 export function AdminCustomersPage() {
-  const [search, setSearch] = useState('');
+  const [url] = useSearchParams();
+  const [search, setSearch] = useState(() => url.get('search') || '');
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [active, setActive] = useState('');

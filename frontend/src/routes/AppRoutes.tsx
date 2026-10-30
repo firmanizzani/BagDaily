@@ -26,6 +26,8 @@ import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 import { AdminShippingPage } from '@/pages/admin/AdminShippingPage';
 import { AdminReportsPage } from '@/pages/admin/AdminReportsPage';
 import { AdminCustomersPage } from '@/pages/admin/AdminCustomersPage';
+import { AdminOrdersPage } from '@/pages/admin/AdminOrdersPage';
+import { AdminOrderDetailPage } from '@/pages/admin/AdminOrderDetailPage';
 import { AdminCustomerTransactionsPage } from '@/pages/admin/AdminCustomerTransactionsPage';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 
@@ -81,13 +83,13 @@ export function AppRoutes() {
         </Route>
         <Route element={<StaffLayout allowedRoles={['admin']} />}>
           <Route path="admin" element={<AdminDashboardPage />} />
-          <Route path="admin/orders" element={<StaffOrdersPage />} />
-          <Route path="admin/orders/:id" element={<StaffOrderDetailPage />} />
+          <Route path="admin/orders" element={<AdminOrdersPage />} />
+          <Route path="admin/orders/:id" element={<AdminOrderDetailPage />} />
           <Route path="admin/customers" element={<AdminCustomersPage />} />
           <Route path="admin/customers/:id" element={<AdminCustomerTransactionsPage />} />
           <Route path="cashier/orders" element={<LegacyOnlineOrderRedirect />} />
           <Route path="cashier/orders/:id" element={<LegacyOnlineOrderRedirect />} />
-          <Route path="admin/settings" element={<ProfilePage />} />
+          <Route path="admin/settings" element={<ProfilePage embedded />} />
           <Route path="admin/products" element={<AdminProductsPage />} />
           <Route path="admin/categories" element={<AdminCategoriesPage />} />
           <Route path="admin/inventory" element={<AdminInventoryPage />} />

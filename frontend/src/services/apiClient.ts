@@ -1,6 +1,8 @@
 import type {
   ApiResponse,
   CustomerSummary,
+  CustomerSalesItem,
+  OrderStatus,
   SalesReportSummary,
   TopProductItem,
 } from '@/types/api';
@@ -29,6 +31,8 @@ export interface Result<T> extends ApiResponse<T> {
   summary?: SalesReportSummary;
   products?: TopProductItem[];
   customer?: CustomerSummary;
+  customers?: CustomerSalesItem[];
+  statusCounts?: Partial<Record<OrderStatus, number>>;
 }
 
 export async function request<T>(

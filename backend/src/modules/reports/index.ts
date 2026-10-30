@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
-import { orders, orderItems } from '../../db/schema/index.js';
+import { orders, orderItems, products, users } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { paginated } from '../../utils/response.js';
 import { pageSchema } from '../../utils/validation.js';
 import { paidRange, rangeSchema } from '../dashboard/index.js';
+import { imageUrlFromPath } from '../products/image-url.js';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/sales', a(async (req, res) => {
   const where = paidRange(v);
 
   const [count] = await db.select({ count: sql<number>`count(*)::int` }).from(orders).where(where);
-  const rows = await db.select().from(orders).where(where).orderBy(desc(orders.paidAt)).limit(f.limit).offset((f.page - 1) * f.limit);
+  const rows = await db.select({ ...getTableColumns(orders), customerName: users.name }).from(orders).leftJoin(users, eq(orders.userId, users.id)).where(where).orderBy(desc(orders.paidAt)).limit(f.limit).offset((f.page - 1) * f.limit);
   const [summary] = await db.select({
     totalSales: sql<number>`coalesce(sum(${orders.total}),0)::int`,
     totalTransactions: sql<number>`count(*)::int`,
@@ -29,17 +30,24 @@ router.get('/sales', a(async (req, res) => {
     total: sql<number>`coalesce(sum(${orders.total}),0)::int`,
   }).from(orders).where(and(where, eq(orders.channel, 'pos')));
 
-  const paidIds = rows.map((o) => o.id);
-  const prodItems = paidIds.length
-    ? await db.select({
+  const prodItems = await db.select({
       productId: orderItems.productId,
       name: sql<string>`min(${orderItems.productNameSnapshot})`,
       quantity: sql<number>`sum(${orderItems.quantity})::int`,
       revenue: sql<number>`sum(${orderItems.subtotal})::int`,
+      imagePath: products.imagePath,
     }).from(orderItems)
-      .where(inArray(orderItems.orderId, paidIds))
-      .groupBy(orderItems.productId)
-    : [];
+      .innerJoin(orders, eq(orderItems.orderId, orders.id))
+      .leftJoin(products, eq(orderItems.productId, products.id))
+      .where(where)
+      .groupBy(orderItems.productId, products.imagePath)
+      .orderBy(desc(sql`sum(${orderItems.quantity})`));
+  const customerRows = await db.select({
+    customerId: orders.userId, name: users.name, email: users.email,
+    transactions: sql<number>`count(*)::int`, revenue: sql<number>`sum(${orders.total})::int`,
+  }).from(orders).innerJoin(users, eq(orders.userId, users.id))
+    .where(and(where, isNotNull(orders.userId))).groupBy(orders.userId, users.name, users.email)
+    .orderBy(desc(sql`sum(${orders.total})`));
 
   res.json({
     ...paginated(rows, count.count, f.page, f.limit),
@@ -48,8 +56,10 @@ router.get('/sales', a(async (req, res) => {
       totalTransactions: summary.totalTransactions,
       onlineSales: onlineS.total,
       posSales: posS.total,
+      totalProductsSold: prodItems.reduce((total, item) => total + item.quantity, 0),
     },
-    products: prodItems,
+    products: prodItems.map(({ imagePath, ...item }) => ({ ...item, imageUrl: imageUrlFromPath(imagePath) })),
+    customers: customerRows,
   });
 }));
 

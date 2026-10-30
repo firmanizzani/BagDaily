@@ -45,9 +45,11 @@ describe('online orders belong to admins and offline POS belongs to cashiers', (
     mocks.select.mockImplementation((selection?: Record<string, unknown>) => {
       const rows = selection && 'count' in selection ? [{ count: 1 }] : [mocks.row];
       const where = Object.assign(Promise.resolve(rows), {
-        orderBy: () => ({ limit: () => ({ offset: async () => rows }) }),
+        orderBy: () => Object.assign(Promise.resolve(rows), { limit: () => ({ offset: async () => rows }) }),
+        groupBy: async () => [{ status: 'awaiting_confirmation', count: 1 }],
       });
-      return { from: () => ({ where: () => where }) };
+      const chain = { where: () => where, leftJoin: () => chain };
+      return { from: () => chain };
     });
   });
   const request = (path: string, role?: string, method = 'GET', body?: unknown) => fetch(base + path, {
