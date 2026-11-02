@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApi } from '@/hooks/api';
@@ -14,6 +14,7 @@ import { useShopLogin } from '@/hooks/useShopLogin';
 
 export function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const product = useApi<Product>(`/products/${id}`);
   const [quantity, setQuantity] = useState(1);
   const add = useCartStore(state => state.addItem);
@@ -77,19 +78,35 @@ export function ProductDetailPage() {
               }
             />
           </label>
-          <Button
-            variant="teal"
-            size="lg"
-            className="w-full"
-            disabled={!item.stock}
-            onClick={async () => {
-              if (!(await requireLogin('keranjang'))) return;
-              add(item, quantity);
-              toast.success('Produk ditambahkan ke keranjang');
-            }}
-          >
-            <ShoppingBag size={18} /> Tambah ke keranjang
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-1 border-[#15616D] text-[#15616D] hover:bg-[#15616D]/10 hover:text-[#15616D]"
+              disabled={!item.stock}
+              onClick={async () => {
+                if (!(await requireLogin('keranjang'))) return;
+                add(item, quantity);
+                navigate('/cart');
+              }}
+            >
+              Beli Sekarang
+            </Button>
+            <Button
+              variant="teal"
+              size="lg"
+              className="aspect-square p-0 shrink-0"
+              disabled={!item.stock}
+              aria-label="Tambah ke keranjang"
+              onClick={async () => {
+                if (!(await requireLogin('keranjang'))) return;
+                add(item, quantity);
+                toast.success('Produk ditambahkan ke keranjang');
+              }}
+            >
+              <ShoppingBag size={20} />
+            </Button>
+          </div>
           <p className="notice">
             Keranjang tidak mereservasi stok. Ketersediaan diperiksa kembali saat
             pembayaran.

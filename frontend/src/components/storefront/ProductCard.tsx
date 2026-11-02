@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Product } from '@/types/api';
@@ -11,7 +11,21 @@ export function ProductCard({ product }: { product: Product }) {
   const add = useCartStore(s => s.addItem);
   const { ids, toggle } = useWishlist();
   const requireLogin = useShopLogin();
+  const navigate = useNavigate();
   const saved = ids.includes(product.id);
+
+  async function handleAddToCart() {
+    if (!(await requireLogin('keranjang'))) return;
+    const existing = useCartStore
+      .getState()
+      .items.find(i => i.product.id === product.id);
+    if ((existing?.quantity || 0) >= product.stock) {
+      toast.info('Jumlah di keranjang sudah mencapai stok tersedia.');
+      return;
+    }
+    add(product, 1);
+    toast.success(`${product.name} ditambahkan ke keranjang`);
+  }
   return (
     <article className="shop-product">
       <div className="shop-product-visual">
@@ -45,24 +59,26 @@ export function ProductCard({ product }: { product: Product }) {
           <span>· {product.stock} tersedia</span>
         </div>
         <strong>{formatRupiah(product.price)}</strong>
-        <button
-          className="add-to-cart"
-          disabled={product.stock <= 0}
-          onClick={async () => {
-            if (!(await requireLogin('keranjang'))) return;
-            const existing = useCartStore
-              .getState()
-              .items.find(i => i.product.id === product.id);
-            if ((existing?.quantity || 0) >= product.stock) {
-              toast.info('Jumlah di keranjang sudah mencapai stok tersedia.');
-              return;
-            }
-            add(product, 1);
-            toast.success(`${product.name} ditambahkan ke keranjang`);
-          }}
-        >
-          <ShoppingCart size={16} /> Tambah ke keranjang
-        </button>
+        <div className="product-actions">
+          <button
+            className="buy-now-btn"
+            disabled={product.stock <= 0}
+            onClick={async () => {
+              await handleAddToCart();
+              navigate('/cart');
+            }}
+          >
+            Beli Sekarang
+          </button>
+          <button
+            className="add-to-cart-icon"
+            disabled={product.stock <= 0}
+            onClick={handleAddToCart}
+            aria-label="Tambah ke keranjang"
+          >
+            <ShoppingCart size={16} />
+          </button>
+        </div>
       </div>
     </article>
   );
