@@ -19,6 +19,7 @@ interface ProductFormState {
   description: string;
   material: string;
   price: number;
+  costPrice: number;
   stock?: number;
   minimumStock: number;
   isActive: boolean;
@@ -32,6 +33,7 @@ const emptyForm: ProductFormState = {
   description: '',
   material: '',
   price: 0,
+  costPrice: 0,
   stock: 0,
   minimumStock: 5,
   isActive: true,
@@ -106,6 +108,7 @@ export function AdminProductsPage() {
       description: p.description,
       material: p.material,
       price: p.price,
+      costPrice: p.costPrice ?? 0,
       minimumStock: p.minimumStock,
       isActive: p.isActive,
     });
@@ -133,6 +136,7 @@ export function AdminProductsPage() {
             description: formData.description,
             material: formData.material,
             price: Number(formData.price),
+            ...(formData.costPrice !== editing.costPrice ? { costPrice: Number(formData.costPrice) } : {}),
             minimumStock: Number(formData.minimumStock),
             isActive: formData.isActive,
           },
@@ -339,7 +343,7 @@ export function AdminProductsPage() {
                     {p.category?.name || '-'}
                   </td>
                   <td className="p-3 font-semibold text-[#001524]">
-                    {formatRupiah(p.price)}
+                    {formatRupiah(p.price)}<small className="block text-[10px] text-[#6E7E8D] mt-1">Modal {p.costPrice == null ? 'belum diisi' : formatRupiah(p.costPrice)}{p.costIsEstimated ? ' · estimasi' : ''}</small>
                   </td>
                   <td className="p-3">
                     <span
@@ -515,9 +519,9 @@ export function AdminProductsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold mb-1">Harga (IDR)</label>
+              <label className="block font-semibold mb-1">Harga Jual (Rp)</label>
               <input
                 type="number"
                 min={0}
@@ -529,6 +533,7 @@ export function AdminProductsPage() {
                 className="w-full rounded border border-[#6E7E8D]/30 p-2"
               />
             </div>
+            <div><label htmlFor="product-cost-price" className="block font-semibold mb-1">Harga Modal (Rp)</label><input id="product-cost-price" type="number" min={0} max={2147483647} step={1} required value={formData.costPrice} onChange={e => setFormData({ ...formData, costPrice: Number(e.target.value) })} className="w-full rounded border border-[#6E7E8D]/30 p-2" /><p className="mt-1 text-[11px] text-[#6E7E8D]">Khusus admin. Berlaku untuk transaksi baru.{editing?.costIsEstimated && formData.costPrice === editing.costPrice ? ' Saat ini memakai estimasi dummy.' : ''}</p></div>
             {!editing ? (
               <div>
                 <label className="block font-semibold mb-1">Stok Awal</label>

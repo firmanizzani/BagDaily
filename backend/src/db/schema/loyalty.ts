@@ -27,4 +27,5 @@ export const loyaltyLedger = pgTable('loyalty_ledger', {
   orderKind: uniqueIndex('loyalty_order_kind_unique').on(t.orderId, t.kind),
   customer: index('loyalty_customer_idx').on(t.userId, t.createdAt),
   valid: check('loyalty_entry_valid', sql`${t.points} >= 0 and ${t.kind} in ('earn','reserve','redeem','release') and ${t.balanceAfter} >= 0 and ${t.reservedAfter} >= 0 and ${t.reservedAfter} <= ${t.balanceAfter}`),
+  delta: check('loyalty_delta_valid', sql`(${t.kind}='earn' and ${t.balanceDelta}=${t.points} and ${t.reservedDelta}=0) or (${t.kind}='reserve' and ${t.balanceDelta}=0 and ${t.reservedDelta}=${t.points}) or (${t.kind}='redeem' and ${t.balanceDelta}=-${t.points} and ${t.reservedDelta} in (0,-${t.points})) or (${t.kind}='release' and ${t.balanceDelta}=0 and ${t.reservedDelta}=-${t.points})`),
 })).enableRLS();

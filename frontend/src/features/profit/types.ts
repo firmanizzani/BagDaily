@@ -1,0 +1,10 @@
+export interface ProfitSummary {
+ totalPaid: number; shipping: number; merchandise: number; pointsDiscount: number;
+ netSales: number; cost: number; profit: number | null; marginPercent: number | null;
+ transactions: number; pendingTransactions: number; estimatedCostUnits: number; missingCostUnits: number;
+}
+export interface ProfitRow {
+ id: string; orderNumber: string; channel: 'online' | 'pos'; paidAt: string;
+ totalPaid: number; shipping: number; merchandise: number; pointsDiscount: number; netSales: number;
+ cost: number; profit: number | null; marginPercent: number | null; estimated: number; missing: number;
+}

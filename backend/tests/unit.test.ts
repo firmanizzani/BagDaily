@@ -74,6 +74,16 @@ describe('Zod schemas', async () => {
     const r = adjustmentSchema.parse({ productId: '00000000-0000-0000-0000-000000000001', type: 'correction', quantity: -5, notes: 'test' });
     expect(r.quantity).toBe(-5);
   });
+    it('accepts absolute correction including zero stock', () => {
+      const input = { productId: '00000000-0000-0000-0000-000000000001', type: 'correction', targetStock: 0, expectedStock: 13, notes: 'Stock count' };
+      expect(adjustmentSchema.parse(input).targetStock).toBe(0);
+      expect(adjustmentSchema.safeParse({ ...input, targetStock: 3 }).success).toBe(true);
+      expect(adjustmentSchema.safeParse({ ...input, targetStock: -1 }).success).toBe(false);
+      expect(adjustmentSchema.safeParse({ ...input, targetStock: 1.5 }).success).toBe(false);
+      expect(adjustmentSchema.safeParse({ ...input, expectedStock: undefined }).success).toBe(false);
+      expect(adjustmentSchema.safeParse({ ...input, quantity: 3 }).success).toBe(false);
+      expect(adjustmentSchema.safeParse({ ...input, type: 'restock' }).success).toBe(false);
+    });
   it('rejects short password at register', () => {
     expect(() => registerSchema.parse({ name: 'Test User', email: 'test@example.com', password: 'short' })).toThrow();
   });

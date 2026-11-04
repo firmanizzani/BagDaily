@@ -59,6 +59,7 @@ router.patch('/:id', a(async (req, res) => {
   }
   const [product] = await db.update(products).set({
     ...input,
+    ...(input.costPrice !== undefined ? { costIsEstimated: false } : {}),
     updatedAt: new Date(),
   }).where(eq(products.id, id)).returning();
   if (!product) notFound('Product not found');

@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { products, stockMovements } from '../../db/schema/index.js';
 import { conflict } from '../../utils/errors.js';
 import { hashObject } from '../../utils/misc.js';
@@ -16,19 +16,25 @@ export async function adjust(actor: string, key: string, input: AdjustmentInput)
       }
       return previous;
     }
+    const [current] = await tx.select().from(products).where(eq(products.id, input.productId)).for('update');
+    if (!current) conflict('INVALID_STOCK', 'Produk tidak ditemukan.');
+    if (input.expectedStock !== undefined && current.stock !== input.expectedStock) {
+      conflict('STOCK_CHANGED', 'Stok telah berubah. Tutup formulir dan perbarui data sebelum menyesuaikan stok.');
+    }
+    const quantity = input.targetStock !== undefined ? input.targetStock - current.stock : input.quantity!;
+    const stockAfter = current.stock + quantity;
+    if (quantity === 0) conflict('STOCK_UNCHANGED', 'Stok akhir sama dengan stok saat ini. Tidak ada perubahan untuk disimpan.');
+    if (stockAfter < 0 || stockAfter > 2147483647) conflict('INVALID_STOCK', 'Hasil penyesuaian stok di luar batas yang diizinkan.');
     const [product] = await tx.update(products).set({
-      stock: sql`${products.stock} + ${input.quantity}`,
+      stock: stockAfter,
       updatedAt: new Date(),
-    }).where(and(
-      eq(products.id, input.productId),
-      sql`${products.stock}::bigint + ${input.quantity} between 0 and 2147483647`,
-    )).returning();
+    }).where(eq(products.id, input.productId)).returning();
     if (!product) conflict('INVALID_STOCK', 'Product missing or adjustment outside stock limits');
     const [movement] = await tx.insert(stockMovements).values({
       productId: input.productId,
       type: input.type,
-      quantity: input.quantity,
-      stockBefore: product.stock - input.quantity,
+      quantity,
+      stockBefore: current.stock,
       stockAfter: product.stock,
       notes: input.notes,
       createdBy: actor,

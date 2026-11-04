@@ -1,3 +1,4 @@
+import { DashboardProfitMetric } from '@/components/admin/DashboardProfit';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -39,13 +40,14 @@ export function AdminDashboardPage() {
           onRetry={() => void overview.refetch()}
         />
       ) : (
-        <div className="admin-metrics-grid">
+        <div className="admin-metrics-grid dashboard-metrics-five">
           <AdminMetric
-            label="Total Penjualan"
+            label="Total Pembayaran"
             value={formatRupiah(metrics?.totalSales ?? 0)}
-            note="Dari transaksi yang sudah dibayar"
+            note="Termasuk ongkir, setelah potongan poin"
             icon={ChartNoAxesCombined}
           />
+          <DashboardProfitMetric range={range} />
           <AdminMetric
             label="Total Pesanan"
             value={metrics?.totalTransactions ?? 0}
@@ -54,7 +56,7 @@ export function AdminDashboardPage() {
             tone="blue"
           />
           <AdminMetric
-            label="Produk Terjual"
+            label="Unit Terjual"
             value={metrics?.totalProductsSold ?? 0}
             note="Unit terjual pada periode ini"
             icon={ShoppingBag}

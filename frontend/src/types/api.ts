@@ -34,6 +34,8 @@ export interface Category {
 }
 
 export interface Product {
+  costPrice?: number | null;
+  costIsEstimated?: boolean;
   id: string;
   categoryId: string;
   sku: string;
@@ -200,6 +202,8 @@ export interface CategorySalesItem {
 }
 
 export interface TopProductItem {
+  stock?: number;
+  minimumStock?: number;
   imageUrl?: string | null;
   productId: string;
   name: string;

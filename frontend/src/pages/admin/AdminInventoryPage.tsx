@@ -58,7 +58,9 @@ export function AdminInventoryPage() {
         body: {
           productId: selectedProduct.id,
           type,
-          quantity: Number(quantity),
+          ...(type === 'correction'
+            ? { targetStock: Number(quantity), expectedStock: selectedProduct.stock }
+            : { quantity: Number(quantity) }),
           notes,
         },
         key: idempotencyKey,
@@ -71,9 +73,7 @@ export function AdminInventoryPage() {
       void inventoryQuery.refetch();
       void lowStockQuery.refetch();
       void movementsQuery.refetch();
-    } catch {
-      toast.error('Gagal menyesuaikan stok.');
-    }
+    } catch { /* The shared mutation displays the server's actionable error. */ }
   };
 
   return (
@@ -219,6 +219,7 @@ export function AdminInventoryPage() {
                             setType('restock');
                             setQuantity(10);
                             setNotes('Restock berkala');
+                            setIdempotencyKey(generateUUID());
                           }}
                         >
                           Sesuaikan Stok
@@ -296,7 +297,7 @@ export function AdminInventoryPage() {
         title={`Penyesuaian Stok: ${selectedProduct?.name || ''}`}
         open={Boolean(selectedProduct)}
         onOpenChange={open => {
-          if (!open) setSelectedProduct(null);
+          if (!open && !adjustStock.isPending) setSelectedProduct(null);
         }}
       >
         <form onSubmit={handleAdjustSubmit} className="space-y-3 text-xs">
@@ -308,40 +309,58 @@ export function AdminInventoryPage() {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Tipe Penyesuaian</label>
+            <label htmlFor="stock-adjustment-type" className="block font-semibold mb-1">Tipe Penyesuaian</label>
             <select
+              id="stock-adjustment-type"
+              disabled={adjustStock.isPending}
               value={type}
-              onChange={e => setType(e.target.value as 'restock' | 'correction')}
+              onChange={e => {
+                const next = e.target.value as 'restock' | 'correction';
+                setType(next);
+                setQuantity(next === 'correction' ? selectedProduct?.stock ?? 0 : 10);
+                setNotes(next === 'correction' ? '' : 'Restock berkala');
+                setIdempotencyKey(generateUUID());
+              }}
               className="w-full rounded border border-[#6E7E8D]/30 p-2 bg-white"
             >
               <option value="restock">Restock (Tambah Stok Positif)</option>
-              <option value="correction">Koreksi Stok (Penyesuaian Selisih +/-)</option>
+              <option value="correction">Koreksi Stok (Tetapkan Stok Akhir)</option>
             </select>
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">
-              Jumlah Perubahan (
-              {type === 'restock' ? 'harus positif' : 'bisa negatif/positif delta'})
+            <label htmlFor="stock-adjustment-quantity" className="block font-semibold mb-1">
+              {type === 'restock' ? 'Jumlah Stok yang Ditambahkan' : 'Stok Akhir yang Benar'}
             </label>
             <input
+              id="stock-adjustment-quantity"
+              aria-describedby="stock-adjustment-preview"
+              disabled={adjustStock.isPending}
               type="number"
-              min={type === 'restock' ? 1 : undefined}
+              min={type === 'restock' ? 1 : 0}
+              max={2147483647}
               step={1}
               required
               value={quantity}
-              onChange={e => setQuantity(Number(e.target.value))}
+              onChange={e => { setQuantity(Number(e.target.value)); setIdempotencyKey(generateUUID()); }}
               className="w-full rounded border border-[#6E7E8D]/30 p-2"
             />
+            <p id="stock-adjustment-preview" role="status" className="mt-2 text-[#15616D] leading-relaxed">
+              {type === 'correction' ? 'Stok akan ditetapkan menjadi' : 'Stok setelah penambahan'}{' '}
+              <strong>{type === 'correction' ? quantity : (selectedProduct?.stock ?? 0) + quantity} unit</strong>.
+              {type === 'correction' && ` Perubahan: ${quantity - (selectedProduct?.stock ?? 0) > 0 ? '+' : ''}${quantity - (selectedProduct?.stock ?? 0)} unit.`}
+            </p>
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">Catatan / Alasan</label>
+            <label htmlFor="stock-adjustment-notes" className="block font-semibold mb-1">Catatan / Alasan</label>
             <textarea
+              id="stock-adjustment-notes"
+              disabled={adjustStock.isPending}
               rows={2}
               required
               value={notes}
-              onChange={e => setNotes(e.target.value)}
+              onChange={e => { setNotes(e.target.value); setIdempotencyKey(generateUUID()); }}
               placeholder="Contoh: Penerimaan supplier / Selisih stock opname"
               className="w-full rounded border border-[#6E7E8D]/30 p-2"
             />
@@ -352,6 +371,7 @@ export function AdminInventoryPage() {
               type="button"
               variant="outline"
               size="sm"
+              disabled={adjustStock.isPending}
               onClick={() => setSelectedProduct(null)}
             >
               Batal
@@ -360,7 +380,7 @@ export function AdminInventoryPage() {
               type="submit"
               variant="teal"
               size="sm"
-              disabled={adjustStock.isPending}
+              disabled={adjustStock.isPending || !Number.isInteger(quantity) || quantity < (type === 'restock' ? 1 : 0) || (type === 'correction' && quantity === selectedProduct?.stock)}
             >
               {adjustStock.isPending ? 'Menyimpan…' : 'Simpan Mutasi'}
             </Button>

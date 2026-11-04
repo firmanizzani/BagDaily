@@ -22,13 +22,15 @@ describe('admin dashboard requirements', () => {
         : { data: { data: [] } },
     );
   });
-  it('shows four metrics from API data and links low stock to inventory', () => {
+  it('shows five metrics with profit immediately after payments and links low stock to inventory', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
         <AdminDashboardPage />
       </MemoryRouter>,
     );
-    expect(html.match(/class="admin-metric metric-/g) || []).toHaveLength(4);
+    expect(html.match(/class="admin-metric metric-/g) || []).toHaveLength(5);
+    expect(html.indexOf('Total Pembayaran')).toBeLessThan(html.indexOf('Keuntungan'));
+    expect(html.indexOf('Keuntungan')).toBeLessThan(html.indexOf('Total Pesanan'));
     expect(html).toContain('Stok Barang Menipis');
     expect(html).toContain('<strong>7</strong>');
     expect(html).toContain('/admin/inventory?tab=lowStock');
@@ -41,7 +43,7 @@ describe('admin dashboard requirements', () => {
       expect(html).not.toContain(label);
     expect(
       mock.useApi.mock.calls.every(
-        ([path]) => path.includes('/overview') || path.includes('/admin/orders'),
+        ([path]) => path.includes('/overview') || path.includes('/admin/orders') || path.includes('/reports/profit'),
       ),
     ).toBe(true);
   });

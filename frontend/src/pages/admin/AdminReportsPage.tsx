@@ -1,23 +1,18 @@
+import { ProfitReport } from '@/components/admin/ProfitReport';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
-  Bar,
-  CartesianGrid,
   Cell,
-  ComposedChart,
-  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from 'recharts';
 import { Banknote, Download, ReceiptText, ShoppingBag, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApi } from '@/hooks/api';
-import type { CategorySalesItem, Order, SalesTrendItem } from '@/types/api';
-import { formatDate, formatRupiah, formatShortDate } from '@/lib/utils';
+import type { CategorySalesItem, Order } from '@/types/api';
+import { formatDate, formatRupiah } from '@/lib/utils';
 import { recentDateRange, dateRangeParams } from '@/lib/dateRange';
 import { paymentMethodLabels } from '@/lib/payments';
 import { downloadReport } from '@/services/apiClient';
@@ -27,21 +22,19 @@ import { DataPagination } from '@/components/admin/DataPagination';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 
+import { ReportTrendCharts } from '@/components/admin/ReportTrendCharts';
+
 const colors = ['#087362', '#7fbca3', '#d6b57c', '#6c92a1'];
 export function AdminReportsPage() {
-  const [range, setRange] = useState(() => recentDateRange());
-  const [tab, setTab] = useState('Ringkasan');
+  const [url] = useSearchParams();
+  const [range, setRange] = useState(() => url.has('start') && url.has('end') && [url.get('start'), url.get('end')].every(value => value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value ?? '')) ? { from: url.get('start')!, to: url.get('end')! } : recentDateRange());
+  const [tab, setTab] = useState(url.get('tab') === 'profit' ? 'Keuntungan' : 'Ringkasan');
   const [channel, setChannel] = useState('');
   const [page, setPage] = useState(1);
-  const [interval, setInterval] = useState('day');
   const [exporting, setExporting] = useState(false);
   const filters = dateRangeParams(range);
   if (channel) filters.set('channel', channel);
   const query = useApi<Order[]>(`/admin/reports/sales?${filters}&page=${page}&limit=10`);
-  const trend = useApi<SalesTrendItem[]>(
-    `/admin/dashboard/sales-trend?${filters}&interval=${interval}`,
-    tab === 'Ringkasan',
-  );
   const categories = useApi<CategorySalesItem[]>(
     `/admin/dashboard/categories?${filters}`,
     tab === 'Ringkasan',
@@ -59,7 +52,7 @@ export function AdminReportsPage() {
   const exportCsv = async () => {
     setExporting(true);
     try {
-      await downloadReport(filters);
+      await downloadReport(filters, tab === 'Keuntungan' ? 'profit' : 'sales');
       toast.success('Laporan berhasil diunduh.');
     } catch (error) {
       toast.error(
@@ -70,11 +63,11 @@ export function AdminReportsPage() {
     }
   };
   return (
-    <div className="admin-page">
+    <div className="admin-page admin-reports-page">
       <header className="admin-page-heading">
         <div>
           <h1>Laporan</h1>
-          <p>Lihat statistik dan laporan toko secara lengkap.</p>
+          <p>Pantau barang yang laku, tren kategori, dan nilai transaksi toko.</p>
         </div>
         <div className="admin-heading-actions">
           <DateRangeFilter
@@ -97,15 +90,15 @@ export function AdminReportsPage() {
       </header>
       <div className="admin-report-navigation">
         <nav className="admin-status-tabs" aria-label="Jenis laporan">
-          {['Ringkasan', 'Penjualan', 'Produk', 'Pelanggan'].map(name => (
+          {['Ringkasan', 'Penjualan', 'Keuntungan', 'Produk', 'Pelanggan'].map(name => (
             <button
               type="button"
               key={name}
               className={name === tab ? 'active' : ''}
               aria-pressed={name === tab}
-              onClick={() => setTab(name)}
+              onClick={() => { setTab(name); setPage(1); }}
             >
-              {name}
+              {name === 'Penjualan' ? 'Transaksi & pembayaran' : name}
             </button>
           ))}
         </nav>
@@ -122,8 +115,7 @@ export function AdminReportsPage() {
           <option value="pos">Toko / POS</option>
         </select>
       </div>
-      {summary && <p className="point-discount-note">Nilai barang {formatRupiah(summary.merchandiseTotal ?? 0)} + ongkir {formatRupiah(summary.shippingTotal ?? 0)} − potongan poin {formatRupiah(summary.pointsDiscount ?? 0)} = total pembayaran {formatRupiah(summary.totalSales)}. Nilai per produk memakai harga barang sebelum potongan poin.</p>}
-      {query.isLoading ? (
+      {tab === 'Keuntungan' ? <ProfitReport filters={filters.toString()} /> : query.isLoading ? (
         <LoadingState label="Menghitung laporan…" />
       ) : query.isError ? (
         <ErrorState
@@ -134,133 +126,45 @@ export function AdminReportsPage() {
         <>
           <div className="admin-metrics-grid">
             <AdminMetric
-              label="Total Penjualan"
+              label="Total Pembayaran"
               value={formatRupiah(summary?.totalSales || 0)}
-              note="Transaksi berbayar pada periode ini"
+              note="Termasuk ongkir, setelah potongan poin"
               icon={Banknote}
             />
             <AdminMetric
-              label="Total Pesanan"
+              label="Pesanan Dibayar"
               value={summary?.totalTransactions || 0}
               note="Transaksi yang sudah dibayar"
               icon={ReceiptText}
               tone="blue"
             />
             <AdminMetric
-              label="Produk Terjual"
+              label="Unit Terjual"
               value={units}
               note="Jumlah unit produk terjual"
               icon={ShoppingBag}
               tone="orange"
             />
             <AdminMetric
-              label="Rata-rata Order"
+              label="Rata-rata Pembayaran"
               value={formatRupiah(
                 summary?.totalTransactions
                   ? Math.round(summary.totalSales / summary.totalTransactions)
                   : 0,
               )}
-              note="Total penjualan per transaksi"
+              note="Total pembayaran per transaksi"
               icon={TrendingUp}
               tone="amber"
             />
           </div>
+          {summary && <details className="report-payment-breakdown"><summary><span>Rincian perhitungan pembayaran</span><span>Nilai barang, ongkir & poin</span></summary><dl><div><dt>Nilai barang</dt><dd>{formatRupiah(summary.merchandiseTotal ?? 0)}</dd></div><div><dt>Ongkos kirim</dt><dd>{formatRupiah(summary.shippingTotal ?? 0)}</dd></div><div><dt>Potongan poin</dt><dd>{formatRupiah(summary.pointsDiscount ?? 0)}</dd></div><div><dt>Total pembayaran</dt><dd>{formatRupiah(summary.totalSales)}</dd></div></dl><p>Nilai barang + ongkir − potongan poin = total pembayaran. Belum merupakan laba toko.</p></details>}
           {tab === 'Ringkasan' && (
             <>
-              <section className="admin-panel">
-                <header className="admin-panel-heading">
-                  <h2>Grafik Penjualan</h2>
-                  <div className="admin-chart-key">
-                    <span>
-                      <i />
-                      Penjualan
-                    </span>
-                    <span>
-                      <i />
-                      Pesanan
-                    </span>
-                    <select
-                      aria-label="Interval laporan"
-                      value={interval}
-                      onChange={event => setInterval(event.target.value)}
-                    >
-                      <option value="day">Harian</option>
-                      <option value="week">Mingguan</option>
-                    </select>
-                  </div>
-                </header>
-                {trend.isLoading ? (
-                  <LoadingState label="Memuat grafik…" />
-                ) : trend.isError ? (
-                  <ErrorState onRetry={() => void trend.refetch()} />
-                ) : !trend.data?.data.length ? (
-                  <EmptyState
-                    title="Belum ada penjualan pada periode ini"
-                    description="Grafik akan tampil setelah ada transaksi yang dibayar."
-                  />
-                ) : (
-                  <div className="admin-report-chart">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart
-                        data={trend.data.data}
-                        margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-                      >
-                        <CartesianGrid vertical={false} stroke="#e9eee8" />
-                        <XAxis
-                          dataKey="date"
-                          tickFormatter={value => formatShortDate(String(value), false)}
-                          axisLine={false}
-                          tickLine={false}
-                          minTickGap={25}
-                        />
-                        <YAxis
-                          yAxisId="sales"
-                          tickFormatter={value => `${Number(value) / 1000}rb`}
-                          axisLine={false}
-                          tickLine={false}
-                          width={48}
-                        />
-                        <YAxis
-                          yAxisId="orders"
-                          orientation="right"
-                          allowDecimals={false}
-                          axisLine={false}
-                          tickLine={false}
-                          width={24}
-                        />
-                        <Tooltip
-                          labelFormatter={value => formatShortDate(String(value))}
-                          formatter={(value, name) =>
-                            name === 'Penjualan'
-                              ? formatRupiah(Number(value))
-                              : `${value} pesanan`
-                          }
-                        />
-                        <Bar
-                          yAxisId="sales"
-                          dataKey="revenue"
-                          name="Penjualan"
-                          fill="#138369"
-                          radius={[3, 3, 0, 0]}
-                          maxBarSize={32}
-                        />
-                        <Line
-                          yAxisId="orders"
-                          dataKey="transactions"
-                          name="Pesanan"
-                          stroke="#82baa2"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </section>
+              <ReportTrendCharts filters={filters.toString()} range={range} />
               <div className="admin-report-bottom">
                 <section className="admin-panel">
                   <header className="admin-panel-heading">
-                    <h2>Penjualan per Kategori</h2>
+                    <div><h2>Komposisi Produk Terjual</h2><p>Kontribusi kategori berdasarkan jumlah unit.</p></div>
                   </header>
                   {categories.isLoading ? (
                     <LoadingState />
@@ -291,7 +195,7 @@ export function AdminReportsPage() {
                                 />
                               ))}
                             </Pie>
-                            <Tooltip />
+                            <Tooltip formatter={value => `${Number(value).toLocaleString('id-ID')} unit`} />
                           </PieChart>
                         </ResponsiveContainer>
                         <div>
@@ -315,7 +219,7 @@ export function AdminReportsPage() {
                 </section>
                 <section className="admin-panel">
                   <header className="admin-panel-heading">
-                    <h2>Penjualan Produk</h2>
+                    <div><h2>Produk Terlaris</h2><p>Diurutkan dari unit terjual terbanyak.</p></div>
                     <button type="button" onClick={() => setTab('Produk')}>
                       Lihat semua →
                     </button>
@@ -332,7 +236,7 @@ export function AdminReportsPage() {
                           <ProductPhoto name={product.name} src={product.imageUrl} />
                           <div>
                             <strong>{product.name}</strong>
-                            <p>{product.quantity} unit terjual</p>
+                            <p>{product.quantity} unit terjual · Stok saat ini {product.stock ?? '—'}</p>
                           </div>
                           <strong>{formatRupiah(product.revenue)}</strong>
                         </div>
@@ -346,7 +250,7 @@ export function AdminReportsPage() {
           {tab === 'Penjualan' && (
             <section className="admin-panel">
               <header className="admin-panel-heading">
-                <h2>Rincian Penjualan</h2>
+                <div><h2>Transaksi & Pembayaran</h2><p>Rincian transaksi yang sudah dibayar pada periode ini.</p></div>
               </header>
               {!query.data?.data.length ? (
                 <EmptyState
@@ -416,7 +320,7 @@ export function AdminReportsPage() {
           {tab === 'Produk' && (
             <section className="admin-panel">
               <header className="admin-panel-heading">
-                <h2>Penjualan per Produk</h2>
+                <div><h2>Penjualan per Produk</h2><p>Diurutkan berdasarkan unit terjual. Nilai barang sebelum potongan poin, tanpa ongkir.</p></div>
               </header>
               {!products.length ? (
                 <EmptyState
@@ -430,7 +334,7 @@ export function AdminReportsPage() {
                       <tr>
                         <th>Produk</th>
                         <th className="numeric">Unit terjual</th>
-                        <th className="numeric">Nilai penjualan</th>
+                        <th className="numeric">Nilai barang</th><th className="numeric">Stok saat ini</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -445,7 +349,7 @@ export function AdminReportsPage() {
                           <td className="numeric">
                             {product.quantity.toLocaleString('id-ID')}
                           </td>
-                          <td className="numeric">{formatRupiah(product.revenue)}</td>
+                          <td className="numeric">{formatRupiah(product.revenue)}</td><td className="numeric">{product.stock ?? '—'}<small>{product.stock !== undefined && product.minimumStock !== undefined && product.stock <= product.minimumStock ? 'Perlu perhatian' : ''}</small></td>
                         </tr>
                       ))}
                     </tbody>

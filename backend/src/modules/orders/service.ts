@@ -29,14 +29,14 @@ export async function transaction<T>(work: (tx: Tx) => Promise<T>): Promise<T> {
   }
 }
 
-export async function orderDetail(id: string) {
+export async function orderDetail(id: string, includeCosts = false) {
   const [order] = await db.select().from(orders).where(eq(orders.id, id));
   if (!order) notFound('Order not found');
 
   const itemRows = await db.select({ ...getTableColumns(orderItems), imagePath: products.imagePath })
     .from(orderItems).leftJoin(products, eq(orderItems.productId, products.id))
     .where(eq(orderItems.orderId, id)).orderBy(asc(orderItems.productId));
-  const items = itemRows.map(({ imagePath, ...item }) => ({ ...item, imageUrl: imageUrlFromPath(imagePath) }));
+  const items = itemRows.map(({ imagePath, unitCost, costIsEstimated, ...item }) => ({ ...item, ...(includeCosts ? { unitCost, costIsEstimated } : {}), imageUrl: imageUrlFromPath(imagePath) }));
   const events = await db.select().from(history).where(eq(history.orderId, id)).orderBy(asc(history.createdAt));
   const [cashier] = order.cashierId ? await db.select({ name: users.name }).from(users).where(eq(users.id, order.cashierId)) : [];
   const [customer] = order.userId ? await db.select({ name: users.name, email: users.email, phone: users.phone, address: users.address }).from(users).where(eq(users.id, order.userId)) : [];
@@ -66,6 +66,8 @@ export async function snapshots(tx: Tx, items: { productId: string; quantity: nu
       skuSnapshot: product.sku,
       quantity: item.quantity,
       unitPrice: product.price,
+      unitCost: product.costPrice,
+      costIsEstimated: product.costIsEstimated,
       subtotal: item.quantity * product.price,
     });
   }

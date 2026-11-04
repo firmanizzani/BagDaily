@@ -1,3 +1,4 @@
+import type { ProfitSummary } from '@/features/profit/types';
 import type {
   ApiResponse,
   CustomerSummary,
@@ -29,6 +30,7 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
 
 export interface Result<T> extends ApiResponse<T> {
   summary?: SalesReportSummary;
+  profitSummary?: ProfitSummary;
   products?: TopProductItem[];
   customer?: CustomerSummary;
   customers?: CustomerSalesItem[];
@@ -99,8 +101,8 @@ export function generateUUID(): string {
   return crypto.randomUUID();
 }
 
-export async function downloadReport(params: URLSearchParams): Promise<void> {
-  const response = await fetch(`${API_BASE}/admin/reports/sales/export?${params}`, {
+export async function downloadReport(params: URLSearchParams, kind: 'sales' | 'profit' = 'sales'): Promise<void> {
+  const response = await fetch(`${API_BASE}/admin/reports/${kind}/export?${params}`, {
     credentials: 'include',
   });
   if (!response.ok) {
@@ -113,7 +115,7 @@ export async function downloadReport(params: URLSearchParams): Promise<void> {
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'bagdaily-sales.csv';
+  link.download = `bagdaily-${kind}.csv`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

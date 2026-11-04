@@ -1,0 +1,110 @@
+[
+  {
+    "sku": "BD-TTB-006",
+    "name": "Hana Mini Tote",
+    "price": 110000,
+    "costPrice": 80000
+  },
+  {
+    "sku": "BD-TTB-001",
+    "name": "Sora Canvas Tote",
+    "price": 120000,
+    "costPrice": 88000
+  },
+  {
+    "sku": "BD-SLG-005",
+    "name": "Lumi Mini Sling",
+    "price": 130000,
+    "costPrice": 95000
+  },
+  {
+    "sku": "BD-TTB-004",
+    "name": "Mika Pocket Tote",
+    "price": 140000,
+    "costPrice": 102000
+  },
+  {
+    "sku": "BD-SLG-001",
+    "name": "Arlo Crossbody",
+    "price": 150000,
+    "costPrice": 110000
+  },
+  {
+    "sku": "BD-TTB-005",
+    "name": "Ayo Stripe Tote",
+    "price": 150000,
+    "costPrice": 108000
+  },
+  {
+    "sku": "BD-TTB-002",
+    "name": "Kuma Zip Tote",
+    "price": 150000,
+    "costPrice": 109000
+  },
+  {
+    "sku": "BD-SLG-006",
+    "name": "Dova Pocket Sling",
+    "price": 160000,
+    "costPrice": 116000
+  },
+  {
+    "sku": "BD-TTB-003",
+    "name": "Lino Shopper Tote",
+    "price": 160000,
+    "costPrice": 115000
+  },
+  {
+    "sku": "BD-SLG-002",
+    "name": "Nara Sling",
+    "price": 180000,
+    "costPrice": 132000
+  },
+  {
+    "sku": "BD-RNS-004",
+    "name": "Rhea Mini Pack",
+    "price": 200000,
+    "costPrice": 150000
+  },
+  {
+    "sku": "BD-SLG-004",
+    "name": "Tavo Utility Sling",
+    "price": 200000,
+    "costPrice": 148000
+  },
+  {
+    "sku": "BD-SLG-003",
+    "name": "Kiro Flap Sling",
+    "price": 230000,
+    "costPrice": 175000
+  },
+  {
+    "sku": "BD-RNS-003",
+    "name": "Kavi Campus Pack",
+    "price": 240000,
+    "costPrice": 182000
+  },
+  {
+    "sku": "BD-RNS-001",
+    "name": "Mero Daypack",
+    "price": 270000,
+    "costPrice": 205000
+  },
+  {
+    "sku": "BD-RNS-005",
+    "name": "Orin Roll-Top Pack",
+    "price": 320000,
+    "costPrice": 245000
+  },
+  {
+    "sku": "BD-RNS-006",
+    "name": "Talo Trail Pack",
+    "price": 350000,
+    "costPrice": 270000
+  },
+  {
+    "sku": "BD-RNS-002",
+    "name": "Zeno Laptop Pack",
+    "price": 380000,
+    "costPrice": 295000
+  }
+]

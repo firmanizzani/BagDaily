@@ -62,6 +62,7 @@ export async function getProducts(
       description: products.description,
       material: products.material,
       price: products.price,
+      ...(admin ? { costPrice: products.costPrice, costIsEstimated: products.costIsEstimated } : {}),
       stock: products.stock,
       minimumStock: products.minimumStock,
       imagePath: products.imagePath,

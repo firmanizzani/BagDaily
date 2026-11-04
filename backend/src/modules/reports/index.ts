@@ -1,14 +1,42 @@
 import { Router } from 'express';
+import profitRouter from './profit.js';
 import { and, asc, desc, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
-import { orders, orderItems, products, users } from '../../db/schema/index.js';
+import { categories, orders, orderItems, products, users } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
-import { paginated } from '../../utils/response.js';
+import { ok, paginated } from '../../utils/response.js';
+import { z } from 'zod';
 import { pageSchema } from '../../utils/validation.js';
 import { paidRange, rangeSchema } from '../dashboard/index.js';
 import { imageUrlFromPath } from '../products/image-url.js';
 
 const router = Router();
+router.use('/profit', profitRouter);
+
+router.get('/trends', a(async (req, res) => {
+  const range = rangeSchema.parse(req.query);
+  const interval = z.enum(['day', 'week', 'month']).default('day').parse(req.query['interval']);
+  // Count each payment once, even when the order contains multiple products.
+  const perOrder = db.select({
+    date: sql<string>`date_trunc(${interval}, ${orders.paidAt} at time zone 'Asia/Jakarta')::date::text`.as('date'),
+    total: orders.total,
+    units: sql<number>`(select coalesce(sum(i.quantity),0) from order_items i where i.order_id = "orders"."id")`.as('units'),
+  }).from(orders).where(paidRange(range)).as('per_order');
+  const sales = await db.select({ date: perOrder.date,
+    revenue: sql<number>`sum(${perOrder.total})::bigint`.mapWith(Number),
+    units: sql<number>`sum(${perOrder.units})::bigint`.mapWith(Number),
+    transactions: sql<number>`count(*)::int`,
+  }).from(perOrder).groupBy(perOrder.date).orderBy(perOrder.date);
+  const monthly = await db.select({
+    month: sql<string>`date_trunc('month', ${orders.paidAt} at time zone 'Asia/Jakarta')::date::text`,
+    categoryId: categories.id, name: categories.name,
+    quantity: sql<number>`sum(${orderItems.quantity})::bigint`.mapWith(Number),
+  }).from(orderItems).innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .innerJoin(products, eq(orderItems.productId, products.id))
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(paidRange(range)).groupBy(sql`1`, categories.id, categories.name).orderBy(sql`1`, categories.name);
+  res.json(ok({ sales, monthly }));
+}));
 
 router.get('/sales', a(async (req, res) => {
   const v = rangeSchema.parse(req.query);
@@ -39,12 +67,14 @@ router.get('/sales', a(async (req, res) => {
       quantity: sql<number>`sum(${orderItems.quantity})::int`,
       revenue: sql<number>`sum(${orderItems.subtotal})::int`,
       imagePath: products.imagePath,
+      stock: products.stock,
+      minimumStock: products.minimumStock,
     }).from(orderItems)
       .innerJoin(orders, eq(orderItems.orderId, orders.id))
       .leftJoin(products, eq(orderItems.productId, products.id))
       .where(where)
-      .groupBy(orderItems.productId, products.imagePath)
-      .orderBy(desc(sql`sum(${orderItems.quantity})`));
+      .groupBy(orderItems.productId, products.imagePath, products.stock, products.minimumStock)
+      .orderBy(desc(sql`sum(${orderItems.quantity})`), asc(sql`min(${orderItems.productNameSnapshot})`));
   const customerRows = await db.select({
     customerId: orders.userId, name: users.name, email: users.email,
     transactions: sql<number>`count(*)::int`, revenue: sql<number>`sum(${orders.total})::int`,

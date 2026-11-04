@@ -50,7 +50,7 @@ router.get('/', a(async (req, res) => {
 }));
 
 router.get('/:id', a(async (req, res) => {
-  const detail = await orderDetail(idSchema.parse(req.params['id']));
+  const detail = await orderDetail(idSchema.parse(req.params['id']), true);
   if (detail.channel !== 'online') notFound('Online order not found');
   res.json({ data: detail });
 }));
