@@ -1337,3 +1337,47 @@ button:disabled {
   outline: 2px solid #087362;
   outline-offset: -2px;
 }
+.general-customer-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+}
+.general-customer-summary h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.general-customer-summary p {
+  margin: 0;
+  color: var(--admin-muted);
+  line-height: 1.6;
+}
+.general-customer-values {
+  display: grid;
+  gap: 5px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.general-customer-values a {
+  color: #087362;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .general-customer-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+  .general-customer-values {
+    text-align: left;
+  }
+}

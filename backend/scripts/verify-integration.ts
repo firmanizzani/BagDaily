@@ -7,6 +7,7 @@ const base = process.env.QA_API_URL || "http://localhost:5173/api";
 const origin = new URL(base).origin;
 const cookies: Record<string, string> = {};
 const fixtureIds: string[] = [];
+const fixtureUsers: string[] = [];
 let categoryId: string | undefined;
 let checks = 0;
 async function api(
@@ -284,6 +285,53 @@ try {
     [200, 409],
   );
   assert.equal((await api(`/products/${race.id}`)).data.stock, 0);
+  const customerProduct = await product(6, 'customers');
+  const customer = (await api('/auth/me', 'pelanggan')).data;
+  const cashier = (await api('/auth/me', 'kasir')).data;
+  const customerStats = (await api(`/admin/customers/${customer.id}/orders`, 'admin')).customer;
+  const generalBefore = (await api('/admin/customers/general-summary', 'admin')).data;
+  const found = (await api('/cashier/customers?search=demo%40bagdaily.com', 'kasir')).data;
+  assert.ok(found.some((row: { id: string }) => row.id === customer.id));
+  assert.ok(found.every((row: Record<string, unknown>) => Object.keys(row).every(key => ['id', 'name', 'email', 'phone'].includes(key))));
+  await api('/cashier/customers?search=de', 'pelanggan', 'GET', undefined, undefined, 403);
+  await api('/cashier/customers?search=d', 'kasir', 'GET', undefined, undefined, 400);
+  await api('/admin/customers/general-summary', 'kasir', 'GET', undefined, undefined, 403);
+  const customerKey = randomUUID();
+  const customerBody = { items: [{ productId: customerProduct.id, quantity: 1 }], cashReceived: 100000, customerId: customer.id };
+  const linked = (await api('/cashier/transactions', 'kasir', 'POST', customerBody, customerKey)).data;
+  assert.equal(linked.userId, customer.id);
+  assert.equal(linked.customerName, customer.name);
+  assert.equal((await api('/cashier/transactions', 'kasir', 'POST', customerBody, customerKey)).data.id, linked.id);
+  await api('/cashier/transactions', 'kasir', 'POST', { ...customerBody, customerId: undefined }, customerKey, 409);
+  const linkedHistory = await api(`/admin/customers/${customer.id}/orders?channel=pos&limit=100`, 'admin');
+  assert.ok(linkedHistory.data.some((row: { id: string }) => row.id === linked.id));
+  assert.equal(linkedHistory.customer.totalOrders, customerStats.totalOrders + 1);
+  assert.equal(linkedHistory.customer.totalSpend, customerStats.totalSpend + linked.total);
+  assert.deepEqual((await api('/admin/customers/general-summary', 'admin')).data, generalBefore);
+  const guest = (await api('/cashier/transactions', 'kasir', 'POST', { ...customerBody, customerId: undefined }, randomUUID())).data;
+  assert.equal(guest.userId, null);
+  const generalAfter = (await api('/admin/customers/general-summary', 'admin')).data;
+  assert.equal(generalAfter.transactions, generalBefore.transactions + 1);
+  assert.equal(generalAfter.totalSpend, generalBefore.totalSpend + guest.total);
+  const customerAfterGuest = (await api(`/admin/customers/${customer.id}/orders`, 'admin')).customer;
+  assert.equal(customerAfterGuest.totalOrders, linkedHistory.customer.totalOrders);
+  assert.equal(customerAfterGuest.totalSpend, linkedHistory.customer.totalSpend);
+  const dates = new URLSearchParams({ from: new Date(Date.now()-86400000).toISOString(), to: new Date(Date.now()+86400000).toISOString(), limit: '100' });
+  const guestRows = (await api(`/cashier/transactions?${dates}&customer=general`, 'kasir')).data;
+  assert.ok(guestRows.some((row: { id: string }) => row.id === guest.id));
+  assert.ok(guestRows.every((row: { userId: string | null }) => row.userId === null));
+  const linkedRows = (await api(`/cashier/transactions?${dates}&customer=registered`, 'kasir')).data;
+  assert.ok(linkedRows.some((row: { id: string }) => row.id === linked.id));
+  assert.ok(linkedRows.every((row: { userId: string | null }) => row.userId !== null));
+  for (const invalidCustomer of [randomUUID(), cashier.id]) {
+    await api('/cashier/transactions', 'kasir', 'POST', { ...customerBody, customerId: invalidCustomer }, randomUUID(), 409);
+  }
+  const inactive = (await api('/auth/register', '', 'POST', { name: 'QA inactive customer', email: `qa-customer-${stamp}@example.test`, password: `Qa-${randomUUID()}!` })).data;
+  fixtureUsers.push(inactive.id);
+  await client`update users set is_active=false where id=${inactive.id}`;
+  assert.equal((await api(`/cashier/customers?search=qa-customer-${stamp}`, 'kasir')).data.length, 0);
+  await api('/cashier/transactions', 'kasir', 'POST', { ...customerBody, customerId: inactive.id }, randomUUID(), 409);
+  assert.equal((await api(`/products/${customerProduct.id}`)).data.stock, 4);
   console.log(
     `PASS: ${checks} integration requests. Three demo logins, CRUD, shipping checkout/payment/fulfillment, tracking, POS/change/idempotency, stock/restock, reporting, roles, and concurrent last-unit purchase.`,
   );
@@ -303,6 +351,7 @@ try {
       await tx`delete from products where id=${productId}`;
     });
   if (categoryId) await client`delete from categories where id=${categoryId}`;
+  for (const id of fixtureUsers) await client`delete from users where id=${id}`;
   console.log(
     "Temporary test data removed. The requested demo accounts remain available.",
   );

@@ -34,6 +34,14 @@ export function PosReceipt({ order }: PosReceiptProps) {
           <dt>Kasir</dt>
           <dd>{order.cashierName || '—'}</dd>
         </div>
+        <div>
+          <dt>Pelanggan</dt>
+          <dd>
+            {order.userId
+              ? order.customerName || 'Pelanggan terdaftar'
+              : 'Pelanggan umum'}
+          </dd>
+        </div>
       </dl>
       <section className="pos-receipt-items" aria-label="Rincian belanja">
         <div className="pos-receipt-columns">

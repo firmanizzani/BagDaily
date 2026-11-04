@@ -386,7 +386,7 @@ export function AdminReportsPage() {
                           <td>
                             {order.customerName ||
                               (order.channel === 'pos'
-                                ? 'Pembeli toko'
+                                ? 'Pelanggan umum'
                                 : order.recipientName || 'Pelanggan')}
                             <small>
                               {order.channel === 'pos' ? 'Toko / POS' : 'Online'}

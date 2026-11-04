@@ -24,6 +24,9 @@ export function AdminCustomersPage() {
     ...(active ? { isActive: active } : {}),
   });
   const query = useApi<CustomerSummary[]>(`/admin/customers?${params}`);
+  const general = useApi<{ transactions: number; totalSpend: number }>(
+    '/admin/customers/general-summary',
+  );
   const customers = query.data?.data || [];
   const filtered = Boolean(search || active || sort !== 'name');
   const clear = () => {
@@ -37,8 +40,38 @@ export function AdminCustomersPage() {
     <section className="customer-page" aria-labelledby="customers-heading">
       <header className="customer-page-heading">
         <h1 id="customers-heading">Pelanggan</h1>
-        <p>Lihat data pelanggan dan riwayat transaksi mereka.</p>
+        <p>
+          Pelanggan terdaftar beserta riwayat belanja online dan POS yang ditautkan ke
+          akun mereka.
+        </p>
       </header>
+      <section className="general-customer-summary" aria-label="Ringkasan pelanggan umum">
+        <div>
+          <h2>Transaksi pelanggan umum</h2>
+          <p>
+            Semua waktu · POS berbayar tanpa akun. Jumlah transaksi ini bukan jumlah
+            pelanggan unik.
+          </p>
+        </div>
+        {general.isLoading ? (
+          <p>Memuat ringkasan…</p>
+        ) : general.isError ? (
+          <p>
+            Ringkasan belum dapat dimuat.{' '}
+            <button type="button" onClick={() => void general.refetch()}>
+              Coba lagi
+            </button>
+          </p>
+        ) : (
+          <div className="general-customer-values">
+            <strong>
+              {(general.data?.data.transactions ?? 0).toLocaleString('id-ID')} transaksi
+            </strong>
+            <span>{formatRupiah(general.data?.data.totalSpend ?? 0)}</span>
+            <Link to="/cashier/history?customer=general">Lihat transaksi</Link>
+          </div>
+        )}
+      </section>
       <div className="customer-panel">
         <div className="customer-toolbar">
           <div className="customer-search">

@@ -20,6 +20,10 @@ import { generateUUID } from '@/services/apiClient';
 import { usePosStore } from '@/features/pos/posStore';
 import { useCreatePosTransaction } from '@/features/pos/usePos';
 import { PosReceipt } from '@/components/cashier/PosReceipt';
+import {
+  PosCustomerPicker,
+  type PosCustomer,
+} from '@/components/cashier/PosCustomerPicker';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
@@ -40,6 +44,8 @@ export function PosPage() {
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [customerMode, setCustomerMode] = useState<'general' | 'registered'>('general');
+  const [customer, setCustomer] = useState<PosCustomer | null>(null);
 
   const {
     items,
@@ -77,7 +83,9 @@ export function PosPage() {
   const isCashSufficient = cashReceived >= currentSubtotal && currentSubtotal > 0;
   const isCash = paymentMethod === 'cash';
   const canCheckout =
-    currentSubtotal > 0 && (isCash ? isCashSufficient : paymentConfirmed);
+    currentSubtotal > 0 &&
+    (customerMode === 'general' || Boolean(customer)) &&
+    (isCash ? isCashSufficient : paymentConfirmed);
 
   const resetPaymentConfirmation = () => setPaymentConfirmed(false);
 
@@ -98,6 +106,7 @@ export function PosPage() {
           quantity: i.quantity,
         })),
         paymentMethod,
+        ...(customerMode === 'registered' && customer ? { customerId: customer.id } : {}),
         ...(isCash ? { cashReceived } : {}),
       };
 
@@ -109,6 +118,8 @@ export function PosPage() {
       toast.success(`Transaksi ${res.data.orderNumber} berhasil dicatat.`);
       setCompletedOrder(res.data);
       resetSale();
+      setCustomer(null);
+      setCustomerMode('general');
       setPaymentMethod('cash');
       setPaymentConfirmed(false);
       setIdempotencyKey(generateUUID());
@@ -207,6 +218,8 @@ export function PosPage() {
               className="pos-clear"
               onClick={() => {
                 resetSale();
+                setCustomer(null);
+                setCustomerMode('general');
                 setPaymentMethod('cash');
                 resetPaymentConfirmation();
               }}
@@ -215,6 +228,20 @@ export function PosPage() {
               <Trash2 size={14} /> Hapus semua
             </button>
           </div>
+          <PosCustomerPicker
+            mode={customerMode}
+            value={customer}
+            disabled={createPosTransaction.isPending}
+            onModeChange={mode => {
+              setCustomerMode(mode);
+              resetPaymentConfirmation();
+            }}
+            onChange={selected => {
+              setCustomer(selected);
+              setIdempotencyKey(generateUUID());
+              resetPaymentConfirmation();
+            }}
+          />
           {!items.length ? (
             <div className="pos-empty">
               <ShoppingCart size={40} strokeWidth={1} />
@@ -434,6 +461,11 @@ export function PosPage() {
                 ? 'Memproses pembayaran…'
                 : 'Proses pembayaran'}
             </Button>
+            {customerMode === 'registered' && !customer && (
+              <p className="pos-customer-required">
+                Pilih akun pelanggan atau gunakan Pelanggan umum untuk melanjutkan.
+              </p>
+            )}
             <p className="text-center text-[10px] text-[#788a82]">
               Struk tersedia setelah transaksi
             </p>

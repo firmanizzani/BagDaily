@@ -44,6 +44,14 @@ describe('Zod schemas', async () => {
     const id = '00000000-0000-0000-0000-000000000001';
     expect(() => posInputSchema.parse({ items: [{ productId: id, quantity: 0 }], cashReceived: 100000 })).toThrow();
   });
+  it('accepts a POS customer ID and keeps anonymous POS optional', () => {
+    const id = '00000000-0000-0000-0000-000000000001';
+    const sale = { items: [{ productId: id, quantity: 1 }], cashReceived: 100000 };
+    expect(posInputSchema.parse(sale).customerId).toBeUndefined();
+    expect(posInputSchema.parse({ ...sale, customerId: id }).customerId).toBe(id);
+    expect(posInputSchema.safeParse({ ...sale, customerId: 'invalid' }).success).toBe(false);
+    expect(posInputSchema.safeParse({ ...sale, userId: id }).success).toBe(false);
+  });
   it('rejects adjustment quantity of zero', () => {
     expect(() => adjustmentSchema.parse({ productId: '00000000-0000-0000-0000-000000000001', type: 'restock', quantity: 0, notes: 'test' })).toThrow();
   });

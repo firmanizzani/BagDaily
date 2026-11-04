@@ -1,6 +1,6 @@
-import { sql, eq } from 'drizzle-orm';
+import { sql, eq, and } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
-import { orders, orderItems, payments, history } from '../../db/schema/index.js';
+import { orders, orderItems, payments, history, users } from '../../db/schema/index.js';
 import { conflict } from '../../utils/errors.js';
 import { hashObject } from '../../utils/misc.js';
 import type { PosInput } from '../../utils/validation.js';
@@ -13,6 +13,7 @@ export async function pos(actor: string, key: string, input: PosInput) {
     items: [...input.items].sort((a, b) => a.productId.localeCompare(b.productId)),
     cashReceived: input.cashReceived,
     paymentMethod: input.paymentMethod,
+    ...(input.customerId ? { customerId: input.customerId } : {}),
   });
 
   const id = await transaction(async (tx) => {
@@ -26,6 +27,12 @@ export async function pos(actor: string, key: string, input: PosInput) {
       return existing.id;
     }
 
+    if (input.customerId) {
+      const [customer] = await tx.select({ id: users.id }).from(users).where(and(
+        eq(users.id, input.customerId), eq(users.role, 'pelanggan'), eq(users.isActive, true),
+      )).for('share');
+      if (!customer) conflict('CUSTOMER_UNAVAILABLE', 'Akun pelanggan tidak aktif atau tidak tersedia. Pilih pelanggan lain atau gunakan Pelanggan umum.');
+    }
     const items = await snapshots(tx, input.items);
     const total = items.reduce((sum, i) => sum + i.subtotal, 0);
     const isCash = input.paymentMethod === 'cash';
@@ -37,6 +44,7 @@ export async function pos(actor: string, key: string, input: PosInput) {
     const [inserted] = await tx.insert(orders).values({
       orderNumber: `BD-${randomUUID()}`,
       cashierId: actor,
+      userId: input.customerId ?? null,
       channel: 'pos',
       status: 'awaiting_payment',
       subtotal: total,

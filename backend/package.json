@@ -18,6 +18,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:cron": "tsx scripts/setup-order-expiry.ts",
     "db:cron:check": "tsx scripts/setup-order-expiry.ts --check",
+    "catalog:prices": "tsx scripts/update-catalog-prices.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio"
   },

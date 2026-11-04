@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, asc, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db/index.js';
 import { users, orders } from '../../db/schema/index.js';
@@ -21,6 +21,14 @@ const customerFields = {
   totalSpend: sql<number>`coalesce(customer_totals.total_spend, 0)::bigint`.mapWith(Number),
 };
 const escapedSearch = (value: string) => `%${value.trim().replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_')}%`;
+
+router.get('/general-summary', a(async (_req, res) => {
+  const [summary] = await db.select({
+    transactions: sql<number>`count(*)::int`,
+    totalSpend: sql<number>`coalesce(sum(${orders.total}), 0)::bigint`.mapWith(Number),
+  }).from(orders).where(and(eq(orders.channel, 'pos'), eq(orders.paymentStatus, 'paid'), isNull(orders.userId)));
+  res.json({ data: summary });
+}));
 
 router.get('/', a(async (req, res) => {
   const f = pageSchema.extend({

@@ -6,7 +6,11 @@ BagDaily membantu UMKM tas mengelola penjualan online dan toko fisik dengan satu
 
 Frontend memakai React, TypeScript, Tailwind CSS, dan Recharts. Backend Express memvalidasi input dengan Zod, memeriksa akses berdasarkan role, dan mengakses PostgreSQL melalui Drizzle ORM. Transaksi database dan pengurangan stok bersyarat mencegah stok negatif. Dokumentasi teknis: [API](backend/API-CONTRACT.md), [skema database](database/documentation/schema.md), dan [setup backend](backend/README.md).
 
-Pembayaran online, QRIS, rekening transfer, tarif ongkir, dan resi merupakan simulasi. POS tanpa akun pelanggan tidak dikaitkan ke pelanggan terdaftar. Grafik penjualan berada di menu **Laporan**; dashboard utama menampilkan ringkasan dan pesanan terbaru.
+Pembayaran online, QRIS, rekening transfer, tarif ongkir, dan resi merupakan simulasi. POS menyediakan **Pelanggan umum** (tanpa akun) atau **Pilih pelanggan** terdaftar. Grafik penjualan berada di menu **Laporan**; dashboard utama menampilkan ringkasan dan pesanan terbaru.
+
+Kasir dapat mencari pelanggan aktif berdasarkan nama, email, atau telepon. Transaksi yang ditautkan ikut dihitung pada riwayat dan total belanja pelanggan admin; transaksi umum hanya masuk laporan serta ringkasan **Transaksi pelanggan umum**, bukan jumlah pelanggan unik. Struk dan riwayat POS menampilkan jenis pelanggan, dan transaksi baru kembali ke pilihan Pelanggan umum. Pemilihan pelanggan tidak mengubah pembatasan akses kasir ke pengelolaan pesanan online.
+
+Harga katalog pada seed memakai nominal bulat Rp110.000–Rp380.000. Untuk menerapkan harga seed ke 18 SKU katalog yang sudah ada, jalankan `npm run catalog:prices` dari `backend/`. Skrip mencadangkan harga lama ke `backend/uploads/catalog-import/`, memperbarui harga dalam satu transaksi database, dan tidak mengubah stok maupun nilai transaksi lama.
 
 ## Jalankan
 

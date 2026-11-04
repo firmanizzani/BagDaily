@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApi } from '@/hooks/api';
 import type { Order } from '@/types/api';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,10 @@ import { formatDate, formatRupiah } from '@/lib/utils';
 import { orderStatusLabel, statusLabels } from '@/lib/orders';
 
 export function StaffOrdersPage({ history = false }: { history?: boolean }) {
+  const [url] = useSearchParams();
+  const [customer, setCustomer] = useState(() =>
+    url.get('customer') === 'general' ? 'general' : '',
+  );
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [from, setFrom] = useState('');
@@ -17,6 +21,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
     ...(search ? { search } : {}),
     ...(from ? { from } : {}),
     ...(to ? { to } : {}),
+    ...(history && customer ? { customer } : {}),
     page: String(page),
     limit: '12',
   });
@@ -67,6 +72,22 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
             </select>
           </label>
         )}
+        {history && (
+          <label className="field">
+            Pelanggan
+            <select
+              value={customer}
+              onChange={event => {
+                setCustomer(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Semua transaksi</option>
+              <option value="general">Pelanggan umum</option>
+              <option value="registered">Pelanggan terdaftar</option>
+            </select>
+          </label>
+        )}
         <label className="field">
           Dari
           <input
@@ -106,6 +127,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
               <tr>
                 <th>Nomor pesanan</th>
                 <th>Tanggal</th>
+                {history && <th>Pelanggan</th>}
                 <th>Status</th>
                 <th>Total</th>
                 <th>Detail</th>
@@ -116,6 +138,13 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
                 <tr key={order.id}>
                   <td className="font-semibold">{order.orderNumber}</td>
                   <td>{formatDate(order.createdAt)}</td>
+                  {history && (
+                    <td>
+                      {order.userId
+                        ? order.customerName || 'Pelanggan terdaftar'
+                        : 'Pelanggan umum'}
+                    </td>
+                  )}
                   <td>
                     <span className="badge">{orderStatusLabel(order)}</span>
                   </td>
