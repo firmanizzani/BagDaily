@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { validTransition } from '../src/modules/orders/service.js';
+import { rangeSchema } from '../src/modules/dashboard/index.js';
+
+describe('report all-time date range', () => {
+  it('does not apply the default 30-day limit when all time is explicit', () => {
+    expect(rangeSchema.parse({ all: 'true' })).toMatchObject({ from: undefined, to: undefined });
+    expect(rangeSchema.parse({})).toMatchObject({ from: expect.any(Date), to: expect.any(Date) });
+  });
+  it('rejects contradictory all-time and date bounds and reversed dates', () => {
+    expect(rangeSchema.safeParse({ all: 'true', from: '2026-09-01' }).success).toBe(false);
+    expect(rangeSchema.safeParse({ from: '2026-11-05', to: '2026-11-01' }).success).toBe(false);
+  });
+});
 
 describe('validTransition', () => {
   it.each(['shipping', 'pickup'])('combines confirmation and packing for %s', delivery => { expect(validTransition('awaiting_confirmation', 'packed', delivery)).toBe(true); });

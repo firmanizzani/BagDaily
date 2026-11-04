@@ -4,6 +4,17 @@ export interface DateRange {
   from: string;
   to: string;
 }
+export type DatePreset = 'all' | 'today' | 'week' | 'month';
+export function presetDateRange(preset: DatePreset, now = new Date()): DateRange {
+  if (preset === 'all') return { from: '', to: '' };
+  const to = jakartaDateKey(now);
+  if (preset === 'today') return { from: to, to };
+  if (preset === 'month') return { from: `${to.slice(0, 7)}-01`, to };
+  const start = new Date(`${to}T00:00:00+07:00`);
+  const weekday = new Date(`${to}T00:00:00Z`).getUTCDay();
+  start.setTime(start.getTime() - ((weekday + 6) % 7) * 86400000);
+  return { from: jakartaDateKey(start), to };
+}
 export function jakartaDateKey(date: Date): string {
   const parts = new Intl.DateTimeFormat('en', {
     timeZone: APP_TIME_ZONE,
@@ -22,6 +33,7 @@ export function recentDateRange(days = 30, now = new Date()): DateRange {
 }
 export function dateRangeParams(range: DateRange): URLSearchParams {
   const params = new URLSearchParams();
+  if (!range.from && !range.to) params.set('all', 'true');
   if (range.from)
     params.set('from', new Date(`${range.from}T00:00:00+07:00`).toISOString());
   if (range.to)

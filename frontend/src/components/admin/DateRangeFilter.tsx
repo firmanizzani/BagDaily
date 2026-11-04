@@ -1,7 +1,14 @@
 import { useRef, useState } from 'react';
 import { CalendarDays, ChevronDown } from 'lucide-react';
 import { formatShortDate } from '@/lib/utils';
-import { recentDateRange, type DateRange } from '@/lib/dateRange';
+import { presetDateRange, type DatePreset, type DateRange } from '@/lib/dateRange';
+
+const presets: { id: DatePreset; label: string }[] = [
+  { id: 'all', label: 'Semua' },
+  { id: 'today', label: 'Hari ini' },
+  { id: 'week', label: 'Minggu ini' },
+  { id: 'month', label: 'Bulan ini' },
+];
 
 export function DateRangeFilter({
   value,
@@ -12,7 +19,19 @@ export function DateRangeFilter({
 }) {
   const root = useRef<HTMLDetailsElement>(null);
   const [draft, setDraft] = useState(value);
+  const [presetChoice, setPresetChoice] = useState<DatePreset | null>(null);
   const invalid = Boolean(draft.from && draft.to && draft.from > draft.to);
+  const matches = (id: DatePreset) => {
+    const range = presetDateRange(id);
+    return range.from === value.from && range.to === value.to;
+  };
+  const selected =
+    presetChoice && matches(presetChoice)
+      ? presetChoice
+      : presets.find(preset => {
+          const range = presetDateRange(preset.id);
+          return range.from === value.from && range.to === value.to;
+        })?.id;
   return (
     <details ref={root} className="admin-date-range">
       <summary onClick={() => setDraft(value)}>
@@ -27,10 +46,33 @@ export function DateRangeFilter({
         onSubmit={event => {
           event.preventDefault();
           if (invalid) return;
+          setPresetChoice(null);
           onChange(draft);
           root.current?.removeAttribute('open');
         }}
       >
+        <div
+          className="admin-date-presets"
+          role="group"
+          aria-label="Pilihan cepat periode"
+        >
+          {presets.map(preset => (
+            <button
+              type="button"
+              key={preset.id}
+              aria-pressed={selected === preset.id}
+              onClick={() => {
+                const range = presetDateRange(preset.id);
+                setDraft(range);
+                setPresetChoice(preset.id);
+                onChange(range);
+                root.current?.removeAttribute('open');
+              }}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <label>
           Dari tanggal
           <input
@@ -53,8 +95,15 @@ export function DateRangeFilter({
         </label>
         {invalid && <p role="alert">Tanggal akhir harus sesudah tanggal awal.</p>}
         <div>
-          <button type="button" onClick={() => setDraft(recentDateRange())}>
-            30 hari terakhir
+          <button
+            type="button"
+            className="admin-secondary-button"
+            onClick={() => {
+              setDraft(value);
+              root.current?.removeAttribute('open');
+            }}
+          >
+            Batal
           </button>
           <button type="submit" disabled={invalid} className="admin-primary-button">
             Terapkan

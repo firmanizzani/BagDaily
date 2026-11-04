@@ -188,9 +188,34 @@ button:disabled {
   justify-content: space-between;
   gap: 8px;
 }
-.admin-date-range form > div > button:first-child {
-  font-size: 10px;
-  color: #00715e;
+.admin-date-range form > .admin-date-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--admin-border);
+}
+.admin-date-presets button {
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid var(--admin-border);
+  border-radius: 5px;
+  font-size: 12px;
+  color: #526b77;
+  white-space: nowrap;
+}
+.admin-date-presets button:hover {
+  background: #edf1eb;
+  color: #005c51;
+}
+.admin-date-presets button[aria-pressed='true'] {
+  background: #e4eee7;
+  color: #005c51;
+  border-color: #b9d0c2;
+}
+.admin-date-presets button:focus-visible {
+  outline: 2px solid #087362;
+  outline-offset: 2px;
 }
 .admin-metrics-grid {
   display: grid;

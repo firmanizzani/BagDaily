@@ -19,6 +19,8 @@
     "db:cron": "tsx scripts/setup-order-expiry.ts",
     "db:cron:check": "tsx scripts/setup-order-expiry.ts --check",
     "catalog:prices": "tsx scripts/update-catalog-prices.ts",
+    "demo:sales": "tsx scripts/import-demo-sales.ts",
+    "demo:verify": "tsx scripts/verify-demo-sales.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio"
   },

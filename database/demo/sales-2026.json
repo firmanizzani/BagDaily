@@ -1,0 +1,472 @@
+{
+  "batch": "SIM-GTNIC-2026",
+  "customers": [
+    {
+      "key": "01",
+      "name": "Aulia",
+      "email": "aulia@gmail.com",
+      "phone": "080000000001",
+      "address": "Jl. Melati No. 10, Tebet, Jakarta Selatan, DKI Jakarta",
+      "shippingZone": "Jabodetabek",
+      "previousEmail": "aulia.simulasi@bagdaily.example"
+    },
+    {
+      "key": "02",
+      "name": "Bima",
+      "email": "bima@gmail.com",
+      "phone": "080000000002",
+      "address": "Jl. Kenanga No. 20, Bekasi Barat, Kota Bekasi, Jawa Barat",
+      "shippingZone": "Jabodetabek",
+      "previousEmail": "bima.simulasi@bagdaily.example"
+    },
+    {
+      "key": "03",
+      "name": "Citra",
+      "email": "citra@gmail.com",
+      "phone": "080000000003",
+      "address": "Jl. Anggrek No. 30, Coblong, Kota Bandung, Jawa Barat",
+      "shippingZone": "Jawa",
+      "previousEmail": "citra.simulasi@bagdaily.example"
+    },
+    {
+      "key": "04",
+      "name": "Dimas",
+      "email": "dimas@gmail.com",
+      "phone": "080000000004",
+      "address": "Jl. Mawar No. 40, Gondokusuman, Kota Yogyakarta, DI Yogyakarta",
+      "shippingZone": "Jawa",
+      "previousEmail": "dimas.simulasi@bagdaily.example"
+    },
+    {
+      "key": "05",
+      "name": "Nadia",
+      "email": "nadia@gmail.com",
+      "phone": "080000000005",
+      "address": "Jl. Flamboyan No. 50, Panakkukang, Kota Makassar, Sulawesi Selatan",
+      "shippingZone": "Luar Jawa",
+      "previousEmail": "nadia.simulasi@bagdaily.example"
+    }
+  ],
+  "sales": [
+    {
+      "number": "BD-SIM-2026-0001",
+      "createdAt": "2026-09-02T09:00:00+07:00",
+      "channel": "online",
+      "customerKey": "01",
+      "sku": "BD-TTB-003",
+      "productName": "Lino Shopper Tote",
+      "quantity": 2,
+      "unitPrice": 160000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0002",
+      "createdAt": "2026-09-04T10:13:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-SLG-003",
+      "productName": "Kiro Flap Sling",
+      "quantity": 2,
+      "unitPrice": 230000
+    },
+    {
+      "number": "BD-SIM-2026-0003",
+      "createdAt": "2026-09-06T11:26:00+07:00",
+      "channel": "online",
+      "customerKey": "03",
+      "sku": "BD-TTB-006",
+      "productName": "Hana Mini Tote",
+      "quantity": 2,
+      "unitPrice": 110000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0004",
+      "createdAt": "2026-09-08T12:39:00+07:00",
+      "channel": "pos",
+      "customerKey": "04",
+      "sku": "BD-TTB-005",
+      "productName": "Ayo Stripe Tote",
+      "quantity": 2,
+      "unitPrice": 150000
+    },
+    {
+      "number": "BD-SIM-2026-0005",
+      "createdAt": "2026-09-10T13:52:00+07:00",
+      "channel": "online",
+      "customerKey": "05",
+      "sku": "BD-TTB-004",
+      "productName": "Mika Pocket Tote",
+      "quantity": 2,
+      "unitPrice": 140000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0006",
+      "createdAt": "2026-09-12T09:05:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-TTB-006",
+      "productName": "Hana Mini Tote",
+      "quantity": 1,
+      "unitPrice": 110000
+    },
+    {
+      "number": "BD-SIM-2026-0007",
+      "createdAt": "2026-09-13T10:18:00+07:00",
+      "channel": "online",
+      "customerKey": "01",
+      "sku": "BD-TTB-002",
+      "productName": "Kuma Zip Tote",
+      "quantity": 1,
+      "unitPrice": 150000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0008",
+      "createdAt": "2026-09-15T11:31:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-SLG-002",
+      "productName": "Nara Sling",
+      "quantity": 2,
+      "unitPrice": 180000
+    },
+    {
+      "number": "BD-SIM-2026-0009",
+      "createdAt": "2026-09-16T12:44:00+07:00",
+      "channel": "online",
+      "customerKey": "03",
+      "sku": "BD-SLG-003",
+      "productName": "Kiro Flap Sling",
+      "quantity": 1,
+      "unitPrice": 230000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0010",
+      "createdAt": "2026-09-17T13:57:00+07:00",
+      "channel": "pos",
+      "customerKey": "04",
+      "sku": "BD-RNS-003",
+      "productName": "Kavi Campus Pack",
+      "quantity": 3,
+      "unitPrice": 240000
+    },
+    {
+      "number": "BD-SIM-2026-0011",
+      "createdAt": "2026-09-18T09:10:00+07:00",
+      "channel": "online",
+      "customerKey": "05",
+      "sku": "BD-TTB-001",
+      "productName": "Sora Canvas Tote",
+      "quantity": 2,
+      "unitPrice": 120000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0012",
+      "createdAt": "2026-09-25T10:23:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-RNS-001",
+      "productName": "Mero Daypack",
+      "quantity": 2,
+      "unitPrice": 270000
+    },
+    {
+      "number": "BD-SIM-2026-0013",
+      "createdAt": "2026-09-27T11:36:00+07:00",
+      "channel": "online",
+      "customerKey": "02",
+      "sku": "BD-RNS-006",
+      "productName": "Talo Trail Pack",
+      "quantity": 1,
+      "unitPrice": 350000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0014",
+      "createdAt": "2026-09-28T12:49:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-TTB-005",
+      "productName": "Ayo Stripe Tote",
+      "quantity": 2,
+      "unitPrice": 150000
+    },
+    {
+      "number": "BD-SIM-2026-0015",
+      "createdAt": "2026-09-29T13:02:00+07:00",
+      "channel": "online",
+      "customerKey": "04",
+      "sku": "BD-TTB-003",
+      "productName": "Lino Shopper Tote",
+      "quantity": 1,
+      "unitPrice": 160000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0016",
+      "createdAt": "2026-09-30T09:15:00+07:00",
+      "channel": "pos",
+      "customerKey": "05",
+      "sku": "BD-SLG-003",
+      "productName": "Kiro Flap Sling",
+      "quantity": 2,
+      "unitPrice": 230000
+    },
+    {
+      "number": "BD-SIM-2026-0017",
+      "createdAt": "2026-10-01T10:28:00+07:00",
+      "channel": "online",
+      "customerKey": "02",
+      "sku": "BD-TTB-005",
+      "productName": "Ayo Stripe Tote",
+      "quantity": 3,
+      "unitPrice": 150000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0018",
+      "createdAt": "2026-10-03T11:41:00+07:00",
+      "channel": "pos",
+      "customerKey": "03",
+      "sku": "BD-TTB-003",
+      "productName": "Lino Shopper Tote",
+      "quantity": 1,
+      "unitPrice": 160000
+    },
+    {
+      "number": "BD-SIM-2026-0019",
+      "createdAt": "2026-10-05T12:54:00+07:00",
+      "channel": "online",
+      "customerKey": "01",
+      "sku": "BD-RNS-004",
+      "productName": "Rhea Mini Pack",
+      "quantity": 2,
+      "unitPrice": 200000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0020",
+      "createdAt": "2026-10-06T13:07:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-RNS-002",
+      "productName": "Zeno Laptop Pack",
+      "quantity": 2,
+      "unitPrice": 380000
+    },
+    {
+      "number": "BD-SIM-2026-0021",
+      "createdAt": "2026-10-07T09:20:00+07:00",
+      "channel": "online",
+      "customerKey": "03",
+      "sku": "BD-RNS-002",
+      "productName": "Zeno Laptop Pack",
+      "quantity": 1,
+      "unitPrice": 380000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0022",
+      "createdAt": "2026-10-08T10:33:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-SLG-005",
+      "productName": "Lumi Mini Sling",
+      "quantity": 1,
+      "unitPrice": 130000
+    },
+    {
+      "number": "BD-SIM-2026-0023",
+      "createdAt": "2026-10-09T11:46:00+07:00",
+      "channel": "online",
+      "customerKey": "04",
+      "sku": "BD-RNS-003",
+      "productName": "Kavi Campus Pack",
+      "quantity": 1,
+      "unitPrice": 240000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0024",
+      "createdAt": "2026-10-11T12:59:00+07:00",
+      "channel": "online",
+      "customerKey": "05",
+      "sku": "BD-RNS-005",
+      "productName": "Orin Roll-Top Pack",
+      "quantity": 3,
+      "unitPrice": 320000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0025",
+      "createdAt": "2026-10-12T13:12:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-TTB-002",
+      "productName": "Kuma Zip Tote",
+      "quantity": 1,
+      "unitPrice": 150000
+    },
+    {
+      "number": "BD-SIM-2026-0026",
+      "createdAt": "2026-10-14T09:25:00+07:00",
+      "channel": "pos",
+      "customerKey": "01",
+      "sku": "BD-TTB-006",
+      "productName": "Hana Mini Tote",
+      "quantity": 2,
+      "unitPrice": 110000
+    },
+    {
+      "number": "BD-SIM-2026-0027",
+      "createdAt": "2026-10-16T10:38:00+07:00",
+      "channel": "online",
+      "customerKey": "01",
+      "sku": "BD-RNS-006",
+      "productName": "Talo Trail Pack",
+      "quantity": 3,
+      "unitPrice": 350000,
+      "courier": "SiCepat"
+    },
+    {
+      "number": "BD-SIM-2026-0028",
+      "createdAt": "2026-10-19T11:51:00+07:00",
+      "channel": "pos",
+      "customerKey": "02",
+      "sku": "BD-SLG-004",
+      "productName": "Tavo Utility Sling",
+      "quantity": 1,
+      "unitPrice": 200000
+    },
+    {
+      "number": "BD-SIM-2026-0029",
+      "createdAt": "2026-10-20T12:04:00+07:00",
+      "channel": "online",
+      "customerKey": "02",
+      "sku": "BD-RNS-005",
+      "productName": "Orin Roll-Top Pack",
+      "quantity": 1,
+      "unitPrice": 320000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0030",
+      "createdAt": "2026-10-22T13:17:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-SLG-004",
+      "productName": "Tavo Utility Sling",
+      "quantity": 2,
+      "unitPrice": 200000
+    },
+    {
+      "number": "BD-SIM-2026-0031",
+      "createdAt": "2026-10-24T09:30:00+07:00",
+      "channel": "online",
+      "customerKey": "04",
+      "sku": "BD-TTB-004",
+      "productName": "Mika Pocket Tote",
+      "quantity": 3,
+      "unitPrice": 140000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0032",
+      "createdAt": "2026-10-25T10:43:00+07:00",
+      "channel": "online",
+      "customerKey": "03",
+      "sku": "BD-TTB-002",
+      "productName": "Kuma Zip Tote",
+      "quantity": 2,
+      "unitPrice": 150000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0033",
+      "createdAt": "2026-10-29T11:56:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-RNS-006",
+      "productName": "Talo Trail Pack",
+      "quantity": 2,
+      "unitPrice": 350000
+    },
+    {
+      "number": "BD-SIM-2026-0034",
+      "createdAt": "2026-10-31T12:09:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-TTB-006",
+      "productName": "Hana Mini Tote",
+      "quantity": 3,
+      "unitPrice": 110000
+    },
+    {
+      "number": "BD-SIM-2026-0035",
+      "createdAt": "2026-11-01T13:22:00+07:00",
+      "channel": "online",
+      "customerKey": "01",
+      "sku": "BD-SLG-001",
+      "productName": "Arlo Crossbody",
+      "quantity": 2,
+      "unitPrice": 150000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0036",
+      "createdAt": "2026-11-02T09:35:00+07:00",
+      "channel": "pos",
+      "customerKey": "02",
+      "sku": "BD-RNS-001",
+      "productName": "Mero Daypack",
+      "quantity": 1,
+      "unitPrice": 270000
+    },
+    {
+      "number": "BD-SIM-2026-0037",
+      "createdAt": "2026-11-02T10:48:00+07:00",
+      "channel": "online",
+      "customerKey": "05",
+      "sku": "BD-RNS-006",
+      "productName": "Talo Trail Pack",
+      "quantity": 2,
+      "unitPrice": 350000,
+      "courier": "JNE"
+    },
+    {
+      "number": "BD-SIM-2026-0038",
+      "createdAt": "2026-11-03T11:01:00+07:00",
+      "channel": "online",
+      "customerKey": "03",
+      "sku": "BD-TTB-006",
+      "productName": "Hana Mini Tote",
+      "quantity": 2,
+      "unitPrice": 110000,
+      "courier": "J&T"
+    },
+    {
+      "number": "BD-SIM-2026-0039",
+      "createdAt": "2026-11-04T12:14:00+07:00",
+      "channel": "pos",
+      "customerKey": null,
+      "sku": "BD-SLG-006",
+      "productName": "Dova Pocket Sling",
+      "quantity": 1,
+      "unitPrice": 160000
+    },
+    {
+      "number": "BD-SIM-2026-0040",
+      "createdAt": "2026-11-04T13:27:00+07:00",
+      "channel": "pos",
+      "customerKey": "01",
+      "sku": "BD-SLG-004",
+      "productName": "Tavo Utility Sling",
+      "quantity": 1,
+      "unitPrice": 200000
+    }
+  ]
+}

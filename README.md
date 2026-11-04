@@ -90,7 +90,21 @@ Dashboard dan Laporan memakai kartu ringkasan berikon tanpa persentase perubahan
 
 ## Akun dan data
 
-Akses admin dan kasir tetap diperiksa oleh backend. Tidak ada login pintas, akun istimewa otomatis, atau data transaksi palsu pada aplikasi utama. Database memiliki 18 produk dan 9 tarif pengiriman. Tiga akun demo sudah dibuat sesuai permintaan.
+### Pembersihan transaksi lama
+
+Tiga pesanan lama yang ditunjuk pemilik sudah dihapus melalui `backend/scripts/cleanup-legacy-demo.ts`. Sebelum perubahan, data dicadangkan di `backend/uploads/maintenance/`. Stok dua pesanan berbayar dipulihkan (Hana Mini Tote +1, Rhea Mini Pack +1); riwayat mutasi lama dipertahankan dan diberi catatan, dengan koreksi penyeimbang. Pesanan belum dibayar tidak menambah stok.
+
+Transaksi Kiro Flap Sling milik `demo@bagdaily.com` sudah disesuaikan dari Rp279.000 menjadi Rp230.000; ongkir tetap Rp15.000 dan total Rp245.000. Batch 40 transaksi tidak berubah. Setelah pembersihan, filter Semua menampilkan 43 transaksi berbayar / 74 tas / Rp15.601.000.
+
+### Data simulasi September–November 2026
+
+Batch `SIM-GTNIC-2026` memuat **40 transaksi / 71 tas**: 20 online dengan ongkir menurut alamat akun dan 20 POS (8 pelanggan terdaftar, 12 umum). Nilai barang Rp14.620.000 + ongkir Rp398.000 = **Rp15.018.000**. Nomor pesanan `BD-SIM-2026-*` menandai data demonstrasi; nama pelanggan tampil sebagai Aulia, Bima, Citra, Dimas, dan Nadia. Transaksi lama selain tiga pesanan yang secara khusus diminta untuk dibersihkan tetap dipertahankan, sehingga ringkasan seluruh toko lebih besar dari batch ini.
+
+Lima akun simulasi memiliki password **`pelanggan`**: `aulia@gmail.com`, `bima@gmail.com`, `citra@gmail.com`, `dimas@gmail.com`, dan `nadia@gmail.com`. Alamat dan telepon fiktif tersimpan pada akun; alamat pengiriman disalin ke pesanan. Jakarta/Bekasi memakai zona Jabodetabek, Bandung/Yogyakarta zona Jawa, dan Makassar zona Luar Jawa. Ongkir memakai tarif kurir dari database.
+
+[Rincian akun, alamat, 40 transaksi dan rekonsiliasi](database/demo/README.md). Klik **Semua** di Dashboard atau Laporan untuk semua transaksi, atau pilih rentang **1 September–4 November 2026** untuk periode dataset. Pilihan cepat Hari ini, Minggu ini (Senin–hari ini), dan Bulan ini langsung diterapkan; tidak ada tombol 30 hari terakhir. Tampilan awal masih memakai 30 hari terakhir. Dari `backend/`: `npm run demo:sales` menampilkan pratinjau, `npm run demo:sales -- --apply` mengimpor tanpa duplikasi, `npm run demo:sales -- --check` memeriksa database, dan `npm run demo:verify` memeriksa API serta login. Gunakan `QA_API_URL` jika port frontend bukan 5173.
+
+Akses admin dan kasir tetap diperiksa oleh backend. Tidak ada login pintas atau akun istimewa otomatis. Database memiliki 18 produk dan 9 tarif pengiriman. Tiga akun demo utama serta lima akun pelanggan simulasi tersedia untuk pengujian.
 
 Pada halaman Login, klik **Demo Akun** di bawah tautan pendaftaran. Popup menampilkan tiga role; bagian layar lainnya menjadi blur. Memilih role langsung masuk ke halaman yang sesuai.
 

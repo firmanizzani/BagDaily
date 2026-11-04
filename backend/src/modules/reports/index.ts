@@ -104,7 +104,7 @@ router.get('/sales/export', a(async (req, res) => {
   ].join('\n');
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="sales-${v.from.toISOString().slice(0, 10)}-${v.to.toISOString().slice(0, 10)}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="sales-${v.from?.toISOString().slice(0, 10) ?? 'all'}-${v.to?.toISOString().slice(0, 10) ?? 'time'}.csv"`);
   res.send(csv);
 }));
 
