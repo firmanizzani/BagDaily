@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { CalendarDays, ChevronDown } from 'lucide-react';
 import { formatShortDate } from '@/lib/utils';
-import { presetDateRange, type DatePreset, type DateRange } from '@/lib/dateRange';
+import { presetDateRange, recentDateRange, type DatePreset, type DateRange } from '@/lib/dateRange';
 
 const presets: { id: DatePreset; label: string }[] = [
   { id: 'all', label: 'Semua' },
@@ -47,7 +47,7 @@ export function DateRangeFilter({
           event.preventDefault();
           if (invalid) return;
           setPresetChoice(null);
-          onChange(draft);
+          onChange({ ...draft, comparison: 'period' });
           root.current?.removeAttribute('open');
         }}
       >
@@ -62,7 +62,7 @@ export function DateRangeFilter({
               key={preset.id}
               aria-pressed={selected === preset.id}
               onClick={() => {
-                const range = presetDateRange(preset.id);
+                const range = { ...presetDateRange(preset.id), ...(preset.id === 'all' ? {} : { comparison: preset.id === 'today' ? 'day' as const : preset.id }) };
                 setDraft(range);
                 setPresetChoice(preset.id);
                 onChange(range);
@@ -104,6 +104,20 @@ export function DateRangeFilter({
             }}
           >
             Batal
+          </button>
+          <button
+            type="button"
+            className="admin-date-reset"
+            title="Kembali ke 30 hari terakhir"
+            onClick={() => {
+              const range = recentDateRange();
+              setDraft(range);
+              setPresetChoice(null);
+              onChange(range);
+              root.current?.removeAttribute('open');
+            }}
+          >
+            Reset
           </button>
           <button type="submit" disabled={invalid} className="admin-primary-button">
             Terapkan

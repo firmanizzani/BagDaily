@@ -1,4 +1,4 @@
-export interface ReportTrendPoint { date: string; revenue: number; units: number; transactions: number }
+export interface ReportTrendPoint { date: string; revenue: number; netSales: number; units: number; transactions: number }
 export interface MonthlyCategoryPoint { month: string; categoryId: string; name: string; quantity: number }
 export interface ReportTrends { sales: ReportTrendPoint[]; monthly: MonthlyCategoryPoint[] }
 export type ReportInterval = 'day' | 'week' | 'month';
@@ -26,7 +26,7 @@ export function completeTrend(rows: ReportTrendPoint[], interval: ReportInterval
   if (!rows.length) return [];
   const lookup = new Map(rows.map(row => [row.date, row]));
   return reportDates(from || rows[0]!.date, to || rows.at(-1)!.date, interval)
-    .map(date => lookup.get(date) ?? { date, revenue: 0, units: 0, transactions: 0 });
+    .map(date => lookup.get(date) ?? { date, revenue: 0, netSales: 0, units: 0, transactions: 0 });
 }
 export function categoryTimeline(rows: MonthlyCategoryPoint[], from = '', to = '') {
   if (!rows.length) return { categories: [], points: [] };

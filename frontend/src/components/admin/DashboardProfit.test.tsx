@@ -6,10 +6,10 @@ const mock=vi.hoisted(()=>({useApi:vi.fn()}));
 vi.mock('@/hooks/api',()=>({useApi:mock.useApi}));
 const summary={totalPaid:245000,shipping:15000,netSales:230000,cost:175000,profit:55000,marginPercent:23.91,transactions:1,estimatedCostUnits:1,missingCostUnits:0,pendingTransactions:2,pointsDiscount:0};
 describe('dashboard profit clarity',()=>{
- it('shows profit and margin together without the removed detail panel',()=>{
+ it('shows profit without removed margin or detail text',()=>{
   mock.useApi.mockReturnValue({data:{data:[],profitSummary:summary}});
   const html=renderToStaticMarkup(<MemoryRouter><DashboardProfitMetric range={{from:'2026-09-01',to:'2026-11-30'}} /></MemoryRouter>);
-  expect(html).toContain('55.000');expect(html).toContain('23,91%');expect(html).not.toContain('Rincian Keuntungan');
+  expect(html).toContain('55.000');expect(html).not.toContain('Margin');expect(html).not.toContain('Rincian Keuntungan');
   expect(html).not.toContain('Setelah ongkir dan modal');
   expect(mock.useApi.mock.calls[0]?.[0]).toContain('/reports/profit?from=');
  });

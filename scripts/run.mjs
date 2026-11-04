@@ -9,7 +9,7 @@ if (!process.env.npm_execpath) throw new Error('Use npm run to execute this comm
 for (const folder of ['frontend', 'backend']) {
   const args = [process.env.npm_execpath, 'run', task];
   // Unit tests are safe by default. Live database integration is a separate opt-in command.
-  if (folder === 'backend' && task === 'test') args.push('--', 'tests/unit.test.ts', 'tests/restock.test.ts', 'tests/loyalty.test.ts', 'tests/profit.test.ts');
+  if (folder === 'backend' && task === 'test') args.push('--', 'tests/unit.test.ts', 'tests/restock.test.ts', 'tests/loyalty.test.ts', 'tests/profit.test.ts', 'tests/comparison.test.ts');
   const code = await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, args, { cwd: join(root, folder), stdio: 'inherit' });
     child.on('error', reject);

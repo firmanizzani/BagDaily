@@ -17,11 +17,13 @@ try {
   for(const interval of ['day','week','month']) {
    const trend=await get('/admin/reports/trends?'+filter+'&interval='+interval);
    assert.equal(trend.data.sales.reduce((sum:number,p:{revenue:number})=>sum+p.revenue,0),report.summary.totalSales,'Payment sum must not be multiplied by order items');
+   assert.equal(trend.data.sales.reduce((sum:number,p:{netSales:number})=>sum+p.netSales,0),report.summary.netProductSales);
    assert.equal(trend.data.sales.reduce((sum:number,p:{units:number})=>sum+p.units,0),report.summary.totalProductsSold);
    assert.equal(trend.data.sales.reduce((sum:number,p:{transactions:number})=>sum+p.transactions,0),report.summary.totalTransactions);
    assert.equal(trend.data.monthly.reduce((sum:number,p:{quantity:number})=>sum+p.quantity,0),report.summary.totalProductsSold);
    checks+=4;
   }
+  assert.equal(report.summary.netProductSales,report.summary.totalSales-report.summary.shippingTotal);
   assert.equal(report.summary.merchandiseTotal+report.summary.shippingTotal-report.summary.pointsDiscount,report.summary.totalSales);
   for(const product of report.products) {assert(Number.isInteger(product.stock)); assert(Number.isInteger(product.minimumStock));}
  }

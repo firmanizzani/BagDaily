@@ -3,6 +3,7 @@ import { APP_TIME_ZONE } from './utils';
 export interface DateRange {
   from: string;
   to: string;
+  comparison?: 'day' | 'week' | 'month' | 'period';
 }
 export type DatePreset = 'all' | 'today' | 'week' | 'month';
 export function presetDateRange(preset: DatePreset, now = new Date()): DateRange {
@@ -41,5 +42,10 @@ export function dateRangeParams(range: DateRange): URLSearchParams {
       'to',
       new Date(new Date(`${range.to}T00:00:00+07:00`).getTime() + 86400000).toISOString(),
     );
+  if (range.from && range.to) {
+    const week = presetDateRange('week');
+    const inferred = range.from === range.to ? 'day' : range.from === week.from && range.to === week.to ? 'week' : 'month';
+    params.set('compare', range.comparison ?? inferred);
+  }
   return params;
 }

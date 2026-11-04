@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import profitRouter from './profit.js';
+import { periodComparison } from './comparison.js';
 import { and, asc, desc, eq, getTableColumns, isNotNull, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { categories, orders, orderItems, products, users } from '../../db/schema/index.js';
@@ -20,10 +21,12 @@ router.get('/trends', a(async (req, res) => {
   const perOrder = db.select({
     date: sql<string>`date_trunc(${interval}, ${orders.paidAt} at time zone 'Asia/Jakarta')::date::text`.as('date'),
     total: orders.total,
+    netSales: sql<number>`(${orders.total}::bigint - ${orders.shippingCost})`.as('net_sales'),
     units: sql<number>`(select coalesce(sum(i.quantity),0) from order_items i where i.order_id = "orders"."id")`.as('units'),
   }).from(orders).where(paidRange(range)).as('per_order');
   const sales = await db.select({ date: perOrder.date,
     revenue: sql<number>`sum(${perOrder.total})::bigint`.mapWith(Number),
+    netSales: sql<number>`sum(${perOrder.netSales})::bigint`.mapWith(Number),
     units: sql<number>`sum(${perOrder.units})::bigint`.mapWith(Number),
     transactions: sql<number>`count(*)::int`,
   }).from(perOrder).groupBy(perOrder.date).orderBy(perOrder.date);
@@ -47,6 +50,7 @@ router.get('/sales', a(async (req, res) => {
   const rows = await db.select({ ...getTableColumns(orders), customerName: users.name }).from(orders).leftJoin(users, eq(orders.userId, users.id)).where(where).orderBy(desc(orders.paidAt)).limit(f.limit).offset((f.page - 1) * f.limit);
   const [summary] = await db.select({
     totalSales: sql<number>`coalesce(sum(${orders.total}),0)::int`,
+    netProductSales: sql<number>`coalesce(sum(${orders.total}::bigint - ${orders.shippingCost}),0)::bigint`.mapWith(Number),
     totalTransactions: sql<number>`count(*)::int`,
     merchandiseTotal: sql<number>`coalesce(sum(${orders.subtotal}),0)::bigint`.mapWith(Number),
     shippingTotal: sql<number>`coalesce(sum(${orders.shippingCost}),0)::bigint`.mapWith(Number),
@@ -85,7 +89,9 @@ router.get('/sales', a(async (req, res) => {
   res.json({
     ...paginated(rows, count.count, f.page, f.limit),
     summary: {
+      comparison: await periodComparison(v),
       totalSales: summary.totalSales,
+      netProductSales: summary.netProductSales,
       totalTransactions: summary.totalTransactions,
       merchandiseTotal: summary.merchandiseTotal,
       shippingTotal: summary.shippingTotal,

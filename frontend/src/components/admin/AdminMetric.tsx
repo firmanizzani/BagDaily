@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -8,13 +9,15 @@ export function AdminMetric({
   icon: Icon,
   tone = 'green',
   to,
+  change,
 }: {
   label: string;
   value: number | string;
-  note: string;
+  note?: string;
   icon: LucideIcon;
   tone?: 'green' | 'blue' | 'orange' | 'amber';
   to?: string;
+  change?: ReactNode;
 }) {
   return (
     <article className={`admin-metric metric-${tone}`}>
@@ -26,7 +29,8 @@ export function AdminMetric({
         <strong>
           {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
         </strong>
-        {to ? <Link to={to}>{note} →</Link> : <p>{note}</p>}
+        {note && (to ? <Link to={to}>{note} →</Link> : <p>{note}</p>)}
+        {change}
       </div>
     </article>
   );

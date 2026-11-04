@@ -64,11 +64,11 @@ export function AdminCustomersPage() {
           </p>
         ) : (
           <div className="general-customer-values">
-            <strong>
-              {(general.data?.data.transactions ?? 0).toLocaleString('id-ID')} transaksi
-            </strong>
-            <span>{formatRupiah(general.data?.data.totalSpend ?? 0)}</span>
-            <Link to="/cashier/history?customer=general">Lihat transaksi</Link>
+            <dl>
+              <div><dt>Jumlah transaksi</dt><dd>{(general.data?.data.transactions ?? 0).toLocaleString('id-ID')}</dd></div>
+              <div><dt>Total pembayaran</dt><dd>{formatRupiah(general.data?.data.totalSpend ?? 0)}</dd></div>
+            </dl>
+            <Link to="/cashier/history?customer=general">Lihat transaksi <ChevronRight size={15} aria-hidden="true" /></Link>
           </div>
         )}
       </section>

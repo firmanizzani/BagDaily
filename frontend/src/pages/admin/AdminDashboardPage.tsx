@@ -1,9 +1,10 @@
+import { MetricChange } from '@/components/admin/MetricChange';
 import { DashboardProfitMetric } from '@/components/admin/DashboardProfit';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
-  ChartNoAxesCombined,
+  Banknote,
   ClipboardList,
   PackageSearch,
   ShoppingBag,
@@ -42,23 +43,26 @@ export function AdminDashboardPage() {
       ) : (
         <div className="admin-metrics-grid dashboard-metrics-five">
           <AdminMetric
-            label="Total Pembayaran"
-            value={formatRupiah(metrics?.totalSales ?? 0)}
-            note="Termasuk ongkir, setelah potongan poin"
-            icon={ChartNoAxesCombined}
+            label="Total Penjualan"
+            value={formatRupiah(metrics?.netProductSales ?? 0)}
+
+            change={<MetricChange current={metrics?.netProductSales ?? 0} comparison={metrics?.comparison} metric="netProductSales" />}
+            icon={Banknote}
           />
           <DashboardProfitMetric range={range} />
           <AdminMetric
             label="Total Pesanan"
             value={metrics?.totalTransactions ?? 0}
-            note="Pesanan berbayar online & POS"
+
+            change={<MetricChange current={metrics?.totalTransactions ?? 0} comparison={metrics?.comparison} metric="totalTransactions" />}
             icon={ClipboardList}
             tone="blue"
           />
           <AdminMetric
             label="Unit Terjual"
             value={metrics?.totalProductsSold ?? 0}
-            note="Unit terjual pada periode ini"
+
+            change={<MetricChange current={metrics?.totalProductsSold ?? 0} comparison={metrics?.comparison} metric="totalProductsSold" />}
             icon={ShoppingBag}
             tone="orange"
           />
@@ -74,9 +78,9 @@ export function AdminDashboardPage() {
       )}
       <section className="admin-panel">
         <header className="admin-panel-heading">
-          <h2>Pesanan Terbaru</h2>
+          <h2>Pesanan Online Terbaru</h2>
           <Link to="/admin/orders">
-            Lihat semua <ArrowRight size={15} />
+            Lihat pesanan online <ArrowRight size={15} />
           </Link>
         </header>
         {orders.isLoading ? (

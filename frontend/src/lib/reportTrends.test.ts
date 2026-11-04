@@ -3,9 +3,9 @@ import { categoryTimeline, completeTrend, reportDates } from './reportTrends';
 
 describe('report timeline integrity', () => {
  it('fills quiet selling days with zero and preserves actual totals', () => {
-  const points = completeTrend([{date:'2026-11-02',units:3,revenue:200000,transactions:1},{date:'2026-11-04',units:2,revenue:100000,transactions:1}], 'day', '2026-11-01','2026-11-05');
+  const points = completeTrend([{date:'2026-11-02',units:3,revenue:200000,netSales:185000,transactions:1},{date:'2026-11-04',units:2,revenue:100000,netSales:85000,transactions:1}], 'day', '2026-11-01','2026-11-05');
   expect(points).toHaveLength(5);
-  expect(points[2]).toEqual({date:'2026-11-03',units:0,revenue:0,transactions:0});
+  expect(points[2]).toEqual({date:'2026-11-03',units:0,revenue:0,netSales:0,transactions:0});
   expect(points.reduce((sum,p)=>sum+p.units,0)).toBe(5);
   expect(points.reduce((sum,p)=>sum+p.revenue,0)).toBe(300000);
  });

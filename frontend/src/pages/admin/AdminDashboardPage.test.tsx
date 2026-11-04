@@ -13,6 +13,7 @@ describe('admin dashboard requirements', () => {
             data: {
               data: {
                 totalSales: 450000,
+                netProductSales: 420000,
                 totalTransactions: 3,
                 totalProductsSold: 5,
                 lowStockProducts: 7,
@@ -29,10 +30,12 @@ describe('admin dashboard requirements', () => {
       </MemoryRouter>,
     );
     expect(html.match(/class="admin-metric metric-/g) || []).toHaveLength(5);
-    expect(html.indexOf('Total Pembayaran')).toBeLessThan(html.indexOf('Keuntungan'));
+    expect(html.indexOf('Total Penjualan')).toBeLessThan(html.indexOf('Keuntungan'));
     expect(html.indexOf('Keuntungan')).toBeLessThan(html.indexOf('Total Pesanan'));
     expect(html).toContain('Stok Barang Menipis');
     expect(html).toContain('<strong>7</strong>');
+    expect(html).toContain('420.000');
+    expect(html).not.toContain('450.000');
     expect(html).toContain('/admin/inventory?tab=lowStock');
     for (const label of [
       'Pelanggan Baru',

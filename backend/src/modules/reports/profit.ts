@@ -1,3 +1,4 @@
+import { periodComparison } from './comparison.js';
 import { profitFigures } from './profit-rules.js';
 import { Router } from 'express';
 import { and, desc, eq, sql } from 'drizzle-orm';
@@ -33,7 +34,7 @@ async function report(query: unknown, exporting = false) {
  const [pending]=await db.select({transactions:sql<number>`count(*)::int`}).from(orders).where(and(paidRange(range),sql`${orders.status} not in ('completed','cancelled')`));
  if(exporting && totals.transactions>10000) return null;
  const rows=await db.select().from(perOrder).orderBy(desc(perOrder.paidAt),desc(perOrder.id)).limit(exporting?10000:paging.limit).offset(exporting?0:(paging.page-1)*paging.limit);
- return {...paginated(rows.map(row=>({...row,...profitFigures(row.netSales,row.cost,row.missing)})),totals.transactions,paging.page,paging.limit),profitSummary:{...totals,...profitFigures(totals.netSales,totals.cost,totals.missingCostUnits),pendingTransactions:pending.transactions}};
+ return {...paginated(rows.map(row=>({...row,...profitFigures(row.netSales,row.cost,row.missing)})),totals.transactions,paging.page,paging.limit),profitSummary:{comparison:exporting?null:await periodComparison(range),...totals,...profitFigures(totals.netSales,totals.cost,totals.missingCostUnits),pendingTransactions:pending.transactions}};
 }
 const router=Router();
 router.get('/',a(async(req,res)=>{res.json(await report(req.query));}));

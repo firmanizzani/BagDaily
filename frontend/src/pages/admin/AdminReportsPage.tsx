@@ -1,3 +1,4 @@
+import { MetricChange } from '@/components/admin/MetricChange';
 import { ProfitReport } from '@/components/admin/ProfitReport';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -126,22 +127,25 @@ export function AdminReportsPage() {
         <>
           <div className="admin-metrics-grid">
             <AdminMetric
-              label="Total Pembayaran"
-              value={formatRupiah(summary?.totalSales || 0)}
-              note="Termasuk ongkir, setelah potongan poin"
+              label="Total Penjualan"
+              value={formatRupiah(summary?.netProductSales || 0)}
+
+              change={<MetricChange current={summary?.netProductSales ?? 0} comparison={summary?.comparison} metric="netProductSales" />}
               icon={Banknote}
             />
             <AdminMetric
               label="Pesanan Dibayar"
               value={summary?.totalTransactions || 0}
-              note="Transaksi yang sudah dibayar"
+
+              change={<MetricChange current={summary?.totalTransactions ?? 0} comparison={summary?.comparison} metric="totalTransactions" />}
               icon={ReceiptText}
               tone="blue"
             />
             <AdminMetric
               label="Unit Terjual"
               value={units}
-              note="Jumlah unit produk terjual"
+
+              change={<MetricChange current={units} comparison={summary?.comparison} metric="totalProductsSold" />}
               icon={ShoppingBag}
               tone="orange"
             />
@@ -152,7 +156,8 @@ export function AdminReportsPage() {
                   ? Math.round(summary.totalSales / summary.totalTransactions)
                   : 0,
               )}
-              note="Total pembayaran per transaksi"
+
+              change={<MetricChange current={summary?.totalTransactions ? Math.round(summary.totalSales / summary.totalTransactions) : 0} comparison={summary?.comparison} metric="averagePayment" />}
               icon={TrendingUp}
               tone="amber"
             />

@@ -6,6 +6,13 @@ import {
   presetDateRange,
 } from './dateRange';
 describe('admin date ranges in Jakarta', () => {
+  it('sends an explicit comparison mode so matching preset dates remain unambiguous', () => {
+    const range={from:'2026-11-02',to:'2026-11-02'};
+    expect(dateRangeParams({...range,comparison:'day'}).get('compare')).toBe('day');
+    expect(dateRangeParams({...range,comparison:'week'}).get('compare')).toBe('week');
+    expect(dateRangeParams({...range,comparison:'month'}).get('compare')).toBe('month');
+    expect(dateRangeParams({...range,comparison:'period'}).get('compare')).toBe('period');
+  });
   it('uses the Jakarta calendar day across UTC midnight', () => {
     expect(jakartaDateKey(new Date('2026-12-31T17:05:00Z'))).toBe('2027-01-01');
   });
@@ -18,7 +25,7 @@ describe('admin date ranges in Jakarta', () => {
   it('sends inclusive start and exclusive next midnight to the API', () => {
     expect(
       Object.fromEntries(dateRangeParams({ from: '2026-10-01', to: '2026-10-31' })),
-    ).toEqual({ from: '2026-09-30T17:00:00.000Z', to: '2026-10-31T17:00:00.000Z' });
+    ).toEqual({ from: '2026-09-30T17:00:00.000Z', to: '2026-10-31T17:00:00.000Z', compare: 'month' });
   });
   it('explicitly requests all time instead of triggering backend 30-day defaults', () => {
     expect(dateRangeParams(presetDateRange('all')).toString()).toBe('all=true');

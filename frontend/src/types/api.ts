@@ -1,3 +1,4 @@
+import type { PeriodComparison } from '@/features/reports/types';
 export type Role = 'pelanggan' | 'kasir' | 'admin';
 
 export interface User {
@@ -178,6 +179,8 @@ export interface ApiResponse<T> {
 }
 
 export interface DashboardOverview {
+  comparison?: PeriodComparison | null;
+  netProductSales: number;
   totalProductsSold: number;
   newCustomers: number;
   totalSales: number;
@@ -231,6 +234,8 @@ export interface RestockRecommendation {
 }
 
 export interface SalesReportSummary {
+  comparison?: PeriodComparison | null;
+  netProductSales: number;
   merchandiseTotal?: number;
   shippingTotal?: number;
   pointsDiscount?: number;

@@ -1,4 +1,6 @@
+import type { PeriodComparison } from '@/features/reports/types';
 export interface ProfitSummary {
+ comparison?: PeriodComparison | null;
  totalPaid: number; shipping: number; merchandise: number; pointsDiscount: number;
  netSales: number; cost: number; profit: number | null; marginPercent: number | null;
  transactions: number; pendingTransactions: number; estimatedCostUnits: number; missingCostUnits: number;

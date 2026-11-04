@@ -1,3 +1,4 @@
+import { MetricChange } from '@/components/admin/MetricChange';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApi } from '@/hooks/api';
@@ -20,6 +21,7 @@ function ProfitReportContent({filters}:{filters:string}) {
   <section className="admin-panel profit-overview" aria-labelledby="profit-heading">
    <header className="admin-panel-heading"><div><h2 id="profit-heading">Keuntungan Penjualan</h2><p>Transaksi selesai, dikelompokkan berdasarkan tanggal pembayaran.</p></div><span>{summary.transactions.toLocaleString('id-ID')} transaksi selesai</span></header>
    <div className="profit-equation"><div><span>Pembayaran pembeli</span><strong>{formatRupiah(summary.totalPaid)}</strong></div><span aria-hidden="true">−</span><div><span>Ongkos kirim</span><strong>{formatRupiah(summary.shipping)}</strong></div><span aria-hidden="true">−</span><div><span>Modal barang terjual</span><strong>{formatRupiah(summary.cost)}</strong></div><span aria-hidden="true">=</span><div className="profit-result"><span>Keuntungan penjualan</span><strong>{summary.profit===null?'Belum lengkap':formatRupiah(summary.profit)}</strong></div></div>
+   <div className="profit-comparison"><MetricChange current={summary.profit} comparison={summary.comparison} metric="profit" /></div>
    <div className="profit-context"><p>Potongan poin <strong>{formatRupiah(summary.pointsDiscount)}</strong> sudah termasuk dalam pembayaran pembeli, sehingga tidak dikurangi lagi.</p><p>Margin <strong>{summary.marginPercent===null?'—':`${summary.marginPercent.toLocaleString('id-ID')}%`}</strong> dari penjualan tanpa ongkir.</p></div>
   </section>
   {(summary.estimatedCostUnits>0 || summary.missingCostUnits>0 || summary.pendingTransactions>0) && <aside className="profit-data-note" aria-label="Keterangan data keuntungan">{summary.estimatedCostUnits>0 && <p><strong>Modal estimasi dummy.</strong> {summary.estimatedCostUnits.toLocaleString('id-ID')} unit memakai modal contoh untuk pengujian. Angka ini bukan biaya pembelian sebenarnya.</p>}{summary.missingCostUnits>0 && <p><strong>Modal belum lengkap:</strong> {summary.missingCostUnits.toLocaleString('id-ID')} unit belum memiliki modal. Total keuntungan tidak ditampilkan sampai datanya dilengkapi.</p>}{summary.pendingTransactions>0 && <p>{summary.pendingTransactions} transaksi berbayar belum selesai dan belum dihitung sebagai keuntungan.</p>}</aside>}

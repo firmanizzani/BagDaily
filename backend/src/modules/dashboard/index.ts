@@ -7,30 +7,9 @@ import { asyncRoute as a } from '../../utils/async.js';
 import { ok } from '../../utils/response.js';
 import { restockAdvice } from './restock.js';
 
-export const rangeSchema = z.object({
-  from: z.coerce.date().optional(),
-  to: z.coerce.date().optional(),
-  channel: z.enum(['online', 'pos']).optional(),
-  all: z.enum(['true']).optional(),
-}).superRefine((value, ctx) => {
-  if (value.all && (value.from || value.to)) ctx.addIssue({ code: 'custom', message: 'All time cannot include date bounds' });
-  if (value.from && value.to && value.from >= value.to) ctx.addIssue({ code: 'custom', message: 'End date must be after start date' });
-}).transform((v) => {
-  if (v.all) return { from: undefined, to: undefined, channel: v.channel };
-  const to = v.to ?? new Date();
-  const from = v.from ?? new Date(to.getTime() - 30 * 86400000);
-  return { from, to, channel: v.channel };
-});
-
-export function paidRange(v: { from?: Date; to?: Date; channel?: string }) {
-  const cond = [
-    eq(orders.paymentStatus, sql.raw(`'paid'`)),
-  ];
-  if (v.from) cond.push(gte(orders.paidAt, v.from));
-  if (v.to) cond.push(lt(orders.paidAt, v.to));
-  if (v.channel) cond.push(eq(orders.channel, v.channel));
-  return and(...cond)!;
-}
+import { paidRange, rangeSchema } from '../reports/range.js';
+export { paidRange, rangeSchema } from '../reports/range.js';
+import { periodComparison } from '../reports/comparison.js';
 
 const router = Router();
 
@@ -40,6 +19,7 @@ router.get('/overview', a(async (req, res) => {
 
   const [total] = await db.select({
     totalSales: sql<number>`coalesce(sum(${orders.total}),0)::int`,
+    netProductSales: sql<number>`coalesce(sum(${orders.total}::bigint - ${orders.shippingCost}),0)::bigint`.mapWith(Number),
     totalTransactions: sql<number>`count(*)::int`,
   }).from(orders).where(where);
 
@@ -75,7 +55,9 @@ router.get('/overview', a(async (req, res) => {
   ));
 
   res.json(ok({
+    comparison: await periodComparison(v),
     totalSales: total.totalSales,
+    netProductSales: total.netProductSales,
     totalTransactions: total.totalTransactions,
     activeProducts: active.count,
     lowStockProducts: low.count,
