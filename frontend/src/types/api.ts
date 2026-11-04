@@ -217,6 +217,8 @@ export interface RestockRecommendation {
   soldLast7Days: number;
   averageDailySales: number;
   next7DaysDemand: number;
+  targetStock: number;
+  daysOfStock: number | null;
   recommendedQuantity: number;
 }
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { and, desc, eq, ilike, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, ilike, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { orders } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
@@ -30,8 +30,8 @@ router.get('/my', requireRole('pelanggan'), a(async (req, res) => {
   const cond = [eq(orders.userId, req.user!.id)];
   if (f.status) cond.push(eq(orders.status, f.status as typeof orders.$inferSelect.status));
   if (f.search) cond.push(ilike(orders.orderNumber, `%${f.search}%`));
-  if (f.from) cond.push(sql`${orders.createdAt} >= ${f.from}`);
-  if (f.to) cond.push(sql`${orders.createdAt} < ${f.to}`);
+  if (f.from) cond.push(gte(orders.createdAt, f.from));
+  if (f.to) cond.push(lt(orders.createdAt, f.to));
 
   const where = and(...cond);
   const [count] = await db.select({ count: sql<number>`count(*)::int` }).from(orders).where(where);

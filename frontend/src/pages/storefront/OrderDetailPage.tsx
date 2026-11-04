@@ -29,6 +29,7 @@ function OrderDetails({
   paymentOnly: boolean;
 }) {
   const query = useApi<Order>(`/orders/${id}`);
+  const { refetch: refetchOrder } = query;
   const client = useQueryClient();
   const pay = useAction<Order>();
   const cancel = useAction<Order>();
@@ -38,6 +39,16 @@ function OrderDetails({
   const order = query.data?.data;
   const awaitingPayment =
     order?.status === 'awaiting_payment' && order.paymentStatus === 'unpaid';
+  const expired = Boolean(
+    order?.paymentDeadline && new Date(order.paymentDeadline).getTime() <= now,
+  );
+
+  useEffect(() => {
+    if (!awaitingPayment || !expired) return;
+    void refetchOrder();
+    const timer = window.setInterval(() => void refetchOrder(), 5000);
+    return () => window.clearInterval(timer);
+  }, [awaitingPayment, expired, refetchOrder]);
 
   useEffect(() => {
     if (!awaitingPayment) return;
@@ -58,9 +69,6 @@ function OrderDetails({
 
   const paid = order.paymentStatus === 'paid';
   const cancelled = order.status === 'cancelled';
-  const expired = Boolean(
-    order.paymentDeadline && new Date(order.paymentDeadline).getTime() <= now,
-  );
   const busy = pay.isPending || cancel.isPending;
 
   const updateOrder = async (response: { data: Order }) => {

@@ -1287,3 +1287,53 @@ button:disabled {
   border-color: #e5e9de;
   box-shadow: none;
 }
+.restock-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.restock-heading p {
+  margin: 6px 0 0;
+  color: #647168;
+  font-size: 13px;
+}
+.restock-explanation {
+  padding: 0 20px 20px;
+  max-width: 900px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #526057;
+}
+.restock-explanation p {
+  margin: 0 0 10px;
+}
+.restock-explanation label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #253c32;
+}
+.restock-explanation input {
+  width: 16px;
+  height: 16px;
+  accent-color: #087362;
+}
+.restock-table {
+  min-width: 830px;
+  font-variant-numeric: tabular-nums;
+}
+.restock-table tbody th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  min-width: 160px;
+}
+.restock-table small {
+  display: block;
+  font-weight: 400;
+  color: #647168;
+  margin-top: 4px;
+}
+.restock-panel .admin-table-scroll:focus-visible {
+  outline: 2px solid #087362;
+  outline-offset: -2px;
+}

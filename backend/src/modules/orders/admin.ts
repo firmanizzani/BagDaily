@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { and, asc, desc, eq, getTableColumns, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, gte, lt, ilike, inArray, or, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { orders, users, orderItems, products } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
@@ -26,8 +26,8 @@ router.get('/', a(async (req, res) => {
     const pattern = `%${f.search.trim().replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_')}%`;
     cond.push(or(ilike(orders.orderNumber, pattern), ilike(users.name, pattern), ilike(users.email, pattern), ilike(orders.recipientName, pattern))!);
   }
-  if (f.from) cond.push(sql`${orders.createdAt} >= ${f.from}`);
-  if (f.to) cond.push(sql`${orders.createdAt} < ${f.to}`);
+  if (f.from) cond.push(gte(orders.createdAt, f.from));
+  if (f.to) cond.push(lt(orders.createdAt, f.to));
   const counts = await db.select({ status: orders.status, count: sql<number>`count(*)::int` }).from(orders)
     .leftJoin(users, eq(orders.userId, users.id)).where(and(...cond)).groupBy(orders.status);
   const statusCounts = Object.fromEntries(['awaiting_payment','awaiting_confirmation','confirmed','packed','shipped','completed','cancelled'].map(status => [status, 0]));

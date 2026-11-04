@@ -8,14 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 import { formatDate } from '@/lib/utils';
+import { RestockRecommendations } from '@/components/admin/RestockRecommendations';
 
 export function AdminInventoryPage() {
   const [url] = useSearchParams();
-  const [tab, setTab] = useState<'inventory' | 'lowStock' | 'movements'>(() =>
-    url.get('tab') === 'lowStock' ? 'lowStock' : 'inventory',
+  const [tab, setTab] = useState<'inventory' | 'lowStock' | 'movements' | 'restock'>(
+    () =>
+      url.get('tab') === 'lowStock'
+        ? 'lowStock'
+        : url.get('tab') === 'restock'
+          ? 'restock'
+          : 'inventory',
   );
   const [page, setPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Pick<
+    Product,
+    'id' | 'name' | 'stock' | 'minimumStock'
+  > | null>(null);
   const [type, setType] = useState<'restock' | 'correction'>('restock');
   const [quantity, setQuantity] = useState<number>(10);
   const [notes, setNotes] = useState<string>('');
@@ -81,7 +90,7 @@ export function AdminInventoryPage() {
         </div>
       </div>
 
-      <div className="flex border-b border-[#001524]/10 text-xs font-bold">
+      <div className="flex flex-wrap border-b border-[#001524]/10 text-xs font-bold">
         <button
           type="button"
           onClick={() => {
@@ -124,9 +133,34 @@ export function AdminInventoryPage() {
         >
           Riwayat Mutasi Stok
         </button>
+        <button
+          type="button"
+          onClick={() => setTab('restock')}
+          aria-pressed={tab === 'restock'}
+          className={`px-4 py-2 border-b-2 transition ${tab === 'restock' ? 'border-[#15616D] text-[#15616D]' : 'border-transparent text-[#6E7E8D]'}`}
+        >
+          Rekomendasi Restock
+        </button>
       </div>
 
-      {tab === 'inventory' || tab === 'lowStock' ? (
+      {tab === 'restock' ? (
+        <RestockRecommendations
+          onRestock={product => {
+            setSelectedProduct({
+              id: product.productId,
+              name: product.name,
+              stock: product.stock,
+              minimumStock: product.minimumStock,
+            });
+            setType('restock');
+            setQuantity(product.recommendedQuantity);
+            setNotes(
+              `Restock berdasarkan ${product.soldLast7Days} unit terjual dalam 7 hari; target stok ${product.targetStock} unit.`,
+            );
+            setIdempotencyKey(generateUUID());
+          }}
+        />
+      ) : tab === 'inventory' || tab === 'lowStock' ? (
         <div>
           {(tab === 'inventory' ? inventoryQuery : lowStockQuery).isLoading ? (
             <LoadingState label="Memuat inventaris…" />
@@ -292,6 +326,8 @@ export function AdminInventoryPage() {
             </label>
             <input
               type="number"
+              min={type === 'restock' ? 1 : undefined}
+              step={1}
               required
               value={quantity}
               onChange={e => setQuantity(Number(e.target.value))}

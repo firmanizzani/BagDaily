@@ -50,6 +50,12 @@ npm run db:migrate
 # Seed 18 PRD products, shipping rates, and demo accounts
 npm run db:seed
 
+# Enable once-per-minute unpaid order expiry (requires pg_cron and DB owner)
+npm run db:cron
+
+# Read-only check of schedule and latest execution status
+npm run db:cron:check
+
 # Development server with hot reload
 npm run dev
 

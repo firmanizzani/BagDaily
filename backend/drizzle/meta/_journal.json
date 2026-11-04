@@ -29,6 +29,13 @@
       "when": 1793318406742,
       "tag": "0003_derive_product_image_urls",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793808000000,
+      "tag": "0004_expire_unpaid_orders",
+      "breakpoints": true
     }
   ]
 }

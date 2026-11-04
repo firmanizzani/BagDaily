@@ -2,6 +2,12 @@
 
 Aplikasi toko tas, admin, dan kasir. Katalog mengikuti 18 produk pada `prd.md`.
 
+BagDaily membantu UMKM tas mengelola penjualan online dan toko fisik dengan satu sumber stok. Pelanggan berbelanja melalui katalog dan checkout; kasir mencatat transaksi POS; admin mengelola pesanan online, produk, pelanggan, inventaris, dan laporan. Pengurangan stok terjadi saat pembayaran online berhasil atau transaksi POS disimpan, bukan saat keranjang atau checkout dibuat.
+
+Frontend memakai React, TypeScript, Tailwind CSS, dan Recharts. Backend Express memvalidasi input dengan Zod, memeriksa akses berdasarkan role, dan mengakses PostgreSQL melalui Drizzle ORM. Transaksi database dan pengurangan stok bersyarat mencegah stok negatif. Dokumentasi teknis: [API](backend/API-CONTRACT.md), [skema database](database/documentation/schema.md), dan [setup backend](backend/README.md).
+
+Pembayaran online, QRIS, rekening transfer, tarif ongkir, dan resi merupakan simulasi. POS tanpa akun pelanggan tidak dikaitkan ke pelanggan terdaftar. Grafik penjualan berada di menu **Laporan**; dashboard utama menampilkan ringkasan dan pesanan terbaru.
+
 ## Jalankan
 
 Pastikan dependensi di `frontend/` dan `backend/` sudah terpasang serta `backend/.env` sudah dikonfigurasi. Dari folder utama:
@@ -43,6 +49,24 @@ node backend/scripts/verify-public.mjs
 ```
 
 ## Navigasi
+
+### Rekomendasi restock dan kedaluwarsa pesanan
+
+Di **Produk → Inventaris & stok → Rekomendasi Restock**, admin dapat melihat penjualan berbayar online + POS selama 7 hari terakhir, rata-rata harian, perkiraan ketahanan stok, dan saran jumlah restock. Target stok = nilai terbesar antara unit terjual selama 7 hari dan batas minimum + 1. Saran tambah = maksimum 0 atau target dikurangi stok saat ini. Ketahanan stok memakai rata-rata sebelum pembulatan; tanpa penjualan ditampilkan sebagai belum ada penjualan, bukan prediksi tak terbatas.
+
+Tombol **Tinjau restock** mengisi jumlah dan catatan pada form penyesuaian. Stok hanya berubah setelah admin menyimpan. Perhitungan ini tidak memprediksi musim/promosi dan belum mempertimbangkan waktu kirim pemasok.
+
+Pesanan online belum dibayar dibatalkan setelah deadline oleh jadwal PostgreSQL setiap menit. Jadwal tetap berjalan saat browser atau backend tidak aktif. Status pembatalan dicatat satu kali; stok tidak ditambah karena pesanan belum dibayar tidak pernah memotong stok. Tombol pembayaran menolak pesanan kedaluwarsa dan halaman pembayaran mengambil ulang status otomatis setelah deadline.
+
+Untuk database baru, jalankan dari `backend/` dengan koneksi pemilik database yang mendukung `pg_cron`:
+
+```powershell
+npm run db:migrate
+npm run db:cron
+npm run db:cron:check
+```
+
+`db:cron` aman dijalankan ulang dan memakai nama job yang sama. `db:cron:check` hanya memeriksa fungsi, jadwal aktif, serta tiga hasil eksekusi terakhir. Migrasi 0004 memasang fungsi; pemasangan jadwal adalah langkah terpisah. Server lokal juga menjalankan pemeriksaan tiap menit. Deploy serverless tetap memerlukan jadwal database.
 
 Toko: beranda, katalog, detail, favorit, keranjang, checkout, pesanan, profil, alamat pengiriman, dan pengaturan akun. Ikon profil menampilkan menu akun; tombol Login terpisah berada di sebelah kanannya untuk tamu. Setelah login, ikon berubah menjadi avatar bulat dengan gambar default bila foto belum tersedia.
 

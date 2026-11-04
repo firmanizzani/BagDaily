@@ -5,6 +5,7 @@ import { db } from '../../db/index.js';
 import { categories, orders, orderItems, products, users } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { ok } from '../../utils/response.js';
+import { restockAdvice } from './restock.js';
 
 export const rangeSchema = z.object({
   from: z.coerce.date().optional(),
@@ -140,7 +141,8 @@ router.get('/channels', a(async (req, res) => {
 }));
 
 router.get('/restock-recommendations', a(async (_req, res) => {
-  const since = new Date(Date.now() - 7 * 86400000);
+  const now = new Date();
+  const since = new Date(now.getTime() - 7 * 86400000);
   const raw = await db.select({
     productId: orderItems.productId,
     sold: sql<number>`coalesce(sum(${orderItems.quantity}),0)::int`,
@@ -149,6 +151,7 @@ router.get('/restock-recommendations', a(async (_req, res) => {
     .where(and(
       eq(orders.paymentStatus, sql.raw(`'paid'`)),
       gte(orders.paidAt, since),
+      lt(orders.paidAt, now),
     ))
     .groupBy(orderItems.productId);
 
@@ -157,17 +160,12 @@ router.get('/restock-recommendations', a(async (_req, res) => {
 
   res.json(ok(prods.map((p) => {
     const sold = soldMap.get(p.id) ?? 0;
-    const avg = sold / 7;
-    const demand = Math.ceil(avg * 7);
     return {
       productId: p.id,
       name: p.name,
       stock: p.stock,
       minimumStock: p.minimumStock,
-      soldLast7Days: sold,
-      averageDailySales: Math.round(avg * 100) / 100,
-      next7DaysDemand: demand,
-      recommendedQuantity: Math.max(0, demand - p.stock),
+      ...restockAdvice(p.stock, p.minimumStock, sold),
     };
   })));
 }));

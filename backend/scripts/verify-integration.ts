@@ -149,6 +149,11 @@ try {
     )
   ).data;
   assert.equal(paid.status, "awaiting_confirmation");
+  const dateFilters = new URLSearchParams({ from: new Date(Date.now() - 86400000).toISOString(), to: new Date(Date.now() + 86400000).toISOString(), limit: '100' });
+  for (const [path, role] of [['/admin/orders', 'admin'], ['/orders/my', 'pelanggan']]) {
+    const filtered = await api(`${path}?${dateFilters}`, role);
+    assert.ok(filtered.data.some((row: { id: string }) => row.id === order.id), `${path} date-filtered order`);
+  }
   assert.equal((await api(`/products/${main.id}`)).data.stock, 2);
   assert.equal(
     (await api("/admin/dashboard/overview", "admin")).data.lowStockProducts,
@@ -177,6 +182,29 @@ try {
     sale.id,
   );
   assert.equal((await api(`/products/${main.id}`)).data.stock, 0);
+  const recommendation = (await api('/admin/dashboard/restock-recommendations', 'admin')).data.find((row: { productId: string }) => row.productId === main.id);
+  assert.equal(recommendation.soldLast7Days, 3);
+  assert.equal(recommendation.targetStock, 3);
+  assert.equal(recommendation.recommendedQuantity, 3);
+  assert.equal(recommendation.daysOfStock, 0);
+  const expiredOrder = (await api('/orders', 'pelanggan', 'POST', {
+    items: [{ productId: main.id, quantity: 1 }], deliveryMethod: 'pickup',
+  })).data;
+  await client`update orders set payment_deadline=clock_timestamp()-interval '1 minute' where id=${expiredOrder.id}`;
+  await api(`/orders/${expiredOrder.id}/simulate-payment`, 'pelanggan', 'POST', { method: 'qris' }, randomUUID(), 409);
+  // Parallel workers must produce one state change and exactly one history entry.
+  await Promise.all([
+    client`select * from public.cancel_expired_unpaid_orders(200)`,
+    client`select * from public.cancel_expired_unpaid_orders(200)`,
+  ]);
+  assert.equal((await api(`/orders/${expiredOrder.id}`, 'pelanggan')).data.status, 'cancelled');
+  const [cancellation] = await client`select count(*)::int as count from order_status_history where order_id=${expiredOrder.id} and new_status='cancelled'`;
+  assert.equal(cancellation.count, 1);
+  assert.equal((await api(`/products/${main.id}`)).data.stock, 0);
+  assert.equal((await api(`/orders/${order.id}`, 'pelanggan')).data.status, 'completed');
+  await api('/admin/dashboard/restock-recommendations', 'kasir', 'GET', undefined, undefined, 403);
+  await api('/admin/dashboard/restock-recommendations', 'pelanggan', 'GET', undefined, undefined, 403);
+  await api('/admin/orders', 'kasir', 'GET', undefined, undefined, 403);
   await api(
     "/cashier/transactions",
     "kasir",
@@ -198,6 +226,7 @@ try {
     randomUUID(),
   );
   assert.equal((await api(`/products/${main.id}`)).data.stock, 3);
+  assert.equal((await api('/admin/dashboard/restock-recommendations', 'admin')).data.find((row: { productId: string }) => row.productId === main.id).recommendedQuantity, 0);
   const after = (await api("/admin/dashboard/overview", "admin")).data;
   assert.equal(after.totalSales, before.totalSales + paid.total + sale.total);
   assert.equal(after.lowStockProducts, before.lowStockProducts);
