@@ -24,6 +24,7 @@ import customersRouter from './modules/users/customers.js';
 import { publicShippingRouter, adminShippingRouter } from './modules/shipping/index.js';
 import dashboardRouter from './modules/dashboard/index.js';
 import reportsRouter from './modules/reports/index.js';
+import loyaltyRouter from './modules/loyalty/index.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -53,6 +54,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/loyalty', loyaltyRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/shipping', publicShippingRouter);

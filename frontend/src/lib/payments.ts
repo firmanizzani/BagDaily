@@ -6,4 +6,5 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
   credit: 'Kartu Kredit',
   qris: 'QRIS',
   bank_transfer: 'Transfer Bank',
+  points: 'Poin member',
 };

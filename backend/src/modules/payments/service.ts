@@ -3,6 +3,7 @@ import type { Tx } from '../../db/index.js';
 import { orders, orderItems, products, payments, stockMovements, history } from '../../db/schema/index.js';
 import { conflict, notFound, forbidden } from '../../utils/errors.js';
 import { transaction, orderDetail } from '../orders/service.js';
+import { spendPoints } from '../loyalty/service.js';
 
 export async function deduct(tx: Tx, id: string, actor: string) {
   const items = await tx.select().from(orderItems).where(eq(orderItems.orderId, id)).orderBy(asc(orderItems.productId));
@@ -33,7 +34,7 @@ export async function deduct(tx: Tx, id: string, actor: string) {
   }
 }
 
-export async function pay(id: string, userId: string, key: string, method: 'bank_transfer' | 'qris') {
+export async function pay(id: string, userId: string, key: string, method: 'bank_transfer' | 'qris' | 'points') {
   await transaction(async (tx) => {
     const [order] = await tx.select().from(orders).where(eq(orders.id, id)).for('update');
     if (!order) notFound('Order not found');
@@ -54,6 +55,9 @@ export async function pay(id: string, userId: string, key: string, method: 'bank
     if (!order.paymentDeadline || new Date(now).getTime() >= order.paymentDeadline.getTime()) {
       conflict('ORDER_EXPIRED', 'Payment deadline has passed');
     }
+
+    if ((order.total === 0) !== (method === 'points')) conflict('INVALID_PAYMENT_METHOD', order.total === 0 ? 'Tagihan ditutup seluruhnya dengan poin.' : 'Tagihan masih memerlukan pembayaran.');
+    await spendPoints(tx, order, true);
 
     await deduct(tx, id, userId);
     await tx.insert(payments).values({ orderId: id, method, idempotencyKey: key });

@@ -7,6 +7,7 @@ import { asyncRoute as a } from '../../utils/async.js';
 import { idSchema, pageSchema } from '../../utils/validation.js';
 import { notFound } from '../../utils/errors.js';
 import { paginated } from '../../utils/response.js';
+import { walletHistory, walletSummary } from '../loyalty/service.js';
 
 const router = Router();
 const totals = sql`(
@@ -19,6 +20,7 @@ const customerFields = {
   isActive: users.isActive, createdAt: users.createdAt,
   totalOrders: sql<number>`coalesce(customer_totals.total_orders, 0)::int`,
   totalSpend: sql<number>`coalesce(customer_totals.total_spend, 0)::bigint`.mapWith(Number),
+  availablePoints: sql<number>`coalesce((select balance-reserved from loyalty_accounts w where w.user_id=${users.id}),0)::bigint`.mapWith(Number),
 };
 const escapedSearch = (value: string) => `%${value.trim().replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_')}%`;
 
@@ -74,6 +76,15 @@ router.get('/:id/orders', a(async (req, res) => {
   const rows = await db.select().from(orders).where(where)
     .orderBy(desc(orders.createdAt), desc(orders.id)).limit(f.limit).offset((f.page - 1) * f.limit);
   res.json({ ...paginated(rows, count.count, f.page, f.limit), customer });
+}));
+
+router.get('/:id/loyalty', a(async (req, res) => {
+  const id = idSchema.parse(req.params['id']);
+  const [customer] = await db.select({ id: users.id }).from(users).where(and(eq(users.id, id), eq(users.role, 'pelanggan')));
+  if (!customer) notFound('Pelanggan tidak ditemukan.');
+  const { page, limit } = pageSchema.parse(req.query);
+  const { rows, count } = await walletHistory(id, page, limit);
+  res.json({ ...paginated(rows, count, page, limit), summary: await walletSummary(id) });
 }));
 
 export default router;

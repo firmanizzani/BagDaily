@@ -16,6 +16,7 @@ import { CustomerOrdersPage } from '@/pages/storefront/CustomerOrdersPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ProfilePage } from '@/pages/auth/ProfilePage';
+import { LoyaltyPage } from '@/pages/auth/LoyaltyPage';
 import { PosPage } from '@/pages/cashier/PosPage';
 import { StaffOrdersPage } from '@/pages/cashier/StaffOrdersPage';
 import { StaffOrderDetailPage } from '@/pages/cashier/StaffOrderDetailPage';
@@ -68,6 +69,7 @@ export function AppRoutes() {
           <Route element={<AccountLayout />}>
             <Route path="customer/orders" element={<CustomerOrdersPage />} />
             <Route path="profile" element={<ProfilePage section="profile" />} />
+            <Route path="account/points" element={<LoyaltyPage />} />
             <Route path="addresses" element={<ProfilePage section="address" />} />
             <Route path="account/settings" element={<ProfilePage section="settings" />} />
           </Route>

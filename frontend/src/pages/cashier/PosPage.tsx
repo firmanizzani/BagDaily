@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
 import { paymentMethodLabels } from '@/lib/payments';
+import { PointRedemption } from '@/components/shared/PointRedemption';
+import type { LoyaltySummary } from '@/features/loyalty/types';
 
 const posPaymentOptions = [
   { value: 'cash', icon: Banknote },
@@ -46,6 +48,9 @@ export function PosPage() {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [customerMode, setCustomerMode] = useState<'general' | 'registered'>('general');
   const [customer, setCustomer] = useState<PosCustomer | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
+  const [pointsAmount, setPointsAmount] = useState(0);
+  const wallet = useApi<LoyaltySummary>(`/cashier/customers/${customer?.id}/loyalty`, customerMode === 'registered' && Boolean(customer));
 
   const {
     items,
@@ -56,7 +61,6 @@ export function PosPage() {
     setCashReceived,
     resetSale,
     subtotal,
-    changeAmount,
   } = usePosStore();
 
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => generateUUID());
@@ -79,13 +83,15 @@ export function PosPage() {
 
   const products = productsData?.data || [];
   const currentSubtotal = subtotal();
-  const currentChange = changeAmount();
-  const isCashSufficient = cashReceived >= currentSubtotal && currentSubtotal > 0;
+  const pointsRedeemed = customerMode === 'registered' && customer && usePoints ? Math.min(pointsAmount, wallet.data?.data.available ?? 0, currentSubtotal) : 0;
+  const currentTotal = currentSubtotal - pointsRedeemed;
+  const currentChange = Math.max(0, cashReceived - currentTotal);
+  const isCashSufficient = cashReceived >= currentTotal && currentSubtotal > 0;
   const isCash = paymentMethod === 'cash';
   const canCheckout =
     currentSubtotal > 0 &&
     (customerMode === 'general' || Boolean(customer)) &&
-    (isCash ? isCashSufficient : paymentConfirmed);
+    (currentTotal === 0 || (isCash ? isCashSufficient : paymentConfirmed));
 
   const resetPaymentConfirmation = () => setPaymentConfirmed(false);
 
@@ -105,9 +111,10 @@ export function PosPage() {
           productId: i.product.id,
           quantity: i.quantity,
         })),
-        paymentMethod,
+        paymentMethod: currentTotal === 0 ? 'points' as const : paymentMethod,
+        ...(pointsRedeemed ? { pointsToRedeem: pointsRedeemed } : {}),
         ...(customerMode === 'registered' && customer ? { customerId: customer.id } : {}),
-        ...(isCash ? { cashReceived } : {}),
+        ...(isCash && currentTotal > 0 ? { cashReceived } : {}),
       };
 
       const res = await createPosTransaction.mutateAsync({
@@ -119,6 +126,8 @@ export function PosPage() {
       setCompletedOrder(res.data);
       resetSale();
       setCustomer(null);
+      setUsePoints(false);
+      setPointsAmount(0);
       setCustomerMode('general');
       setPaymentMethod('cash');
       setPaymentConfirmed(false);
@@ -219,6 +228,8 @@ export function PosPage() {
               onClick={() => {
                 resetSale();
                 setCustomer(null);
+                setUsePoints(false);
+                setPointsAmount(0);
                 setCustomerMode('general');
                 setPaymentMethod('cash');
                 resetPaymentConfirmation();
@@ -234,10 +245,14 @@ export function PosPage() {
             disabled={createPosTransaction.isPending}
             onModeChange={mode => {
               setCustomerMode(mode);
+              setUsePoints(false);
+              setPointsAmount(0);
               resetPaymentConfirmation();
             }}
             onChange={selected => {
               setCustomer(selected);
+              setUsePoints(false);
+              setPointsAmount(0);
               setIdempotencyKey(generateUUID());
               resetPaymentConfirmation();
             }}
@@ -300,17 +315,19 @@ export function PosPage() {
             </div>
           )}
           <div className="pos-payment">
+            {customerMode === 'registered' && customer ? <PointRedemption wallet={wallet.data?.data} loading={wallet.isLoading} error={wallet.isError} total={currentSubtotal} enabled={usePoints} amount={pointsRedeemed} onEnabledChange={enabled => { setUsePoints(enabled); resetPaymentConfirmation(); }} onAmountChange={amount => { setPointsAmount(amount); resetPaymentConfirmation(); }} disabled={createPosTransaction.isPending} channel="pos" onRetry={() => void wallet.refetch()} /> : <p className="point-guest-note">Pilih pelanggan terdaftar untuk memperoleh atau memakai poin. Pelanggan umum tetap dapat berbelanja.</p>}
             <div className="flex justify-between text-xs text-[#667c79]">
               <span>Subtotal ({items.reduce((n, i) => n + i.quantity, 0)} produk)</span>
               <span>{formatRupiah(currentSubtotal)}</span>
             </div>
             <div className="pos-total">
               <span>Total pembayaran</span>
-              <strong>{formatRupiah(currentSubtotal)}</strong>
+              <strong>{formatRupiah(currentTotal)}</strong>
             </div>
+            {pointsRedeemed > 0 && <p className="point-discount-note">Potongan {pointsRedeemed.toLocaleString('id-ID')} poin: −{formatRupiah(pointsRedeemed)}</p>}
             <fieldset
               className="pos-payment-methods"
-              disabled={createPosTransaction.isPending}
+              disabled={createPosTransaction.isPending || currentTotal === 0}
             >
               <legend>Metode pembayaran</legend>
               <div>
@@ -335,7 +352,7 @@ export function PosPage() {
                 ))}
               </div>
             </fieldset>
-            {isCash ? (
+            {currentTotal === 0 && currentSubtotal > 0 ? <p className="point-discount-note">Seluruh tagihan dibayar dengan poin member. Tidak ada pembayaran tunai atau non-tunai tambahan.</p> : isCash ? (
               <>
                 <label className="field">
                   Uang tunai diterima (Rp)
@@ -351,15 +368,15 @@ export function PosPage() {
                 <div className="cash-shortcuts">
                   {[
                     ...new Set([
-                      currentSubtotal,
-                      Math.ceil(currentSubtotal / 50000) * 50000,
-                      Math.ceil(currentSubtotal / 100000) * 100000,
+                      currentTotal,
+                      Math.ceil(currentTotal / 50000) * 50000,
+                      Math.ceil(currentTotal / 100000) * 100000,
                     ]),
                   ]
                     .filter(n => n > 0)
                     .map(n => (
                       <button key={n} onClick={() => setCashReceived(n)}>
-                        {n === currentSubtotal ? 'Uang pas' : formatRupiah(n)}
+                        {n === currentTotal ? 'Uang pas' : formatRupiah(n)}
                       </button>
                     ))}
                 </div>
@@ -383,7 +400,7 @@ export function PosPage() {
                         width={180}
                         height={180}
                       />
-                      <strong>{formatRupiah(currentSubtotal)}</strong>
+                      <strong>{formatRupiah(currentTotal)}</strong>
                       <small>Simulasi — tidak untuk pembayaran</small>
                     </div>
                     <p>
@@ -413,7 +430,7 @@ export function PosPage() {
                         </div>
                         <div>
                           <dt>Nominal transfer</dt>
-                          <dd>{formatRupiah(currentSubtotal)}</dd>
+                          <dd>{formatRupiah(currentTotal)}</dd>
                         </div>
                       </dl>
                       <small>Rekening contoh — jangan melakukan transfer.</small>
@@ -430,7 +447,7 @@ export function PosPage() {
                       {paymentMethodLabels[paymentMethod]}
                     </strong>
                     <p>
-                      Proses <strong>{formatRupiah(currentSubtotal)}</strong> melalui
+                      Proses <strong>{formatRupiah(currentTotal)}</strong> melalui
                       mesin EDC menggunakan{' '}
                       {paymentMethod === 'debit' ? 'kartu debit' : 'kartu kredit'}. Pilih
                       konfirmasi setelah EDC menampilkan transaksi berhasil.

@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { LoadingState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
+import { PointRedemption } from '@/components/shared/PointRedemption';
+import type { LoyaltySummary } from '@/features/loyalty/types';
 
 const schema = z
   .object({
@@ -48,6 +50,9 @@ export function CheckoutPage() {
   const { items, subtotal, clearCart } = useCartStore();
   const rates = useApi<ShippingRate[]>('/shipping/rates');
   const createOrder = useAction<Order>();
+  const wallet = useApi<LoyaltySummary>('/loyalty/me', user?.role === 'pelanggan');
+  const [usePoints, setUsePoints] = useState(false);
+  const [pointsAmount, setPointsAmount] = useState(0);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const [selectedCourier, setSelectedCourier] = useState<Courier>('JNE');
@@ -80,7 +85,9 @@ export function CheckoutPage() {
   );
 
   const shippingCost = deliveryMethod === 'pickup' ? 0 : currentRate?.rate || 0;
-  const grandTotal = subtotal() + shippingCost;
+  const grossTotal = subtotal() + shippingCost;
+  const pointsRedeemed = usePoints ? Math.min(pointsAmount, wallet.data?.data.available ?? 0, grossTotal) : 0;
+  const grandTotal = grossTotal - pointsRedeemed;
 
   const onSubmit = async (data: FormValues) => {
     if (data.deliveryMethod === 'shipping' && !currentRate) {
@@ -88,6 +95,7 @@ export function CheckoutPage() {
     }
 
     const payload = {
+      pointsToRedeem: pointsRedeemed,
       items: items.map(i => ({
         productId: i.product.id,
         quantity: i.quantity,
@@ -270,6 +278,7 @@ export function CheckoutPage() {
                 ))}
               </div>
 
+              <PointRedemption wallet={wallet.data?.data} loading={wallet.isLoading} error={wallet.isError} total={grossTotal} enabled={usePoints} amount={pointsRedeemed} onEnabledChange={setUsePoints} onAmountChange={setPointsAmount} disabled={createOrder.isPending} channel="online" onRetry={() => void wallet.refetch()} />
               <div className="border-t border-[#001524]/10 pt-3 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-[#6E7E8D]">Subtotal Produk</span>
@@ -290,12 +299,14 @@ export function CheckoutPage() {
                   </span>
                 </div>
                 <div className="border-t border-[#001524]/10 pt-2 flex justify-between text-sm font-bold text-[#001524]">
+                  {pointsRedeemed > 0 && <span className="sr-only">Tagihan setelah potongan poin</span>}
                   <span>Total Tagihan</span>
                   <span className="text-base text-[#15616D]">
                     {formatRupiah(grandTotal)}
                   </span>
                 </div>
               </div>
+              {pointsRedeemed > 0 && <p className="point-discount-note">Potongan poin: −{formatRupiah(pointsRedeemed)}. Poin ditahan sampai pembayaran atau pembatalan pesanan.</p>}
 
               <Button
                 type="submit"

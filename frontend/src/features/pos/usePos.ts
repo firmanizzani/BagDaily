@@ -4,6 +4,7 @@ import { request } from '@/services/apiClient';
 import type { Order, PaymentMethod } from '@/types/api';
 
 export interface PosCheckoutPayload {
+  pointsToRedeem?: number;
   customerId?: string;
   items: Array<{ productId: string; quantity: number }>;
   paymentMethod: PaymentMethod;

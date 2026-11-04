@@ -9,6 +9,7 @@ import {
   Settings,
   Store,
   UserRound,
+  Coins,
 } from 'lucide-react';
 import { useUser } from '@/hooks/api';
 import { useLogout } from '@/features/auth/useAuth';
@@ -45,6 +46,7 @@ export function ProfileMenu() {
   const close = () => setOpen(false);
   const entries = [
     { to: '/profile', icon: UserRound, label: 'Profil saya' },
+    ...(user?.role === 'pelanggan' ? [{ to: '/account/points', icon: Coins, label: 'Poin saya' }] : []),
     {
       ...orderNavigation(user?.role),
       icon: Package,

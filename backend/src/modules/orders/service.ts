@@ -7,6 +7,8 @@ import { conflict, notFound, forbidden } from '../../utils/errors.js';
 import { sleepMs, delay } from '../../utils/misc.js';
 import type { OrderInput } from '../../utils/validation.js';
 import { imageUrlFromPath } from '../products/image-url.js';
+import { reservePoints, releasePoints, awardPoints } from '../loyalty/service.js';
+import { pointQuote } from '../loyalty/rules.js';
 
 export function databaseCode(error: unknown): string | undefined {
   if (!error || typeof error !== 'object') return;
@@ -93,13 +95,18 @@ export async function checkout(userId: string, input: OrderInput) {
       if (!rate) notFound('Shipping rate not found');
     }
 
+    const gross = subtotal + (rate?.rate ?? 0);
+    const redeemed = input.pointsToRedeem ?? 0;
+    if (redeemed > gross) conflict('POINTS_EXCEED_TOTAL', 'Poin yang dipakai melebihi tagihan.');
+    const quote = pointQuote(gross, redeemed);
     const [order] = await tx.insert(orders).values({
       orderNumber: `BD-${randomUUID()}`,
       userId,
       channel: 'online',
       subtotal,
       shippingCost: rate?.rate ?? 0,
-      total: subtotal + (rate?.rate ?? 0),
+      total: quote.totalPaid,
+      pointsRedeemed: quote.pointsRedeemed,
       deliveryMethod: input.deliveryMethod,
       courier: rate?.courier,
       shippingZone: rate?.zone,
@@ -110,6 +117,7 @@ export async function checkout(userId: string, input: OrderInput) {
     }).returning();
 
     await tx.insert(orderItems).values(items.map((i) => ({ ...i, orderId: order.id })));
+    await reservePoints(tx, order);
     await tx.insert(history).values({ orderId: order.id, newStatus: 'awaiting_payment', changedBy: userId });
     return order.id;
   });
@@ -117,10 +125,11 @@ export async function checkout(userId: string, input: OrderInput) {
   return orderDetail(id);
 }
 
-export async function changeStatus(id: string, actor: string, status: typeof orders.$inferSelect.status) {
+export async function changeStatus(id: string, actor: string, status: typeof orders.$inferSelect.status, customerConfirmation = false) {
   await transaction(async (tx) => {
     const [order] = await tx.select().from(orders).where(eq(orders.id, id)).for('update');
     if (!order || order.channel !== 'online') notFound('Online order not found');
+    if (customerConfirmation && (order.userId !== actor || status !== 'completed')) forbidden();
     if (order.status === status) return;
 
     if (order.paymentStatus !== 'paid' || !validTransition(order.status, status, order.deliveryMethod)) {
@@ -134,6 +143,8 @@ export async function changeStatus(id: string, actor: string, status: typeof ord
         ? { trackingNumber: `BD-${new Date().toISOString().slice(0, 10).replaceAll('-', '')}-${randomUUID()}` }
         : {}),
     }).where(eq(orders.id, id));
+
+    if (status === 'completed') await awardPoints(tx, order);
 
     await tx.insert(history).values({
       orderId: id,
@@ -156,6 +167,8 @@ export async function cancel(id: string, actor: string) {
     if (order.status !== 'awaiting_payment' || order.paymentStatus !== 'unpaid') {
       conflict('INVALID_STATUS', 'Only unpaid orders may be cancelled');
     }
+
+    await releasePoints(tx, id);
 
     await tx.update(orders).set({
       status: 'cancelled',

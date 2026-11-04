@@ -20,6 +20,9 @@ router.get('/sales', a(async (req, res) => {
   const [summary] = await db.select({
     totalSales: sql<number>`coalesce(sum(${orders.total}),0)::int`,
     totalTransactions: sql<number>`count(*)::int`,
+    merchandiseTotal: sql<number>`coalesce(sum(${orders.subtotal}),0)::bigint`.mapWith(Number),
+    shippingTotal: sql<number>`coalesce(sum(${orders.shippingCost}),0)::bigint`.mapWith(Number),
+    pointsDiscount: sql<number>`coalesce(sum(${orders.pointsRedeemed}),0)::bigint`.mapWith(Number),
   }).from(orders).where(where);
 
   const [onlineS] = await db.select({
@@ -54,6 +57,9 @@ router.get('/sales', a(async (req, res) => {
     summary: {
       totalSales: summary.totalSales,
       totalTransactions: summary.totalTransactions,
+      merchandiseTotal: summary.merchandiseTotal,
+      shippingTotal: summary.shippingTotal,
+      pointsDiscount: summary.pointsDiscount,
       onlineSales: onlineS.total,
       posSales: posS.total,
       totalProductsSold: prodItems.reduce((total, item) => total + item.quantity, 0),
@@ -85,7 +91,7 @@ router.get('/sales/export', a(async (req, res) => {
     return s;
   };
 
-  const header = 'order_number,channel,status,subtotal,shipping_cost,total,payment_method,delivery_method,courier,paid_at,created_at';
+  const header = 'order_number,channel,status,subtotal,shipping_cost,points_redeemed,points_earned,total,payment_method,delivery_method,courier,paid_at,created_at';
   const csv = [
     header,
     ...rows.map((o) => [
@@ -94,6 +100,8 @@ router.get('/sales/export', a(async (req, res) => {
       o.status,
       o.subtotal,
       o.shippingCost,
+      o.pointsRedeemed,
+      o.pointsEarned,
       o.total,
       o.paymentMethod,
       o.deliveryMethod,

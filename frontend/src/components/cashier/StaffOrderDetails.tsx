@@ -33,6 +33,7 @@ export function StaffOrderDetails({
         <span>Pembayaran</span>
         <strong>{order.paymentStatus === 'paid' ? 'Dibayar' : 'Belum dibayar'}</strong>
       </div>
+      {(order.pointsRedeemed ?? 0) > 0 && <div className="summary-line"><span>Potongan poin</span><strong>−{formatRupiah(order.pointsRedeemed ?? 0)}</strong></div>}
       <div className="table-wrap mt-5">
         <table>
           <thead>

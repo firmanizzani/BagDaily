@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { MapPin, Package, Settings, UserRound, ChevronRight } from 'lucide-react';
+import { MapPin, Package, Settings, UserRound, ChevronRight, Coins } from 'lucide-react';
 import { useUser } from '@/hooks/api';
 import { LoadingState } from '@/components/shared/states';
 import { UserAvatar } from '@/components/shared/UserAvatar';
@@ -25,6 +25,7 @@ export function AccountLayout() {
         <nav>
           {[
             { to: '/profile', icon: UserRound, label: 'Profil saya' },
+            ...(user.data.role === 'pelanggan' ? [{ to: '/account/points', icon: Coins, label: 'Poin saya' }] : []),
             {
               ...orderNavigation(user.data.role),
               icon: Package,

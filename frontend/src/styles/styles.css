@@ -3429,11 +3429,12 @@ textarea {
     min-height: 45px;
   }
   .account-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding-block: 24px 40px;
     gap: 26px;
   }
   .account-sidebar {
+    min-width: 0;
     padding: 14px;
     background: #f1f2e9;
   }
@@ -5635,3 +5636,73 @@ textarea {
   color: #795518;
   line-height: 1.6;
 }
+/* Membership follows the BagDaily storefront palette. */
+.point-redemption { padding: 18px; border: 1px solid var(--color-sand); border-radius: 10px; background: #fff; font-size: 13px; line-height: 1.6; }
+.point-redemption.is-active { background: #f0f5ef; border-color: #bdcfc3; }
+.point-redemption-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.point-redemption-heading > div { display: grid; gap: 2px; }
+.point-redemption-heading strong { font-size: 15px; }
+.point-redemption-heading span, .point-redemption p, .point-amount small { color: var(--color-slate); font-size: 12px; }
+.point-redemption p { margin: 8px 0 0; }
+.point-redemption .point-available strong { color: var(--color-teal); font-size: 14px; }
+.point-switch { position: relative; display: inline-flex; width: 42px; height: 26px; flex-shrink: 0; }
+.point-switch input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 1; }
+.point-switch > span { width: 42px; height: 26px; border-radius: 20px; background: #b7c2bc; padding: 3px; }
+.point-switch > span::after { content: ''; display: block; width: 20px; height: 20px; background: #fff; border-radius: 50%; }
+.point-switch input:checked + span { background: var(--color-teal); }
+.point-switch input:checked + span::after { transform: translateX(16px); }
+.point-switch input:focus-visible + span { outline: 2px solid var(--color-teal); outline-offset: 4px; }
+.point-switch input:disabled + span { opacity: .45; }
+.point-switch input:disabled { cursor: not-allowed; }
+.point-redemption-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; margin-top: 16px; }
+.point-amount { display: grid; gap: 5px; font-size: 12px; }
+.point-amount > div { display: flex; background: #fff; border: 1px solid #bdcfc3; border-radius: 6px; padding: 4px; }
+.point-amount input { min-width: 0; width: 100%; background: transparent; padding: 6px; font-variant-numeric: tabular-nums; }
+.point-amount button { padding: 6px 8px; font-size: 11px; font-weight: 600; color: var(--color-teal); }
+.point-redemption button:disabled { opacity: .5; cursor: not-allowed; }
+.point-redemption .point-saving { text-align: right; }
+.point-saving strong { display: block; color: var(--color-teal); font-size: 16px; }
+.point-redemption .point-estimate { border-top: 1px solid var(--color-sand); padding-top: 12px; margin-top: 14px; }
+.point-estimate strong { color: var(--color-teal); }
+.point-discount-note, .point-guest-note, .order-loyalty-note { font-size: 12px; line-height: 1.7; color: #42675b; }
+.loyalty-page { max-width: 1080px; }
+.loyalty-balance-panel { display: grid; grid-template-columns: 1.12fr 1fr; gap: 28px; }
+.loyalty-wallet { background: var(--color-teal); color: #fff; padding: 28px 30px 22px; border-radius: 14px; }
+.loyalty-wallet h2 { color: #e2eee5; font-size: 14px; font-weight: 500; margin: 0; }
+.loyalty-amount { margin: 12px 0 6px; font-size: clamp(34px, 3.4vw, 48px); line-height: 1.2; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.loyalty-amount span { font-size: 16px; font-weight: 400; letter-spacing: 0; }
+.loyalty-wallet > p:not(.loyalty-amount) { font-size: 13px; line-height: 1.8; color: #e2eee5; max-width: 28ch; }
+.loyalty-wallet strong { color: #fff; font-weight: 600; }
+.loyalty-shop-link { display: inline-flex; align-items: center; justify-content: center; gap: 16px; background: var(--color-cream); color: var(--color-teal-dark); border-radius: 6px; padding: 11px 16px; font-size: 13px; font-weight: 600; margin-top: 24px; }
+.loyalty-shop-link:hover { background: #fff2d9; }
+.loyalty-wallet > small { display: block; font-size: 11px; margin-top: 18px; color: #e2eee5; }
+.loyalty-status { padding: 6px 0; }
+.loyalty-status h2 { font-size: 16px; font-weight: 600; margin: 0 0 16px; }
+.loyalty-status dl { margin: 0; }
+.loyalty-status dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--color-sand); }
+.loyalty-status dt { font-size: 12px; font-weight: 500; line-height: 1.6; }
+.loyalty-status dd { font-size: 16px; font-weight: 600; color: var(--color-teal); font-variant-numeric: tabular-nums; }
+.loyalty-status dd span { font-size: 11px; font-weight: 400; }
+.loyalty-status dl p { grid-column: 1 / -1; font-size: 11px; line-height: 1.7; color: var(--color-slate); margin-top: 5px; max-width: 45ch; }
+.loyalty-status > a { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: var(--color-teal); }
+.loyalty-guide { border-bottom: 1px solid var(--color-sand); margin-top: 20px; font-size: 12px; }
+.loyalty-guide summary { padding: 16px 0; cursor: pointer; color: var(--color-teal); font-weight: 500; }
+.loyalty-guide > div { padding-bottom: 16px; max-width: 75ch; color: var(--color-slate); line-height: 1.8; }
+.loyalty-guide p + p { margin-top: 8px; }
+.loyalty-history { margin-top: 32px; }
+.loyalty-history > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.loyalty-history h2 { font-size: 19px; font-weight: 600; }
+.loyalty-history > header > span { font-size: 12px; color: var(--color-slate); }
+.loyalty-history ul { list-style: none; padding: 0; margin: 0; }
+.loyalty-history li { display: flex; justify-content: space-between; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--color-sand); font-size: 13px; }
+.loyalty-history li > div { display: grid; gap: 6px; min-width: 0; }
+.loyalty-history li a { display: inline-flex; align-items: center; gap: 4px; width: fit-content; font-size: 11px; color: var(--color-teal); }
+.loyalty-history li a:hover { text-decoration: underline; }
+.loyalty-history li small { font-size: 11px; color: var(--color-slate); }
+.loyalty-entry-value { text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.loyalty-entry-value > strong { font-size: 17px; font-weight: 600; }
+.loyalty-entry-value > strong span { font-size: 12px; font-weight: 400; }
+.loyalty-activity-earn .loyalty-entry-value > strong { color: var(--color-teal); }
+.loyalty-page a:focus-visible, .loyalty-guide summary:focus-visible, .point-redemption button:focus-visible, .point-amount input:focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px; }
+@media (max-width: 1100px) and (min-width: 768px) { .loyalty-balance-panel { grid-template-columns: 1fr; } }
+@media (max-width: 767px) { .loyalty-balance-panel { grid-template-columns: 1fr; gap: 24px; } .loyalty-wallet { padding: 24px; } .loyalty-status { padding: 0; } .loyalty-history li { gap: 12px; } .loyalty-entry-value { max-width: 42%; } .loyalty-entry-value > strong { font-size: 15px; } .point-redemption { padding: 14px; } .point-redemption-controls { gap: 10px; } }

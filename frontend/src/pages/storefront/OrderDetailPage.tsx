@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2, Package, ShieldAlert, Truck } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAction, useApi } from '@/hooks/api';
+import { useAction, useApi, useUser } from '@/hooks/api';
 import type { Order } from '@/types/api';
 import { generateUUID } from '@/services/apiClient';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,8 @@ function OrderDetails({
   const client = useQueryClient();
   const pay = useAction<Order>();
   const cancel = useAction<Order>();
+  const receive = useAction<Order>();
+  const { data: customerUser } = useUser();
   const [method, setMethod] = useState<OnlinePaymentMethod>('qris');
   const [key] = useState(() => generateUUID());
   const [now, setNow] = useState(() => Date.now());
@@ -69,7 +71,7 @@ function OrderDetails({
 
   const paid = order.paymentStatus === 'paid';
   const cancelled = order.status === 'cancelled';
-  const busy = pay.isPending || cancel.isPending;
+  const busy = pay.isPending || cancel.isPending || receive.isPending;
 
   const updateOrder = async (response: { data: Order }) => {
     await client.cancelQueries({ queryKey: [`/orders/${id}`] });
@@ -82,7 +84,7 @@ function OrderDetails({
       const response = await pay.mutateAsync({
         path: `/orders/${order.id}/simulate-payment`,
         method: 'POST',
-        body: { method },
+        body: { method: order.total === 0 ? 'points' : method },
         key,
       });
       await updateOrder(response);
@@ -104,6 +106,15 @@ function OrderDetails({
     } catch {
       void query.refetch();
     }
+  };
+
+  const handleReceive = async () => {
+    if (busy || !window.confirm('Barang sudah Anda terima? Pesanan akan ditandai selesai dan poin dikreditkan.')) return;
+    try {
+      const response = await receive.mutateAsync({ path: `/orders/${order.id}/receive`, method: 'POST' });
+      await updateOrder(response);
+      toast.success(`Pesanan selesai. ${(response.data.pointsEarned ?? 0).toLocaleString('id-ID')} poin masuk ke akun Anda.`);
+    } catch { void query.refetch(); }
   };
 
   return (
@@ -136,7 +147,10 @@ function OrderDetails({
       </header>
       <div className="order-payment-layout">
         <div className="order-payment-main">
-          {awaitingPayment && (
+          {awaitingPayment && order.total === 0 && (
+            <section className="online-payment"><h2>Bayar dengan poin member</h2><p>Seluruh tagihan ditutup dengan {(order.pointsRedeemed ?? 0).toLocaleString('id-ID')} poin. Tidak perlu transfer atau scan QRIS.</p><Button variant="teal" disabled={busy || expired} onClick={() => void handlePay()}>{expired ? 'Batas pembayaran berakhir' : busy ? 'Memproses…' : 'Konfirmasi pembayaran poin'}</Button></section>
+          )}
+          {awaitingPayment && order.total > 0 && (
             <OnlinePaymentPanel
               total={order.total}
               deadline={order.paymentDeadline}
@@ -151,7 +165,7 @@ function OrderDetails({
             <section className="online-payment payment-success" role="status">
               <CheckCircle2 size={42} strokeWidth={1.5} aria-hidden="true" />
               <h2>Pembayaran diterima</h2>
-              <p>Terima kasih! Pesananmu sedang disiapkan untuk langkah berikutnya.</p>
+              <p>{order.status === 'completed' ? 'Pesanan telah selesai. Terima kasih sudah berbelanja di BagDaily.' : order.status === 'shipped' ? 'Pesanan sudah dikirim. Konfirmasikan setelah barang diterima.' : 'Terima kasih! Pesananmu sedang disiapkan untuk langkah berikutnya.'}</p>
               <strong className="online-pay-amount">{formatRupiah(order.total)}</strong>
               <dl>
                 <div>
@@ -170,6 +184,7 @@ function OrderDetails({
               </Button>
             </section>
           )}
+          {paid && customerUser?.id === order.userId && (order.status === 'shipped' || (order.status === 'packed' && order.deliveryMethod === 'pickup')) && <section className="online-payment"><h2>{order.deliveryMethod === 'pickup' ? 'Barang sudah diambil?' : 'Barang sudah diterima?'}</h2><p>Konfirmasi untuk menyelesaikan pesanan dan menerima poin member.</p><Button variant="teal" disabled={busy} onClick={() => void handleReceive()}>{receive.isPending ? 'Menyelesaikan…' : order.deliveryMethod === 'pickup' ? 'Konfirmasi sudah diambil' : 'Konfirmasi barang diterima'}</Button></section>}
           {cancelled && (
             <section className="online-payment payment-cancelled">
               <ShieldAlert size={32} aria-hidden="true" />
@@ -246,7 +261,9 @@ function OrderDetails({
               <dt>Total pembayaran</dt>
               <dd>{formatRupiah(order.total)}</dd>
             </div>
+            {(order.pointsRedeemed ?? 0) > 0 && <div><dt>Potongan poin{cancelled ? ' (penahanan dilepas)' : ''}</dt><dd>−{formatRupiah(order.pointsRedeemed ?? 0)}</dd></div>}
           </dl>
+          {order.userId && <p className="order-loyalty-note">{paid && order.status === 'completed' ? `${(order.pointsEarned ?? 0).toLocaleString('id-ID')} poin telah diperoleh dari pesanan ini.` : cancelled ? 'Pesanan batal tidak memperoleh poin. Poin yang ditahan telah dilepas.' : `${Math.floor(order.total / 100).toLocaleString('id-ID')} poin akan masuk setelah barang diterima dan pesanan selesai.`}</p>}
           {awaitingPayment && (
             <button
               className="payment-cancel-button"

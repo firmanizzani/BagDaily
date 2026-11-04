@@ -21,6 +21,7 @@
     "catalog:prices": "tsx scripts/update-catalog-prices.ts",
     "demo:sales": "tsx scripts/import-demo-sales.ts",
     "demo:verify": "tsx scripts/verify-demo-sales.ts",
+    "loyalty:backfill": "tsx scripts/backfill-loyalty.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio"
   },

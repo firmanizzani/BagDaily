@@ -4,6 +4,7 @@ import { request } from '@/services/apiClient';
 import type { Order, ShippingRate } from '@/types/api';
 
 export interface CreateOrderPayload {
+  pointsToRedeem?: number;
   items: Array<{ productId: string; quantity: number }>;
   deliveryMethod: 'shipping' | 'pickup';
   shippingRateId?: string;

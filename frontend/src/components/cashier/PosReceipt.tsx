@@ -70,6 +70,7 @@ export function PosReceipt({ order }: PosReceiptProps) {
             <dd>{formatRupiah(order.shippingCost)}</dd>
           </div>
         )}
+        {(order.pointsRedeemed ?? 0) > 0 && <div><dt>Potongan poin</dt><dd>−{formatRupiah(order.pointsRedeemed ?? 0)}</dd></div>}
         <div className="pos-receipt-grand-total">
           <dt>Total</dt>
           <dd>{formatRupiah(order.total)}</dd>
@@ -100,6 +101,7 @@ export function PosReceipt({ order }: PosReceiptProps) {
         )}
       </dl>
       <footer className="pos-receipt-footer">
+        {order.userId && <p>Poin diperoleh: {(order.pointsEarned ?? 0).toLocaleString('id-ID')} poin</p>}
         <strong>Terima kasih sudah berbelanja!</strong>
         <p>Simpan struk ini sebagai bukti pembelian.</p>
       </footer>

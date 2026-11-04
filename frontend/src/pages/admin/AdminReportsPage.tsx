@@ -122,6 +122,7 @@ export function AdminReportsPage() {
           <option value="pos">Toko / POS</option>
         </select>
       </div>
+      {summary && <p className="point-discount-note">Nilai barang {formatRupiah(summary.merchandiseTotal ?? 0)} + ongkir {formatRupiah(summary.shippingTotal ?? 0)} − potongan poin {formatRupiah(summary.pointsDiscount ?? 0)} = total pembayaran {formatRupiah(summary.totalSales)}. Nilai per produk memakai harga barang sebelum potongan poin.</p>}
       {query.isLoading ? (
         <LoadingState label="Menghitung laporan…" />
       ) : query.isError ? (

@@ -22,6 +22,7 @@ export interface CustomerSummary {
   createdAt: string;
   totalOrders: number;
   totalSpend: number;
+  availablePoints?: number;
 }
 
 export interface Category {
@@ -66,7 +67,7 @@ export type PaymentStatus = 'unpaid' | 'paid';
 
 export type DeliveryMethod = 'shipping' | 'pickup';
 
-export type PaymentMethod = 'bank_transfer' | 'qris' | 'cash' | 'debit' | 'credit';
+export type PaymentMethod = 'bank_transfer' | 'qris' | 'cash' | 'debit' | 'credit' | 'points';
 
 export type Courier = 'JNE' | 'J&T' | 'SiCepat';
 
@@ -110,6 +111,9 @@ export interface Order {
   subtotal: number;
   shippingCost: number;
   total: number;
+  pointsRedeemed?: number;
+  pointsEarned?: number;
+  loyaltyProcessedAt?: string | null;
   paymentMethod: PaymentMethod | null;
   paymentStatus: PaymentStatus;
   deliveryMethod: DeliveryMethod;
@@ -223,6 +227,9 @@ export interface RestockRecommendation {
 }
 
 export interface SalesReportSummary {
+  merchandiseTotal?: number;
+  shippingTotal?: number;
+  pointsDiscount?: number;
   totalProductsSold?: number;
   totalSales: number;
   totalTransactions: number;

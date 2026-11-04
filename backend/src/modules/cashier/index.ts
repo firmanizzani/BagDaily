@@ -10,6 +10,7 @@ import { orderDetail } from '../orders/service.js';
 import { pos } from './service.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 import { notFound } from '../../utils/errors.js';
+import { walletSummary } from '../loyalty/service.js';
 
 const router = Router();
 router.use(a(authenticate), requireRole('kasir', 'admin'));
@@ -21,6 +22,13 @@ router.get('/customers', a(async (req, res) => {
     .where(and(eq(users.role, 'pelanggan'), eq(users.isActive, true), or(ilike(users.name, pattern), ilike(users.email, pattern), ilike(users.phone, pattern))))
     .orderBy(asc(users.name), asc(users.id)).limit(10);
   res.json({ data: rows });
+}));
+
+router.get('/customers/:id/loyalty', a(async (req, res) => {
+  const id = idSchema.parse(req.params['id']);
+  const [customer] = await db.select({ id: users.id }).from(users).where(and(eq(users.id, id), eq(users.role, 'pelanggan'), eq(users.isActive, true)));
+  if (!customer) notFound('Pelanggan tidak tersedia.');
+  res.json({ data: await walletSummary(id) });
 }));
 
 router.post('/transactions', a(async (req, res) => {

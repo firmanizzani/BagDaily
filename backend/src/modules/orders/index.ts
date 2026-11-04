@@ -6,7 +6,7 @@ import { orders } from '../../db/schema/index.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { paginated } from '../../utils/response.js';
 import { idSchema, pageSchema, orderInputSchema } from '../../utils/validation.js';
-import { checkout, cancel, orderDetail } from './service.js';
+import { checkout, cancel, orderDetail, changeStatus } from './service.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 import { notFound } from '../../utils/errors.js';
 
@@ -52,6 +52,11 @@ router.post('/:id/cancel', requireRole('pelanggan'), a(async (req, res) => {
   const id = idSchema.parse(req.params['id']);
   const order = await cancel(id, req.user!.id);
   res.json({ data: order });
+}));
+
+router.post('/:id/receive', requireRole('pelanggan'), a(async (req, res) => {
+  const id = idSchema.parse(req.params['id']);
+  res.json({ data: await changeStatus(id, req.user!.id, 'completed', true) });
 }));
 
 export default router;

@@ -7,3 +7,4 @@ export * from './stockMovements.js';
 export * from './shippingRates.js';
 export * from './paymentSimulations.js';
 export * from './orderStatusHistory.js';
+export * from './loyalty.js';

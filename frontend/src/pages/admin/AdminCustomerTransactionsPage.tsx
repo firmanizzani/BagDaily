@@ -58,6 +58,7 @@ function CustomerTransactions({ id }: { id: string }) {
         </div>
       </header>
       <dl className="customer-totals">
+        <div><dt>Poin tersedia</dt><dd>{(customer.availablePoints ?? 0).toLocaleString('id-ID')} poin</dd></div>
         <div>
           <dt>Total pesanan</dt>
           <dd>{customer.totalOrders.toLocaleString('id-ID')}</dd>

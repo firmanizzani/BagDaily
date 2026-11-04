@@ -172,6 +172,7 @@ export function AdminCustomersPage() {
                       <th scope="col" className="numeric">
                         Total belanja
                       </th>
+                      <th scope="col" className="numeric">Poin tersedia</th>
                       <th scope="col" className="action-heading">
                         Aksi
                       </th>
@@ -199,6 +200,7 @@ export function AdminCustomersPage() {
                         <td className="numeric customer-spend">
                           {formatRupiah(customer.totalSpend)}
                         </td>
+                        <td className="numeric">{(customer.availablePoints ?? 0).toLocaleString('id-ID')}</td>
                         <td className="customer-row-actions">
                           <Link
                             className="customer-history-link"
@@ -232,6 +234,7 @@ export function AdminCustomersPage() {
                     <div className="customer-mobile-total">
                       <strong>{formatRupiah(customer.totalSpend)}</strong>
                       <span>{customer.totalOrders} pesanan</span>
+                      <span>{(customer.availablePoints ?? 0).toLocaleString('id-ID')} poin tersedia</span>
                       <span className="customer-mobile-action">
                         Lihat transaksi <ChevronRight size={14} />
                       </span>
