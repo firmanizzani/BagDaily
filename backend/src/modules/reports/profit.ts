@@ -15,6 +15,7 @@ async function report(query: unknown, exporting = false) {
  const completed=and(paidRange(range),eq(orders.status,'completed'));
  const perOrder=db.select({id:orders.id,orderNumber:orders.orderNumber,channel:orders.channel,paidAt:orders.paidAt,
   merchandise:orders.subtotal,pointsDiscount:orders.pointsRedeemed,totalPaid:orders.total,shipping:orders.shippingCost,
+  units:sql<number>`(select coalesce(sum(i.quantity),0) from order_items i where i.order_id="orders"."id")`.mapWith(Number).as('units'),
   netSales:sql<number>`(${orders.total}::bigint - ${orders.shippingCost})`.mapWith(Number).as('net_sales'),
   cost:sql<number>`(select coalesce(sum(i.unit_cost::bigint*i.quantity),0) from order_items i where i.order_id="orders"."id")`.mapWith(Number).as('cost'),
   missing:sql<number>`(select coalesce(sum(i.quantity),0) from order_items i where i.order_id="orders"."id" and i.unit_cost is null)`.mapWith(Number).as('missing'),
@@ -24,6 +25,7 @@ async function report(query: unknown, exporting = false) {
   totalPaid:sql<number>`coalesce(sum(${perOrder.totalPaid}),0)::bigint`.mapWith(Number),
   shipping:sql<number>`coalesce(sum(${perOrder.shipping}),0)::bigint`.mapWith(Number),
   transactions:sql<number>`count(*)::int`,
+  units:sql<number>`coalesce(sum(${perOrder.units}),0)::bigint`.mapWith(Number),
   merchandise:sql<number>`coalesce(sum(${perOrder.merchandise}),0)::bigint`.mapWith(Number),
   pointsDiscount:sql<number>`coalesce(sum(${perOrder.pointsDiscount}),0)::bigint`.mapWith(Number),
   netSales:sql<number>`coalesce(sum(${perOrder.netSales}),0)::bigint`.mapWith(Number),

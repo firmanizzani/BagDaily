@@ -17,9 +17,9 @@ export function previousMonthRange(range:{from?:Date;to?:Date;channel?:string}) 
  return {from:previousMonth(range.from),to:new Date(previousMonth(new Date(range.to.getTime()-1)).getTime()+1),channel:range.channel};
 }
 
-export function comparisonRange(range:{from?:Date;to?:Date;channel?:string;compare?:'day'|'week'|'month'|'period'}) {
+export function comparisonRange(range:{from?:Date;to?:Date;channel?:string;compare?:'day'|'week'|'month'|'period'|'7days'|'30days'}) {
  if(!range.from||!range.to)return null;
- if(!range.compare||range.compare==='month')return previousMonthRange(range);
- const offset=range.compare==='day'?86400000:range.compare==='week'?7*86400000:range.to.getTime()-range.from.getTime();
+ if(range.compare==='month')return previousMonthRange(range);
+ const offset=range.compare==='day'?86400000:range.compare==='week'||range.compare==='7days'?7*86400000:range.compare==='30days'||!range.compare?30*86400000:range.to.getTime()-range.from.getTime();
  return {from:new Date(range.from.getTime()-offset),to:new Date(range.to.getTime()-offset),channel:range.channel};
 }

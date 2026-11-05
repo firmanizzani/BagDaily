@@ -3,8 +3,9 @@ import { orders } from '../../db/schema/index.js';
 import { sql } from 'drizzle-orm';
 import { paidRange } from './range.js';
 import { comparisonRange } from './comparison-rules.js';
+import { profitFigures } from './profit-rules.js';
 
-export async function periodComparison(range: {from?:Date;to?:Date;channel?:string;compare?:'day'|'week'|'month'|'period'}) {
+export async function periodComparison(range: {from?:Date;to?:Date;channel?:string;compare?:'day'|'week'|'month'|'period'|'7days'|'30days'}) {
  const previous=comparisonRange(range);
  if(!previous)return null;
  const [totals]=await db.select({
@@ -13,12 +14,17 @@ export async function periodComparison(range: {from?:Date;to?:Date;channel?:stri
   totalTransactions:sql<number>`count(*)::int`,
   totalProductsSold:sql<number>`coalesce(sum((select coalesce(sum(i.quantity),0) from order_items i where i.order_id="orders"."id")),0)::bigint`.mapWith(Number),
   completedNet:sql<number>`coalesce(sum(case when ${orders.status}='completed' then ${orders.total}::bigint-${orders.shippingCost} else 0 end),0)::bigint`.mapWith(Number),
+  completedUnits:sql<number>`coalesce(sum(case when ${orders.status}='completed' then (select coalesce(sum(i.quantity),0) from order_items i where i.order_id="orders"."id") else 0 end),0)::bigint`.mapWith(Number),
   completedCost:sql<number>`coalesce(sum(case when ${orders.status}='completed' then (select coalesce(sum(i.unit_cost::bigint*i.quantity),0) from order_items i where i.order_id="orders"."id") else 0 end),0)::bigint`.mapWith(Number),
   missingCost:sql<number>`coalesce(sum(case when ${orders.status}='completed' then (select count(*) from order_items i where i.order_id="orders"."id" and i.unit_cost is null) else 0 end),0)::bigint`.mapWith(Number),
  }).from(orders).where(paidRange(previous));
- return {kind:range.compare??'month',from:previous.from.toISOString(),to:previous.to.toISOString(),metrics:{
+ return {kind:range.compare??'30days',from:previous.from.toISOString(),to:previous.to.toISOString(),metrics:{
   netProductSales:totals.netProductSales,totalTransactions:totals.totalTransactions,totalProductsSold:totals.totalProductsSold,
   averagePayment:totals.totalTransactions?Math.round(totals.totalPaid/totals.totalTransactions):0,
   profit:totals.missingCost?null:totals.completedNet-totals.completedCost,
+  completedSales:totals.completedNet,
+  completedUnits:totals.completedUnits,
+  costOfGoods:totals.missingCost?null:totals.completedCost,
+  profitMargin:profitFigures(totals.completedNet,totals.completedCost,totals.missingCost).marginPercent,
  }};
 }

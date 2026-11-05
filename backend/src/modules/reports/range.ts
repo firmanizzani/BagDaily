@@ -7,7 +7,7 @@ export const rangeSchema = z.object({
   to: z.coerce.date().optional(),
   channel: z.enum(['online', 'pos']).optional(),
   all: z.enum(['true']).optional(),
-  compare: z.enum(['day', 'week', 'month', 'period']).default('month'),
+  compare: z.enum(['day', 'week', 'month', 'period', '7days', '30days']).default('30days'),
 }).superRefine((value, ctx) => {
   if (value.all && (value.from || value.to)) ctx.addIssue({ code: 'custom', message: 'All time cannot include date bounds' });
   if (value.from && value.to && value.from >= value.to) ctx.addIssue({ code: 'custom', message: 'End date must be after start date' });

@@ -3,18 +3,18 @@ import { APP_TIME_ZONE } from './utils';
 export interface DateRange {
   from: string;
   to: string;
-  comparison?: 'day' | 'week' | 'month' | 'period';
+  comparison?: 'day' | 'week' | 'month' | 'period' | '7days' | '30days';
 }
-export type DatePreset = 'all' | 'today' | 'week' | 'month';
+export type DatePreset = 'all' | 'today' | 'last7' | 'last30';
 export function presetDateRange(preset: DatePreset, now = new Date()): DateRange {
   if (preset === 'all') return { from: '', to: '' };
-  const to = jakartaDateKey(now);
-  if (preset === 'today') return { from: to, to };
-  if (preset === 'month') return { from: `${to.slice(0, 7)}-01`, to };
-  const start = new Date(`${to}T00:00:00+07:00`);
-  const weekday = new Date(`${to}T00:00:00Z`).getUTCDay();
-  start.setTime(start.getTime() - ((weekday + 6) % 7) * 86400000);
-  return { from: jakartaDateKey(start), to };
+  return recentDateRange(preset === 'today' ? 1 : preset === 'last7' ? 7 : 30, now);
+}
+export function datePresetForRange(range: DateRange, now = new Date()): DatePreset | undefined {
+  return (['all', 'today', 'last7', 'last30'] as const).find(preset => {
+    const candidate = presetDateRange(preset, now);
+    return candidate.from === range.from && candidate.to === range.to;
+  });
 }
 export function jakartaDateKey(date: Date): string {
   const parts = new Intl.DateTimeFormat('en', {
@@ -43,8 +43,8 @@ export function dateRangeParams(range: DateRange): URLSearchParams {
       new Date(new Date(`${range.to}T00:00:00+07:00`).getTime() + 86400000).toISOString(),
     );
   if (range.from && range.to) {
-    const week = presetDateRange('week');
-    const inferred = range.from === range.to ? 'day' : range.from === week.from && range.to === week.to ? 'week' : 'month';
+    const days = Math.round((new Date(range.to).getTime() - new Date(range.from).getTime()) / 86400000) + 1;
+    const inferred = days === 1 ? 'day' : days === 7 ? '7days' : days === 30 ? '30days' : 'period';
     params.set('compare', range.comparison ?? inferred);
   }
   return params;

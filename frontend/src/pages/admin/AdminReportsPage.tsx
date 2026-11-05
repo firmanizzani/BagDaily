@@ -42,7 +42,6 @@ export function AdminReportsPage() {
   );
   const summary = query.data?.summary;
   const products = query.data?.products || [];
-  const customers = query.data?.customers || [];
   const units =
     summary?.totalProductsSold ??
     products.reduce((total, product) => total + product.quantity, 0);
@@ -91,7 +90,7 @@ export function AdminReportsPage() {
       </header>
       <div className="admin-report-navigation">
         <nav className="admin-status-tabs" aria-label="Jenis laporan">
-          {['Ringkasan', 'Penjualan', 'Keuntungan', 'Produk', 'Pelanggan'].map(name => (
+          {['Ringkasan', 'Penjualan', 'Keuntungan', 'Produk'].map(name => (
             <button
               type="button"
               key={name}
@@ -162,12 +161,12 @@ export function AdminReportsPage() {
               tone="amber"
             />
           </div>
-          {summary && <details className="report-payment-breakdown"><summary><span>Rincian perhitungan pembayaran</span><span>Nilai barang, ongkir & poin</span></summary><dl><div><dt>Nilai barang</dt><dd>{formatRupiah(summary.merchandiseTotal ?? 0)}</dd></div><div><dt>Ongkos kirim</dt><dd>{formatRupiah(summary.shippingTotal ?? 0)}</dd></div><div><dt>Potongan poin</dt><dd>{formatRupiah(summary.pointsDiscount ?? 0)}</dd></div><div><dt>Total pembayaran</dt><dd>{formatRupiah(summary.totalSales)}</dd></div></dl><p>Nilai barang + ongkir − potongan poin = total pembayaran. Belum merupakan laba toko.</p></details>}
+          {summary && tab === 'Penjualan' && <details className="report-payment-breakdown"><summary><span>Rincian perhitungan pembayaran</span><span>Nilai barang, ongkir & poin</span></summary><dl><div><dt>Nilai barang</dt><dd>{formatRupiah(summary.merchandiseTotal ?? 0)}</dd></div><div><dt>Ongkos kirim</dt><dd>{formatRupiah(summary.shippingTotal ?? 0)}</dd></div><div><dt>Potongan poin</dt><dd>{formatRupiah(summary.pointsDiscount ?? 0)}</dd></div><div><dt>Total pembayaran</dt><dd>{formatRupiah(summary.totalSales)}</dd></div></dl><p>Nilai barang + ongkir − potongan poin = total pembayaran. Belum merupakan laba toko.</p></details>}
           {tab === 'Ringkasan' && (
             <>
               <ReportTrendCharts filters={filters.toString()} range={range} />
               <div className="admin-report-bottom">
-                <section className="admin-panel">
+                <section className="admin-panel report-composition-panel">
                   <header className="admin-panel-heading">
                     <div><h2>Komposisi Produk Terjual</h2><p>Kontribusi kategori berdasarkan jumlah unit.</p></div>
                   </header>
@@ -212,7 +211,7 @@ export function AdminReportsPage() {
                         {categories.data?.data.map((category, index) => (
                           <li key={category.categoryId}>
                             <i style={{ background: colors[index % colors.length] }} />
-                            <span>{category.name}</span>
+                            <span>{category.name}<small>{category.quantity.toLocaleString('id-ID')} unit terjual</small></span>
                             <strong>
                               {Math.round((category.quantity / categoryUnits) * 100)}%
                             </strong>
@@ -355,47 +354,6 @@ export function AdminReportsPage() {
                             {product.quantity.toLocaleString('id-ID')}
                           </td>
                           <td className="numeric">{formatRupiah(product.revenue)}</td><td className="numeric">{product.stock ?? '—'}<small>{product.stock !== undefined && product.minimumStock !== undefined && product.stock <= product.minimumStock ? 'Perlu perhatian' : ''}</small></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-          )}
-          {tab === 'Pelanggan' && (
-            <section className="admin-panel">
-              <header className="admin-panel-heading">
-                <h2>Belanja Pelanggan</h2>
-                <span>Transaksi dengan akun pelanggan</span>
-              </header>
-              {!customers.length ? (
-                <EmptyState
-                  title="Belum ada transaksi pelanggan"
-                  description="Transaksi POS tanpa akun tidak dimasukkan ke daftar ini."
-                />
-              ) : (
-                <div className="admin-table-scroll">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Pelanggan</th>
-                        <th>Email</th>
-                        <th className="numeric">Pesanan dibayar</th>
-                        <th className="numeric">Total belanja</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {customers.map(customer => (
-                        <tr key={customer.customerId}>
-                          <td>
-                            <Link to={`/admin/customers/${customer.customerId}`}>
-                              {customer.name}
-                            </Link>
-                          </td>
-                          <td>{customer.email || '—'}</td>
-                          <td className="numeric">{customer.transactions}</td>
-                          <td className="numeric">{formatRupiah(customer.revenue)}</td>
                         </tr>
                       ))}
                     </tbody>

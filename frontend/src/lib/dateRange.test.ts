@@ -3,6 +3,7 @@ import {
   dateRangeParams,
   jakartaDateKey,
   recentDateRange,
+  datePresetForRange,
   presetDateRange,
 } from './dateRange';
 describe('admin date ranges in Jakarta', () => {
@@ -25,7 +26,7 @@ describe('admin date ranges in Jakarta', () => {
   it('sends inclusive start and exclusive next midnight to the API', () => {
     expect(
       Object.fromEntries(dateRangeParams({ from: '2026-10-01', to: '2026-10-31' })),
-    ).toEqual({ from: '2026-09-30T17:00:00.000Z', to: '2026-10-31T17:00:00.000Z', compare: 'month' });
+    ).toEqual({ from: '2026-09-30T17:00:00.000Z', to: '2026-10-31T17:00:00.000Z', compare: 'period' });
   });
   it('explicitly requests all time instead of triggering backend 30-day defaults', () => {
     expect(dateRangeParams(presetDateRange('all')).toString()).toBe('all=true');
@@ -36,20 +37,17 @@ describe('admin date ranges in Jakarta', () => {
       to: '2026-11-04',
     });
   });
-  it('starts this week on Monday', () => {
-    expect(presetDateRange('week', new Date('2026-11-04T04:00:00Z'))).toEqual({
-      from: '2026-11-02',
-      to: '2026-11-04',
-    });
-    expect(presetDateRange('week', new Date('2027-01-03T04:00:00Z'))).toEqual({
-      from: '2026-12-28',
-      to: '2027-01-03',
-    });
+  it('uses rolling seven days rather than Monday-to-today', () => {
+    expect(presetDateRange('last7', new Date('2026-11-05T04:00:00Z'))).toEqual({from:'2026-10-30',to:'2026-11-05'});
+    expect(dateRangeParams(presetDateRange('last7', new Date('2026-11-05T04:00:00Z'))).get('compare')).toBe('7days');
   });
-  it('starts this month on the first day', () => {
-    expect(presetDateRange('month', new Date('2026-11-04T04:00:00Z'))).toEqual({
-      from: '2026-11-01',
-      to: '2026-11-04',
-    });
+  it('uses rolling thirty days and selects the matching preset instead of all time', () => {
+    const now=new Date('2026-11-05T04:00:00Z');
+    const range=presetDateRange('last30',now);
+    expect(range).toEqual({from:'2026-10-07',to:'2026-11-05'});
+    expect(dateRangeParams(range).get('compare')).toBe('30days');
+    expect(datePresetForRange(range,now)).toBe('last30');
+    expect(datePresetForRange({from:'',to:''},now)).toBe('all');
+    expect(datePresetForRange({from:'2026-09-01',to:'2026-10-04'},now)).toBeUndefined();
   });
 });

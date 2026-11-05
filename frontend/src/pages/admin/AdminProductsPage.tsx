@@ -533,7 +533,7 @@ export function AdminProductsPage() {
                 className="w-full rounded border border-[#6E7E8D]/30 p-2"
               />
             </div>
-            <div><label htmlFor="product-cost-price" className="block font-semibold mb-1">Harga Modal (Rp)</label><input id="product-cost-price" type="number" min={0} max={2147483647} step={1} required value={formData.costPrice} onChange={e => setFormData({ ...formData, costPrice: Number(e.target.value) })} className="w-full rounded border border-[#6E7E8D]/30 p-2" /><p className="mt-1 text-[11px] text-[#6E7E8D]">Khusus admin. Berlaku untuk transaksi baru.{editing?.costIsEstimated && formData.costPrice === editing.costPrice ? ' Saat ini memakai estimasi dummy.' : ''}</p></div>
+            <div><label htmlFor="product-cost-price" className="block font-semibold mb-1">Harga Modal (Rp)</label><input id="product-cost-price" type="number" min={0} max={2147483647} step={1} required value={formData.costPrice} onChange={e => setFormData({ ...formData, costPrice: Number(e.target.value) })} className="w-full rounded border border-[#6E7E8D]/30 p-2" /><p className="mt-1 text-[11px] text-[#6E7E8D]">Khusus admin. Berlaku untuk transaksi baru.{editing?.costIsEstimated && formData.costPrice === editing.costPrice ? ' Saat ini memakai estimasi harga modal.' : ''}</p></div>
             {!editing ? (
               <div>
                 <label className="block font-semibold mb-1">Stok Awal</label>

@@ -24,3 +24,10 @@ describe('previous-month comparison boundaries',()=>{
   expect(previousMonthRange({})).toBeNull();
  });
 });
+
+it('compares rolling windows with the immediately preceding equal number of days',()=>{
+ const seven=comparisonRange({from:new Date('2026-10-30T00:00:00+07:00'),to:new Date('2026-11-06T00:00:00+07:00'),compare:'7days'});
+ expect(seven?.from).toEqual(new Date('2026-10-23T00:00:00+07:00'));expect(seven?.to).toEqual(new Date('2026-10-30T00:00:00+07:00'));
+ const thirty=comparisonRange({from:new Date('2026-10-07T00:00:00+07:00'),to:new Date('2026-11-06T00:00:00+07:00'),compare:'30days'});
+ expect(thirty?.from).toEqual(new Date('2026-09-07T00:00:00+07:00'));expect(thirty?.to).toEqual(new Date('2026-10-07T00:00:00+07:00'));
+});

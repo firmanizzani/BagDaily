@@ -4,6 +4,8 @@ const login=await fetch(base+'/auth/login',{method:'POST',headers:{Origin:new UR
 const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
 async function get(path:string){const r=await fetch(base+path,{headers:{Cookie:cookie},signal:AbortSignal.timeout(20000)});const b=await r.json();assert.equal(r.status,200,JSON.stringify(b.error));return b;}
 for(const [kind,from,to,previousFrom,previousTo] of [
+ ['7days','2026-10-30','2026-11-06','2026-10-23','2026-10-30'],
+ ['30days','2026-10-07','2026-11-06','2026-09-07','2026-10-07'],
  ['day','2026-11-04','2026-11-05','2026-11-03','2026-11-04'],
  ['week','2026-11-02','2026-11-05','2026-10-26','2026-10-29'],
  ['month','2026-11-01','2026-11-05','2026-10-01','2026-10-05'],
@@ -18,5 +20,6 @@ for(const [kind,from,to,previousFrom,previousTo] of [
  const previousSales=(await get('/admin/reports/sales?'+previous)).summary;
  const previousProfit=(await get('/admin/reports/profit?'+previous)).profitSummary;
  assert.equal(c.metrics.netProductSales,previousSales.netProductSales);assert.equal(c.metrics.totalTransactions,previousSales.totalTransactions);assert.equal(c.metrics.totalProductsSold,previousSales.totalProductsSold);assert.equal(c.metrics.profit,previousProfit.profit);
+ assert.equal(c.metrics.completedSales,previousProfit.netSales);assert.equal(c.metrics.completedUnits,previousProfit.units);assert.equal(c.metrics.costOfGoods,previousProfit.missingCostUnits>0?null:previousProfit.cost);assert.equal(c.metrics.profitMargin,previousProfit.marginPercent);
  console.log(`PASS ${kind}: comparison dates and dashboard/report/profit values agree with baseline transactions.`);
 }

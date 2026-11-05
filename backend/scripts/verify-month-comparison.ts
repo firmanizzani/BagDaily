@@ -8,7 +8,7 @@ try{
  const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
  async function get(path:string){const r=await fetch(base+path,{headers:{Cookie:cookie},signal:AbortSignal.timeout(25000)});const b=await r.json();assert.equal(r.status,200,JSON.stringify(b.error));checks++;return b;}
  for(const channel of ['','online','pos']){
-  const params=new URLSearchParams({from:'2026-11-01T00:00:00+07:00',to:'2026-11-05T00:00:00+07:00',...(channel?{channel}:{})});
+  const params=new URLSearchParams({compare:'month',from:'2026-11-01T00:00:00+07:00',to:'2026-11-05T00:00:00+07:00',...(channel?{channel}:{})});
   const dashboard=(await get('/admin/dashboard/overview?'+params)).data;
   const report=(await get('/admin/reports/sales?'+params)).summary;
   const profit=(await get('/admin/reports/profit?'+params)).profitSummary;
