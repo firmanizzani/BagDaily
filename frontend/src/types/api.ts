@@ -103,6 +103,7 @@ export interface Order {
   customerPhone?: string | null;
   customerAddress?: string | null;
   productCount?: number;
+  totalQuantity?: number;
   productName?: string | null;
   productImageUrl?: string | null;
   id: string;

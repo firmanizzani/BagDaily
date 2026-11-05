@@ -44,9 +44,6 @@ export function StorefrontFooter() {
               <Mail size={17} /> halo@bagdaily.id <ArrowUpRight size={17} />
             </a>
             <p className="footer-small">Senin–Sabtu · 09.00–17.00 WIB</p>
-            <Link className="staff-link" to="/login">
-              Akses admin & kasir <ArrowUpRight size={15} />
-            </Link>
           </div>
         </div>
         <div className="footer-bottom">

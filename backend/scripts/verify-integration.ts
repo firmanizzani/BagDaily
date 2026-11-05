@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { client } from "../src/db/index.js";
+import { removeProductImage } from '../src/modules/products/media.js';
 
 const base = process.env.QA_API_URL || "http://localhost:5173/api";
 const origin = new URL(base).origin;
@@ -61,6 +62,16 @@ try {
   }
   const before = (await api("/admin/dashboard/overview", "admin")).data;
   const stamp = Date.now();
+  const testEmail = `qa-integration-${stamp}@example.test`;
+  const testPassword = `Qa-${randomUUID()}!`;
+  const testUser = (await api('/auth/register', '', 'POST', { name: 'QA integration customer', email: testEmail, password: testPassword })).data;
+  fixtureUsers.push(testUser.id);
+  const testLogin = await fetch(base + '/auth/login', {
+    method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: testEmail, password: testPassword }),
+  });
+  assert.equal(testLogin.status, 200);
+  cookies.pelanggan = testLogin.headers.getSetCookie().map(value => value.split(';')[0]).join('; ');
   categoryId = (
     await api("/admin/categories", "admin", "POST", {
       name: "QA temporary category",
@@ -80,6 +91,7 @@ try {
         description: "Disposable integration fixture",
         material: "Canvas",
         price: 100000,
+        costPrice: 75000,
         stock,
         minimumStock: 2,
       })
@@ -193,10 +205,10 @@ try {
   })).data;
   await client`update orders set payment_deadline=clock_timestamp()-interval '1 minute' where id=${expiredOrder.id}`;
   await api(`/orders/${expiredOrder.id}/simulate-payment`, 'pelanggan', 'POST', { method: 'qris' }, randomUUID(), 409);
-  // Parallel workers must produce one state change and exactly one history entry.
+  // Exercise concurrent cancellation only on this fixture, never expire other customers' orders.
   await Promise.all([
-    client`select * from public.cancel_expired_unpaid_orders(200)`,
-    client`select * from public.cancel_expired_unpaid_orders(200)`,
+    api(`/orders/${expiredOrder.id}/cancel`, 'pelanggan', 'POST'),
+    api(`/orders/${expiredOrder.id}/cancel`, 'pelanggan', 'POST'),
   ]);
   assert.equal((await api(`/orders/${expiredOrder.id}`, 'pelanggan')).data.status, 'cancelled');
   const [cancellation] = await client`select count(*)::int as count from order_status_history where order_id=${expiredOrder.id} and new_status='cancelled'`;
@@ -290,7 +302,7 @@ try {
   const cashier = (await api('/auth/me', 'kasir')).data;
   const customerStats = (await api(`/admin/customers/${customer.id}/orders`, 'admin')).customer;
   const generalBefore = (await api('/admin/customers/general-summary', 'admin')).data;
-  const found = (await api('/cashier/customers?search=demo%40bagdaily.com', 'kasir')).data;
+  const found = (await api('/cashier/customers?search=' + encodeURIComponent(testEmail), 'kasir')).data;
   assert.ok(found.some((row: { id: string }) => row.id === customer.id));
   assert.ok(found.every((row: Record<string, unknown>) => Object.keys(row).every(key => ['id', 'name', 'email', 'phone'].includes(key))));
   await api('/cashier/customers?search=de', 'pelanggan', 'GET', undefined, undefined, 403);
@@ -341,12 +353,15 @@ try {
       const orderIds =
         await tx`select distinct order_id from order_items where product_id=${productId}`;
       for (const { order_id: id } of orderIds) {
+        await tx`delete from loyalty_ledger where order_id=${id}`;
         await tx`delete from payment_simulations where order_id=${id}`;
         await tx`delete from order_status_history where order_id=${id}`;
         await tx`delete from stock_movements where reference_order_id=${id}`;
         await tx`delete from order_items where order_id=${id}`;
         await tx`delete from orders where id=${id}`;
       }
+      const [fixture] = await tx`select image_path from products where id=${productId}`;
+      if (fixture?.image_path) await removeProductImage(fixture.image_path);
       await tx`delete from stock_movements where product_id=${productId}`;
       await tx`delete from products where id=${productId}`;
     });

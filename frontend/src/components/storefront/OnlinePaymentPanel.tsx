@@ -101,10 +101,6 @@ export function OnlinePaymentPanel({
           <p>Untuk transfer, nominal harus sesuai total tagihan.</p>
         </div>
       )}
-      <p className="payment-demo-note">
-        Mode demo. QR dan rekening ini hanya contoh; tidak perlu mengirim uang. Tombol di
-        bawah menyimulasikan pembayaran.
-      </p>
       {deadline && (
         <p className={isExpired ? 'payment-deadline expired' : 'payment-deadline'}>
           <Clock size={15} aria-hidden="true" />{' '}

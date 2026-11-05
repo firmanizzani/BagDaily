@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { and, desc, eq, gte, lt, ilike, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lt, ilike, inArray, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
-import { orders } from '../../db/schema/index.js';
+import { orders, orderItems, products } from '../../db/schema/index.js';
+import { imageUrlFromPath } from '../products/image-url.js';
 import { asyncRoute as a } from '../../utils/async.js';
 import { paginated } from '../../utils/response.js';
 import { idSchema, pageSchema, orderInputSchema } from '../../utils/validation.js';
@@ -22,6 +23,7 @@ router.post('/', requireRole('pelanggan'), a(async (req, res) => {
 router.get('/my', requireRole('pelanggan'), a(async (req, res) => {
   const f = pageSchema.extend({
     status: z.string().max(40).optional(),
+    tab: z.enum(['all', 'awaiting_payment', 'processing', 'shipped', 'completed', 'cancelled']).default('all'),
     search: z.string().max(100).optional(),
     from: z.coerce.date().optional(),
     to: z.coerce.date().optional(),
@@ -29,14 +31,27 @@ router.get('/my', requireRole('pelanggan'), a(async (req, res) => {
 
   const cond = [eq(orders.userId, req.user!.id)];
   if (f.status) cond.push(eq(orders.status, f.status as typeof orders.$inferSelect.status));
+  if (f.tab === 'processing') cond.push(inArray(orders.status, ['awaiting_confirmation', 'confirmed', 'packed']));
+  else if (f.tab !== 'all') cond.push(eq(orders.status, f.tab));
   if (f.search) cond.push(ilike(orders.orderNumber, `%${f.search}%`));
   if (f.from) cond.push(gte(orders.createdAt, f.from));
   if (f.to) cond.push(lt(orders.createdAt, f.to));
 
   const where = and(...cond);
   const [count] = await db.select({ count: sql<number>`count(*)::int` }).from(orders).where(where);
-  const rows = await db.select().from(orders).where(where).orderBy(desc(orders.createdAt)).limit(f.limit).offset((f.page - 1) * f.limit);
-  res.json(paginated(rows, count.count, f.page, f.limit));
+  const rows = await db.select().from(orders).where(where).orderBy(desc(orders.createdAt), desc(orders.id)).limit(f.limit).offset((f.page - 1) * f.limit);
+  const previews = rows.length ? await db.select({
+    orderId: orderItems.orderId, name: orderItems.productNameSnapshot,
+    quantity: orderItems.quantity, imagePath: products.imagePath,
+  }).from(orderItems).leftJoin(products, eq(orderItems.productId, products.id))
+    .where(inArray(orderItems.orderId, rows.map(row => row.id))).orderBy(asc(orderItems.id)) : [];
+  const data = rows.map(row => {
+    const items = previews.filter(item => item.orderId === row.id);
+    return { ...row, productName: items[0]?.name ?? null,
+      productImageUrl: imageUrlFromPath(items[0]?.imagePath), productCount: items.length,
+      totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0) };
+  });
+  res.json(paginated(data, count.count, f.page, f.limit));
 }));
 
 router.get('/:id', requireRole('pelanggan', 'admin'), a(async (req, res) => {

@@ -92,7 +92,7 @@ Dashboard dan Laporan memakai kartu ringkasan berikon tanpa persentase perubahan
 
 ### Pembersihan transaksi lama
 
-Tiga pesanan lama yang ditunjuk pemilik sudah dihapus melalui `backend/scripts/cleanup-legacy-demo.ts`. Sebelum perubahan, data dicadangkan di `backend/uploads/maintenance/`. Stok dua pesanan berbayar dipulihkan (Hana Mini Tote +1, Rhea Mini Pack +1); riwayat mutasi lama dipertahankan dan diberi catatan, dengan koreksi penyeimbang. Pesanan belum dibayar tidak menambah stok.
+Tiga pesanan lama yang ditunjuk pemilik sudah dihapus melalui pemeliharaan sekali pakai. Sebelum perubahan, data dicadangkan di `backend/uploads/maintenance/`. Stok dua pesanan berbayar dipulihkan (Hana Mini Tote +1, Rhea Mini Pack +1); riwayat mutasi lama dipertahankan dan diberi catatan, dengan koreksi penyeimbang. Pesanan belum dibayar tidak menambah stok.
 
 Transaksi Kiro Flap Sling milik `demo@bagdaily.com` sudah disesuaikan dari Rp279.000 menjadi Rp230.000; ongkir tetap Rp15.000 dan total Rp245.000. Batch 40 transaksi tidak berubah. Setelah pembersihan, filter Semua menampilkan 43 transaksi berbayar / 74 tas / Rp15.601.000.
 

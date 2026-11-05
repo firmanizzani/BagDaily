@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { eq } from 'drizzle-orm';
 import app from '../src/app.js';
 import { client, db } from '../src/db/index.js';
-import { products, users } from '../src/db/schema/index.js';
+import { categories, products, users } from '../src/db/schema/index.js';
 import { allowedOrigins, env } from '../src/config/env.js';
 import { removeProductImage } from '../src/modules/products/media.js';
 
@@ -22,6 +22,7 @@ const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const bytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j5RkAAAAASUVORK5CYII=', 'base64');
 let customerId: string | undefined;
 let productId: string | undefined;
+let categoryId: string | undefined;
 let checks = 0;
 const check = (condition: unknown, message: string) => { assert.ok(condition, message); checks++; };
 
@@ -69,11 +70,13 @@ try {
   });
   customerId = customer.data['id'];
   check(Boolean(customerId), 'Temporary customer registered');
-  const category = await api('/api/categories');
-  const firstCategory = (category.data as unknown as { id: string }[])[0];
-  assert.ok(firstCategory, 'At least one category is required');
+  const category = await api('/api/admin/categories', 'POST', admin.cookie, {
+    name: 'Storage QA temporary category', slug: `storage-qa-${stamp}`,
+  });
+  categoryId = category.data['id'];
+  assert.ok(categoryId, 'Temporary storage category created');
   const product = await api('/api/admin/products', 'POST', admin.cookie, {
-    categoryId: firstCategory.id, sku: `STORAGE-QA-${stamp}`, name: 'Storage QA temporary product',
+    categoryId, sku: `STORAGE-QA-${stamp}`, name: 'Storage QA temporary product',
     slug: `storage-qa-${stamp}`, description: 'Disposable storage verification fixture', material: 'QA',
     price: 10000, stock: 0, minimumStock: 0, isActive: true,
   });
@@ -122,6 +125,7 @@ try {
     if (row?.imagePath) await removeProductImage(row.imagePath);
     await db.delete(products).where(eq(products.id, productId));
   }
+  if (categoryId) await db.delete(categories).where(eq(categories.id, categoryId));
   await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   await client.end();
   console.log('Temporary QA files, user, and product cleaned up.');

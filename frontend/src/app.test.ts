@@ -376,7 +376,7 @@ describe('Online payment panel', async () => {
     expect(html).toContain('/images/qris-demo.svg');
     expect(html).toContain('239.000');
     expect(html).toContain('Bayar sekarang');
-    expect(html).toContain('tidak perlu mengirim uang');
+    expect(html).not.toContain('payment-demo-note');
     expect(html).not.toContain('disabled=""');
   });
   it('shows transfer details when bank transfer is selected', () => {
