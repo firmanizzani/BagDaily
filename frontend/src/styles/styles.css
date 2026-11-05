@@ -1444,6 +1444,11 @@ textarea {
   background: #073e43;
   font-size: 13px;
 }
+.mobile-links > a[aria-current] {
+  color: #edcf9d;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
 .staff-shell {
   display: flex;
   min-height: 100vh;
@@ -3962,6 +3967,10 @@ textarea {
 }
 .nav-actions > .cart-nav + .profile-menu-root {
   margin-inline-start: 6px;
+}
+.nav-session-pending:disabled {
+  opacity: 1;
+  cursor: default;
 }
 @media (min-width: 768px) {
   .shop-nav .nav-actions {

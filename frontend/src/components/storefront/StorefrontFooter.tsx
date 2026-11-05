@@ -34,8 +34,8 @@ export function StorefrontFooter() {
             <Link to="/wishlist">Daftar favorit</Link>
             <Link to="/cart">Keranjang belanja</Link>
             <Link to="/profile">Akun saya</Link>
-            <a href="/#testimoni">Testimoni</a>
-            <a href="/#faq">FAQ</a>
+            <Link to="/#testimoni">Testimoni</Link>
+            <Link to="/#faq">FAQ</Link>
           </div>
           <div>
             <h3>Mari terhubung.</h3>

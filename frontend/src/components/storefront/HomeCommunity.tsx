@@ -72,7 +72,12 @@ const questions = [
 export function HomeCommunity() {
   return (
     <>
-      <section className="home-stories" id="testimoni" aria-labelledby="stories-heading">
+      <section
+        className="home-stories"
+        id="testimoni"
+        tabIndex={-1}
+        aria-labelledby="stories-heading"
+      >
         <div className="shop-width">
           <div className="section-title">
             <div>
@@ -115,7 +120,12 @@ export function HomeCommunity() {
           </div>
         </div>
       </section>
-      <section className="shop-width home-faq" id="faq" aria-labelledby="faq-heading">
+      <section
+        className="shop-width home-faq"
+        id="faq"
+        tabIndex={-1}
+        aria-labelledby="faq-heading"
+      >
         <div className="faq-intro">
           <div className="section-title">
             <div>
@@ -127,12 +137,8 @@ export function HomeCommunity() {
         <div className="faq-list">
           {[questions.slice(0, 3), questions.slice(3)].map((column, columnIndex) => (
             <div className="faq-column" key={columnIndex}>
-              {column.map((item, index) => (
-                <details
-                  className="faq-item"
-                  key={item.question}
-                  open={columnIndex === 0 && index === 0}
-                >
+              {column.map(item => (
+                <details className="faq-item" key={item.question}>
                   <summary>
                     <span>{item.question}</span>
                     <ChevronDown size={17} aria-hidden="true" />

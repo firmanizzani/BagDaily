@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useApi } from '@/hooks/api';
 import { useStorefrontMotion } from '@/hooks/useStorefrontMotion';
+import { useHomeSectionScroll } from '@/hooks/useHomeSectionScroll';
 import type { Product } from '@/types/api';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { HomeCommunity } from '@/components/storefront/HomeCommunity';
@@ -52,6 +53,7 @@ const promises = [
 export function HomePage() {
   const motionRef = useStorefrontMotion();
   const products = useApi<Product[]>('/products?limit=18&availability=in_stock');
+  useHomeSectionScroll(!products.isLoading);
   const priority = [
     'rhea-mini-pack',
     'kiro-flap-sling',
