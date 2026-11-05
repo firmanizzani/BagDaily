@@ -6,6 +6,7 @@ import {
   Minus,
   Plus,
   QrCode,
+  ReceiptText,
   RefreshCw,
   Search,
   ShoppingCart,
@@ -19,7 +20,7 @@ import type { Order, PaymentMethod, Product } from '@/types/api';
 import { generateUUID } from '@/services/apiClient';
 import { usePosStore } from '@/features/pos/posStore';
 import { useCreatePosTransaction } from '@/features/pos/usePos';
-import { PosReceipt } from '@/components/cashier/PosReceipt';
+import { PosSuccessDialog } from '@/components/cashier/PosSuccessDialog';
 import {
   PosCustomerPicker,
   type PosCustomer,
@@ -44,13 +45,17 @@ export function PosPage() {
   const settledSearch = useDebouncedValue(search);
   const [category, setCategory] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [customerMode, setCustomerMode] = useState<'general' | 'registered'>('general');
   const [customer, setCustomer] = useState<PosCustomer | null>(null);
   const [usePoints, setUsePoints] = useState(false);
   const [pointsAmount, setPointsAmount] = useState(0);
-  const wallet = useApi<LoyaltySummary>(`/cashier/customers/${customer?.id}/loyalty`, customerMode === 'registered' && Boolean(customer));
+  const wallet = useApi<LoyaltySummary>(
+    `/cashier/customers/${customer?.id}/loyalty`,
+    customerMode === 'registered' && Boolean(customer),
+  );
 
   const {
     items,
@@ -83,7 +88,10 @@ export function PosPage() {
 
   const products = productsData?.data || [];
   const currentSubtotal = subtotal();
-  const pointsRedeemed = customerMode === 'registered' && customer && usePoints ? Math.min(pointsAmount, wallet.data?.data.available ?? 0, currentSubtotal) : 0;
+  const pointsRedeemed =
+    customerMode === 'registered' && customer && usePoints
+      ? Math.min(pointsAmount, wallet.data?.data.available ?? 0, currentSubtotal)
+      : 0;
   const currentTotal = currentSubtotal - pointsRedeemed;
   const currentChange = Math.max(0, cashReceived - currentTotal);
   const isCashSufficient = cashReceived >= currentTotal && currentSubtotal > 0;
@@ -111,7 +119,7 @@ export function PosPage() {
           productId: i.product.id,
           quantity: i.quantity,
         })),
-        paymentMethod: currentTotal === 0 ? 'points' as const : paymentMethod,
+        paymentMethod: currentTotal === 0 ? ('points' as const) : paymentMethod,
         ...(pointsRedeemed ? { pointsToRedeem: pointsRedeemed } : {}),
         ...(customerMode === 'registered' && customer ? { customerId: customer.id } : {}),
         ...(isCash && currentTotal > 0 ? { cashReceived } : {}),
@@ -124,6 +132,7 @@ export function PosPage() {
 
       toast.success(`Transaksi ${res.data.orderNumber} berhasil dicatat.`);
       setCompletedOrder(res.data);
+      setReceiptOpen(true);
       resetSale();
       setCustomer(null);
       setUsePoints(false);
@@ -138,10 +147,6 @@ export function PosPage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div>
       <div className="pos-heading no-print">
@@ -149,9 +154,17 @@ export function PosPage() {
           <h1>Kasir</h1>
           <p>Pilih produk dan layani pelanggan dengan cepat.</p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => void refetch()}>
-          <RefreshCw size={14} /> Sinkronkan stok
-        </Button>
+        <div className="pos-heading-actions">
+          {completedOrder && (
+            <Button size="sm" variant="outline" onClick={() => setReceiptOpen(true)}>
+              <ReceiptText size={15} />
+              Struk terakhir
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => void refetch()}>
+            <RefreshCw size={14} /> Sinkronkan stok
+          </Button>
+        </div>
       </div>
       <div className="pos-layout no-print">
         <section className="pos-catalog">
@@ -239,234 +252,263 @@ export function PosPage() {
               <Trash2 size={14} /> Hapus semua
             </button>
           </div>
-          <PosCustomerPicker
-            mode={customerMode}
-            value={customer}
-            disabled={createPosTransaction.isPending}
-            onModeChange={mode => {
-              setCustomerMode(mode);
-              setUsePoints(false);
-              setPointsAmount(0);
-              resetPaymentConfirmation();
-            }}
-            onChange={selected => {
-              setCustomer(selected);
-              setUsePoints(false);
-              setPointsAmount(0);
-              setIdempotencyKey(generateUUID());
-              resetPaymentConfirmation();
-            }}
-          />
-          {!items.length ? (
-            <div className="pos-empty">
-              <ShoppingCart size={40} strokeWidth={1} />
-              <p>
-                Siap melayani pelanggan berikutnya.
-                <br />
-                Pilih produk untuk memulai transaksi.
-              </p>
-            </div>
-          ) : (
-            <div className="pos-items">
-              {items.map(item => (
-                <div className="pos-item" key={item.product.id}>
-                  <ProductPhoto name={item.product.name} src={item.product.imageUrl} />
-                  <div className="pos-item-info">
-                    <strong>{item.product.name}</strong>
-                    <p>{formatRupiah(item.product.price)}</p>
-                  </div>
-                  <div className="pos-quantity">
+          <div className="pos-cart-body">
+            <PosCustomerPicker
+              mode={customerMode}
+              value={customer}
+              disabled={createPosTransaction.isPending}
+              onModeChange={mode => {
+                setCustomerMode(mode);
+                setUsePoints(false);
+                setPointsAmount(0);
+                resetPaymentConfirmation();
+              }}
+              onChange={selected => {
+                setCustomer(selected);
+                setUsePoints(false);
+                setPointsAmount(0);
+                setIdempotencyKey(generateUUID());
+                resetPaymentConfirmation();
+              }}
+            />
+            {!items.length ? (
+              <div className="pos-empty">
+                <ShoppingCart size={40} strokeWidth={1} />
+                <p>
+                  Siap melayani pelanggan berikutnya.
+                  <br />
+                  Pilih produk untuk memulai transaksi.
+                </p>
+              </div>
+            ) : (
+              <div className="pos-items">
+                {items.map(item => (
+                  <div className="pos-item" key={item.product.id}>
+                    <ProductPhoto name={item.product.name} src={item.product.imageUrl} />
+                    <div className="pos-item-info">
+                      <strong>{item.product.name}</strong>
+                      <p>{formatRupiah(item.product.price)}</p>
+                    </div>
+                    <div className="pos-quantity">
+                      <button
+                        aria-label={`Kurangi ${item.product.name}`}
+                        onClick={() => {
+                          updateQuantity(item.product.id, item.quantity - 1);
+                          resetPaymentConfirmation();
+                        }}
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        aria-label={`Tambah ${item.product.name}`}
+                        disabled={item.quantity >= item.product.stock}
+                        onClick={() => {
+                          updateQuantity(item.product.id, item.quantity + 1);
+                          resetPaymentConfirmation();
+                        }}
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                    <span className="pos-item-total">
+                      {formatRupiah(item.product.price * item.quantity)}
+                    </span>
                     <button
-                      aria-label={`Kurangi ${item.product.name}`}
+                      className="text-[#637d7c] p-1"
+                      aria-label={`Hapus ${item.product.name}`}
                       onClick={() => {
-                        updateQuantity(item.product.id, item.quantity - 1);
+                        removeItem(item.product.id);
                         resetPaymentConfirmation();
                       }}
                     >
-                      <Minus size={12} />
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      aria-label={`Tambah ${item.product.name}`}
-                      disabled={item.quantity >= item.product.stock}
-                      onClick={() => {
-                        updateQuantity(item.product.id, item.quantity + 1);
-                        resetPaymentConfirmation();
-                      }}
-                    >
-                      <Plus size={12} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
-                  <span className="pos-item-total">
-                    {formatRupiah(item.product.price * item.quantity)}
-                  </span>
-                  <button
-                    className="text-[#637d7c] p-1"
-                    aria-label={`Hapus ${item.product.name}`}
-                    onClick={() => {
-                      removeItem(item.product.id);
-                      resetPaymentConfirmation();
-                    }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                ))}
+              </div>
+            )}
+            <div className="pos-payment">
+              {customerMode === 'registered' && customer && (
+                <PointRedemption
+                  wallet={wallet.data?.data}
+                  loading={wallet.isLoading}
+                  error={wallet.isError}
+                  total={currentSubtotal}
+                  enabled={usePoints}
+                  amount={pointsRedeemed}
+                  onEnabledChange={enabled => {
+                    setUsePoints(enabled);
+                    resetPaymentConfirmation();
+                  }}
+                  onAmountChange={amount => {
+                    setPointsAmount(amount);
+                    resetPaymentConfirmation();
+                  }}
+                  disabled={createPosTransaction.isPending}
+                  channel="pos"
+                  onRetry={() => void wallet.refetch()}
+                />
+              )}
+              <div className="flex justify-between text-xs text-[#667c79]">
+                <span>Subtotal ({items.reduce((n, i) => n + i.quantity, 0)} produk)</span>
+                <span>{formatRupiah(currentSubtotal)}</span>
+              </div>
+              {pointsRedeemed > 0 && (
+                <p className="point-discount-note">
+                  Potongan {pointsRedeemed.toLocaleString('id-ID')} poin: −
+                  {formatRupiah(pointsRedeemed)}
+                </p>
+              )}
+              <fieldset
+                className="pos-payment-methods"
+                disabled={createPosTransaction.isPending || currentTotal === 0}
+              >
+                <legend>Metode pembayaran</legend>
+                <div>
+                  {posPaymentOptions.map(({ value, icon: Icon }) => (
+                    <label
+                      key={value}
+                      className={paymentMethod === value ? 'selected' : ''}
+                    >
+                      <input
+                        type="radio"
+                        name="pos-payment-method"
+                        value={value}
+                        checked={paymentMethod === value}
+                        onChange={() => {
+                          setPaymentMethod(value);
+                          resetPaymentConfirmation();
+                        }}
+                      />
+                      <Icon size={19} aria-hidden="true" />
+                      <span>{paymentMethodLabels[value]}</span>
+                    </label>
+                  ))}
                 </div>
-              ))}
+              </fieldset>
+              {currentTotal === 0 && currentSubtotal > 0 ? (
+                <p className="point-discount-note">
+                  Seluruh tagihan dibayar dengan poin member. Tidak ada pembayaran tunai
+                  atau non-tunai tambahan.
+                </p>
+              ) : isCash ? (
+                <>
+                  <label className="field">
+                    Uang tunai diterima (Rp)
+                    <input
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={cashReceived || ''}
+                      onChange={e => setCashReceived(Number(e.target.value))}
+                      placeholder="Masukkan nominal pembayaran"
+                    />
+                  </label>
+                  <div className="cash-shortcuts">
+                    {[
+                      ...new Set([
+                        currentTotal,
+                        Math.ceil(currentTotal / 50000) * 50000,
+                        Math.ceil(currentTotal / 100000) * 100000,
+                      ]),
+                    ]
+                      .filter(n => n > 0)
+                      .map(n => (
+                        <button key={n} onClick={() => setCashReceived(n)}>
+                          {n === currentTotal ? 'Uang pas' : formatRupiah(n)}
+                        </button>
+                      ))}
+                  </div>
+                  <div className="flex justify-between text-xs py-2">
+                    <span>Kembalian</span>
+                    <strong>{formatRupiah(currentChange)}</strong>
+                  </div>
+                </>
+              ) : (
+                <div className="pos-noncash">
+                  {paymentMethod === 'qris' ? (
+                    <>
+                      <div className="pos-qris-demo">
+                        <strong>
+                          QRIS <span>DEMO</span>
+                        </strong>
+                        <p>BagDaily · Kasir toko</p>
+                        <img
+                          src="/images/qris-demo.svg"
+                          alt="Kode QR demo BagDaily, bukan kode pembayaran"
+                          width={180}
+                          height={180}
+                        />
+                        <strong>{formatRupiah(currentTotal)}</strong>
+                        <small>Kode ini tidak menerima pembayaran.</small>
+                      </div>
+                    </>
+                  ) : paymentMethod === 'bank_transfer' ? (
+                    <>
+                      <div className="pos-bank-details">
+                        <strong>
+                          <Landmark size={18} aria-hidden="true" /> Transfer Bank{' '}
+                          <span>DEMO</span>
+                        </strong>
+                        <dl>
+                          <div>
+                            <dt>Bank</dt>
+                            <dd>Bank Demo</dd>
+                          </div>
+                          <div>
+                            <dt>No. rekening</dt>
+                            <dd>0000 0000 0000</dd>
+                          </div>
+                          <div>
+                            <dt>Atas nama</dt>
+                            <dd>BagDaily Demo</dd>
+                          </div>
+                          <div>
+                            <dt>Nominal transfer</dt>
+                            <dd>{formatRupiah(currentTotal)}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                      <p>
+                        Untuk transaksi asli, gunakan rekening resmi toko dan cocokkan
+                        dana masuk sebelum konfirmasi.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <strong className="pos-card-heading">
+                        <CreditCard size={20} aria-hidden="true" />{' '}
+                        {paymentMethodLabels[paymentMethod]}
+                      </strong>
+                      <p>
+                        Proses <strong>{formatRupiah(currentTotal)}</strong> melalui mesin
+                        EDC menggunakan{' '}
+                        {paymentMethod === 'debit' ? 'kartu debit' : 'kartu kredit'}.
+                        Pilih konfirmasi setelah EDC menampilkan transaksi berhasil.
+                      </p>
+                    </>
+                  )}
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={paymentConfirmed}
+                      disabled={!items.length || createPosTransaction.isPending}
+                      onChange={e => setPaymentConfirmed(e.target.checked)}
+                    />
+                    {paymentMethod === 'qris' || paymentMethod === 'bank_transfer'
+                      ? 'Konfirmasi pembayaran'
+                      : 'Pembayaran EDC berhasil'}
+                  </label>
+                </div>
+              )}
             </div>
-          )}
-          <div className="pos-payment">
-            {customerMode === 'registered' && customer ? <PointRedemption wallet={wallet.data?.data} loading={wallet.isLoading} error={wallet.isError} total={currentSubtotal} enabled={usePoints} amount={pointsRedeemed} onEnabledChange={enabled => { setUsePoints(enabled); resetPaymentConfirmation(); }} onAmountChange={amount => { setPointsAmount(amount); resetPaymentConfirmation(); }} disabled={createPosTransaction.isPending} channel="pos" onRetry={() => void wallet.refetch()} /> : <p className="point-guest-note">Pilih pelanggan terdaftar untuk memperoleh atau memakai poin. Pelanggan umum tetap dapat berbelanja.</p>}
-            <div className="flex justify-between text-xs text-[#667c79]">
-              <span>Subtotal ({items.reduce((n, i) => n + i.quantity, 0)} produk)</span>
-              <span>{formatRupiah(currentSubtotal)}</span>
-            </div>
+          </div>
+          <div className="pos-checkout-footer">
             <div className="pos-total">
               <span>Total pembayaran</span>
               <strong>{formatRupiah(currentTotal)}</strong>
             </div>
-            {pointsRedeemed > 0 && <p className="point-discount-note">Potongan {pointsRedeemed.toLocaleString('id-ID')} poin: −{formatRupiah(pointsRedeemed)}</p>}
-            <fieldset
-              className="pos-payment-methods"
-              disabled={createPosTransaction.isPending || currentTotal === 0}
-            >
-              <legend>Metode pembayaran</legend>
-              <div>
-                {posPaymentOptions.map(({ value, icon: Icon }) => (
-                  <label
-                    key={value}
-                    className={paymentMethod === value ? 'selected' : ''}
-                  >
-                    <input
-                      type="radio"
-                      name="pos-payment-method"
-                      value={value}
-                      checked={paymentMethod === value}
-                      onChange={() => {
-                        setPaymentMethod(value);
-                        resetPaymentConfirmation();
-                      }}
-                    />
-                    <Icon size={19} aria-hidden="true" />
-                    <span>{paymentMethodLabels[value]}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            {currentTotal === 0 && currentSubtotal > 0 ? <p className="point-discount-note">Seluruh tagihan dibayar dengan poin member. Tidak ada pembayaran tunai atau non-tunai tambahan.</p> : isCash ? (
-              <>
-                <label className="field">
-                  Uang tunai diterima (Rp)
-                  <input
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={cashReceived || ''}
-                    onChange={e => setCashReceived(Number(e.target.value))}
-                    placeholder="Masukkan nominal pembayaran"
-                  />
-                </label>
-                <div className="cash-shortcuts">
-                  {[
-                    ...new Set([
-                      currentTotal,
-                      Math.ceil(currentTotal / 50000) * 50000,
-                      Math.ceil(currentTotal / 100000) * 100000,
-                    ]),
-                  ]
-                    .filter(n => n > 0)
-                    .map(n => (
-                      <button key={n} onClick={() => setCashReceived(n)}>
-                        {n === currentTotal ? 'Uang pas' : formatRupiah(n)}
-                      </button>
-                    ))}
-                </div>
-                <div className="flex justify-between text-xs py-2">
-                  <span>Kembalian</span>
-                  <strong>{formatRupiah(currentChange)}</strong>
-                </div>
-              </>
-            ) : (
-              <div className="pos-noncash">
-                {paymentMethod === 'qris' ? (
-                  <>
-                    <div className="pos-qris-demo">
-                      <strong>
-                        QRIS <span>DEMO</span>
-                      </strong>
-                      <p>BagDaily · Kasir toko</p>
-                      <img
-                        src="/images/qris-demo.svg"
-                        alt="Kode QR demo BagDaily, bukan kode pembayaran"
-                        width={180}
-                        height={180}
-                      />
-                      <strong>{formatRupiah(currentTotal)}</strong>
-                      <small>Simulasi — tidak untuk pembayaran</small>
-                    </div>
-                    <p>
-                      QR ini hanya contoh tampilan dan berisi teks demo. Centang
-                      konfirmasi untuk mencatat simulasi pembayaran.
-                    </p>
-                  </>
-                ) : paymentMethod === 'bank_transfer' ? (
-                  <>
-                    <div className="pos-bank-details">
-                      <strong>
-                        <Landmark size={18} aria-hidden="true" /> Transfer Bank{' '}
-                        <span>DEMO</span>
-                      </strong>
-                      <dl>
-                        <div>
-                          <dt>Bank</dt>
-                          <dd>Bank Demo</dd>
-                        </div>
-                        <div>
-                          <dt>No. rekening</dt>
-                          <dd>0000 0000 0000</dd>
-                        </div>
-                        <div>
-                          <dt>Atas nama</dt>
-                          <dd>BagDaily Demo</dd>
-                        </div>
-                        <div>
-                          <dt>Nominal transfer</dt>
-                          <dd>{formatRupiah(currentTotal)}</dd>
-                        </div>
-                      </dl>
-                      <small>Rekening contoh — jangan melakukan transfer.</small>
-                    </div>
-                    <p>
-                      Untuk transaksi asli, gunakan rekening resmi toko dan cocokkan dana
-                      masuk sebelum konfirmasi.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <strong className="pos-card-heading">
-                      <CreditCard size={20} aria-hidden="true" />{' '}
-                      {paymentMethodLabels[paymentMethod]}
-                    </strong>
-                    <p>
-                      Proses <strong>{formatRupiah(currentTotal)}</strong> melalui
-                      mesin EDC menggunakan{' '}
-                      {paymentMethod === 'debit' ? 'kartu debit' : 'kartu kredit'}. Pilih
-                      konfirmasi setelah EDC menampilkan transaksi berhasil.
-                    </p>
-                  </>
-                )}
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={paymentConfirmed}
-                    disabled={!items.length || createPosTransaction.isPending}
-                    onChange={e => setPaymentConfirmed(e.target.checked)}
-                  />
-                  {paymentMethod === 'qris' || paymentMethod === 'bank_transfer'
-                    ? 'Konfirmasi simulasi pembayaran'
-                    : 'Pembayaran EDC berhasil'}
-                </label>
-              </div>
-            )}
             <Button
               variant="teal"
               size="lg"
@@ -490,23 +532,15 @@ export function PosPage() {
         </section>
       </div>
       {completedOrder && (
-        <section className="pos-completed mt-6">
-          <div className="flex justify-between gap-4 no-print">
-            <div>
-              <h2>Transaksi berhasil</h2>
-              <p className="muted">
-                {completedOrder.orderNumber} · Stok telah diperbarui.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handlePrint}>Cetak struk</Button>
-              <Button variant="outline" onClick={() => setCompletedOrder(null)}>
-                Transaksi baru
-              </Button>
-            </div>
-          </div>
-          <PosReceipt order={completedOrder} />
-        </section>
+        <PosSuccessDialog
+          order={completedOrder}
+          open={receiptOpen}
+          onOpenChange={setReceiptOpen}
+          onNewTransaction={() => {
+            setReceiptOpen(false);
+            setCompletedOrder(null);
+          }}
+        />
       )}
     </div>
   );

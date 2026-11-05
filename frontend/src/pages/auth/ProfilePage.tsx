@@ -47,6 +47,7 @@ export function ProfilePage({
   const user = useUser();
   const action = useAction();
   const [visible, setVisible] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(false);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     values: {
@@ -98,8 +99,14 @@ export function ProfilePage({
       <form
         className="panel account-form"
         onSubmit={form.handleSubmit(async values => {
-          if (settings && !values.password) {
-            toast.info('Isi password baru untuk memperbarui keamanan akun.');
+          if (editingPassword && !values.password) {
+            form.setError(
+              'password',
+              {
+                message: 'Masukkan password baru.',
+              },
+              { shouldFocus: true },
+            );
             return;
           }
           try {
@@ -110,7 +117,7 @@ export function ProfilePage({
                 name: values.name,
                 phone: values.phone,
                 address: values.address,
-                ...(values.password
+                ...(editingPassword && values.password
                   ? { password: values.password, currentPassword: values.currentPassword }
                   : {}),
               },
@@ -121,6 +128,8 @@ export function ProfilePage({
               password: '',
               confirmation: '',
             });
+            setEditingPassword(false);
+            setVisible(false);
             toast.success(
               address
                 ? 'Alamat pengiriman berhasil disimpan.'
@@ -191,81 +200,105 @@ export function ProfilePage({
         )}
         {(settings || section === 'all') && (
           <div className="security-section">
-            <div className="account-form-title">
-              <ShieldCheck size={22} />
-              <div>
-                <h2>Keamanan akun</h2>
-                <p>
-                  {settings
-                    ? 'Perbarui password untuk melindungi akunmu.'
-                    : 'Kosongkan bagian ini jika tidak ingin mengubah password.'}
+            <div className="account-security-header">
+              <div className="account-form-title">
+                <ShieldCheck size={22} />
+                <div>
+                  <h2>Keamanan akun</h2>
+                  <p>Perbarui password untuk melindungi akunmu.</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                aria-expanded={editingPassword}
+                aria-controls="account-password-fields"
+                disabled={action.isPending}
+                onClick={() => {
+                  if (editingPassword) {
+                    form.resetField('currentPassword');
+                    form.resetField('password');
+                    form.resetField('confirmation');
+                    setVisible(false);
+                  }
+                  setEditingPassword(!editingPassword);
+                }}
+              >
+                {editingPassword ? 'Batal' : 'Ubah password'}
+              </Button>
+            </div>
+            {editingPassword && (
+              <div id="account-password-fields">
+                {settings && (
+                  <div className="account-email">
+                    <span>Email akun</span>
+                    <strong>{user.data.email}</strong>
+                  </div>
+                )}
+                <div className="password-fields">
+                  {[
+                    {
+                      name: 'currentPassword' as const,
+                      label: 'Password saat ini',
+                      autoComplete: 'current-password',
+                    },
+                    {
+                      name: 'password' as const,
+                      label: 'Password baru',
+                      autoComplete: 'new-password',
+                    },
+                    {
+                      name: 'confirmation' as const,
+                      label: 'Konfirmasi password baru',
+                      autoComplete: 'new-password',
+                    },
+                  ].map(f => (
+                    <label className="field" key={f.name}>
+                      {f.label}
+                      <div className="password-input">
+                        <input
+                          type={visible ? 'text' : 'password'}
+                          autoComplete={f.autoComplete}
+                          placeholder={f.label}
+                          {...form.register(f.name)}
+                        />
+                        <button
+                          type="button"
+                          aria-label={
+                            visible ? 'Sembunyikan password' : 'Tampilkan password'
+                          }
+                          aria-pressed={visible}
+                          onClick={() => setVisible(!visible)}
+                        >
+                          {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                      <FieldError name={f.name} />
+                    </label>
+                  ))}
+                </div>
+                <p className="field-hint">
+                  Gunakan minimal 8 karakter. Hindari memakai password yang sama dengan
+                  akun lain.
                 </p>
               </div>
-            </div>
-            {settings && (
-              <div className="account-email">
-                <span>Email akun</span>
-                <strong>{user.data.email}</strong>
-              </div>
             )}
-            <div className="password-fields">
-              {[
-                {
-                  name: 'currentPassword' as const,
-                  label: 'Password saat ini',
-                  autoComplete: 'current-password',
-                },
-                {
-                  name: 'password' as const,
-                  label: 'Password baru',
-                  autoComplete: 'new-password',
-                },
-                {
-                  name: 'confirmation' as const,
-                  label: 'Konfirmasi password baru',
-                  autoComplete: 'new-password',
-                },
-              ].map(f => (
-                <label className="field" key={f.name}>
-                  {f.label}
-                  <div className="password-input">
-                    <input
-                      type={visible ? 'text' : 'password'}
-                      autoComplete={f.autoComplete}
-                      placeholder={f.label}
-                      {...form.register(f.name)}
-                    />
-                    <button
-                      type="button"
-                      aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'}
-                      aria-pressed={visible}
-                      onClick={() => setVisible(!visible)}
-                    >
-                      {visible ? <EyeOff size={17} /> : <Eye size={17} />}
-                    </button>
-                  </div>
-                  <FieldError name={f.name} />
-                </label>
-              ))}
-            </div>
-            <p className="field-hint">
-              Gunakan minimal 8 karakter. Hindari memakai password yang sama dengan akun
-              lain.
-            </p>
           </div>
         )}
-        <div className="account-save">
-          <span>Perubahan tersimpan ke akun BagDaily Anda.</span>
-          <Button type="submit" variant="teal" disabled={action.isPending}>
-            {action.isPending
-              ? 'Menyimpan…'
-              : address
-                ? 'Simpan alamat'
-                : settings
-                  ? 'Perbarui password'
-                  : 'Simpan perubahan'}
-          </Button>
-        </div>
+        {(!settings || editingPassword) && (
+          <div className="account-save">
+            <span>Perubahan tersimpan ke akun BagDaily Anda.</span>
+            <Button type="submit" variant="teal" disabled={action.isPending}>
+              {action.isPending
+                ? 'Menyimpan…'
+                : address
+                  ? 'Simpan alamat'
+                  : settings
+                    ? 'Perbarui password'
+                    : 'Simpan perubahan'}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );

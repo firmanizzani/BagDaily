@@ -181,21 +181,23 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             </span>
             <strong>{current}</strong>
           </div>
-          <div>
-            <span className="system-status">
-              <i /> Stok tersinkronisasi
-            </span>
-            <span className="topbar-date">
-              {formatShortDate(new Date().toISOString())}
-            </span>
-            <Link
-              to={admin ? '/admin/settings' : '/cashier/settings'}
-              className="staff-avatar"
-              aria-label="Pengaturan akun"
-            >
-              <UserAvatar src={user.avatarUrl} />
-            </Link>
-          </div>
+          {location.pathname !== '/pos' && (
+            <div>
+              <span className="system-status">
+                <i /> Stok tersinkronisasi
+              </span>
+              <span className="topbar-date">
+                {formatShortDate(new Date().toISOString())}
+              </span>
+              <Link
+                to={admin ? '/admin/settings' : '/cashier/settings'}
+                className="staff-avatar"
+                aria-label="Pengaturan akun"
+              >
+                <UserAvatar src={user.avatarUrl} />
+              </Link>
+            </div>
+          )}
         </header>
         <main className="staff-content">
           {settingsSection && (
