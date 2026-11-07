@@ -1383,24 +1383,16 @@ button:disabled {
   object-fit: cover;
   border-radius: 50%;
 }
-.admin-shell .admin-settings-content .account-form {
+.admin-shell .admin-settings-content:has(> .profile-page) {
   background: transparent;
   border: 0;
   padding: 0;
-  box-shadow: none;
 }
 .admin-shell .admin-settings-content .page-heading {
   margin-bottom: 20px;
 }
 .admin-shell .admin-settings-content .profile-page {
   display: block;
-}
-.admin-shell .admin-settings-content .account-form-title {
-  margin-top: 20px;
-}
-.admin-shell .admin-settings-content .profile-photo-editor {
-  border-color: #e5e9de;
-  box-shadow: none;
 }
 .restock-heading {
   flex-wrap: wrap;

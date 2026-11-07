@@ -3587,6 +3587,19 @@ textarea {
 .account-fields .field {
   font-size: 12px;
 }
+.account-profile-header {
+  margin-bottom: 24px;
+}
+.account-profile-details dt {
+  color: #52665f;
+  font-size: 12px;
+}
+.account-profile-details dd {
+  margin: 5px 0 0;
+  font-size: 14px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
 .account-fields input {
   min-height: 43px;
 }
@@ -3623,11 +3636,20 @@ textarea {
   font-size: 11px;
   color: #6b8179;
 }
-.account-save > button {
+.account-save-actions {
+  display: flex;
+  gap: 10px;
+}
+.account-save-actions > button {
   font-size: 12px;
 }
 .security-section {
   margin-top: 8px;
+}
+.account-fields + .security-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #e1e7df;
 }
 .account-security-header {
   display: flex;
@@ -3781,8 +3803,8 @@ textarea {
     align-items: stretch;
     gap: 15px;
   }
-  .account-save > button {
-    width: 100%;
+  .account-save-actions > button {
+    flex: 1;
     min-height: 43px;
   }
   .profile-page h1 {
@@ -5000,7 +5022,9 @@ textarea {
   color: #52665f;
   font-size: 13px;
   margin-top: 8px;
+  overflow-wrap: anywhere;
 }
+.order-payment-heading > div { min-width: 0; }
 .order-payment-status {
   border: 1px solid #cbdad1;
   color: #00594f;
@@ -5019,6 +5043,79 @@ textarea {
   gap: 28px;
   align-items: start;
 }
+.order-payment-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.order-progress-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+}
+.order-progress-list li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 18px;
+  font-size: 14px;
+  color: #52665f;
+}
+.order-progress-list li:last-child { padding-bottom: 0; }
+.order-progress-list li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  inset: 24px auto -2px 12px;
+  width: 2px;
+  background: #dce3df;
+}
+.order-progress-list li.is-reached:has(+ .is-reached)::before {
+  background: #a9c9bd;
+}
+.order-progress-mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #cbdad1;
+  border-radius: 50%;
+  background: #fff;
+  z-index: 1;
+}
+.is-reached .order-progress-mark {
+  color: #fff;
+  background: #006253;
+  border-color: #006253;
+}
+.is-cancelled .order-progress-mark {
+  color: #984634;
+  border-color: #dfc4bb;
+}
+[aria-current='step'] .order-progress-mark {
+  border: 2px solid #006253;
+  box-shadow: inset 0 0 0 5px #fff;
+  background: #006253;
+}
+.order-progress-list strong {
+  display: block;
+  padding-top: 2px;
+}
+.order-progress-list :is(.is-reached, .is-cancelled, [aria-current='step']) strong {
+  color: #182e2a;
+}
+.order-progress-list li > div > :is(time, span) {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+}
+.payment-receipt h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.payment-receipt h2 svg { color: #006253; }
+.payment-receipt dl { margin-top: 12px; }
 .online-payment {
   background: #fff;
   border: 1px solid #dce3df;
@@ -5124,7 +5221,7 @@ textarea {
   margin: 20px 0;
 }
 .online-bank dl > div,
-.payment-success dl > div {
+.payment-receipt dl > div {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -5132,11 +5229,11 @@ textarea {
   font-size: 12px;
 }
 .online-bank dt,
-.payment-success dt {
+.payment-receipt dt {
   color: #52665f;
 }
 .online-bank dd,
-.payment-success dd {
+.payment-receipt dd {
   margin: 0;
   font-weight: 650;
   text-align: right;
@@ -5183,17 +5280,6 @@ textarea {
   padding: 24px;
   min-width: 0;
 }
-.payment-order-number {
-  overflow-wrap: anywhere;
-  font-size: 11px;
-  margin-top: 12px;
-  color: #405d57;
-}
-.payment-order-date {
-  color: #52665f;
-  font-size: 10px;
-  margin-top: 4px;
-}
 .payment-order-items {
   border-top: 1px solid #d6dfd5;
   border-bottom: 1px solid #d6dfd5;
@@ -5201,11 +5287,29 @@ textarea {
   margin: 18px 0;
 }
 .payment-order-items > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   padding: 8px 0;
-  font-size: 12px;
+  font-size: 13px;
+}
+.payment-item-photo {
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid #d6dfd5;
+  border-radius: 7px;
+  background: #fff;
+}
+.payment-item-photo > :is(.product-image, .catalog-photo) {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  border-radius: 0;
+  font-size: 8px;
+  text-align: center;
 }
 .payment-order-items strong {
   display: block;
@@ -5288,27 +5392,19 @@ textarea {
 .order-delivery-details > strong {
   color: #405d57;
 }
-.payment-success,
 .payment-cancelled {
   text-align: center;
   padding-block: 36px;
 }
-.payment-success > svg,
 .payment-cancelled > svg {
   margin: 0 auto 16px;
   color: #00594f;
 }
-.payment-success > p,
 .payment-cancelled > p {
   color: #52665f;
   font-size: 13px;
   line-height: 1.7;
   margin: 10px 0 22px;
-}
-.payment-success dl {
-  margin: 20px 0;
-  border-block: 1px solid #dce3df;
-  padding: 10px 0;
 }
 @media (max-width: 700px) {
   .order-payment-page {

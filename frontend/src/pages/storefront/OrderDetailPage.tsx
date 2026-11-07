@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CheckCircle2, Package, ShieldAlert, Truck } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle2, Package, ShieldAlert, Truck, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAction, useApi, useUser } from '@/hooks/api';
-import type { Order } from '@/types/api';
+import type { Order, OrderStatus } from '@/types/api';
 import { generateUUID } from '@/services/apiClient';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/shared/states';
+import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import {
   OnlinePaymentPanel,
   type OnlinePaymentMethod,
@@ -15,6 +16,66 @@ import {
 import { formatDate, formatRupiah } from '@/lib/utils';
 import { paymentMethodLabels } from '@/lib/payments';
 import { orderStatusLabel } from '@/lib/orders';
+
+function OrderTimeline({ order }: { order: Order }) {
+  const pickup = order.deliveryMethod === 'pickup';
+  const cancelled = order.status === 'cancelled';
+  const eventDate = (status: OrderStatus) =>
+    order.history?.find(event => event.newStatus === status)?.createdAt;
+  const stages = [
+    { label: 'Pesanan dibuat', date: order.createdAt, reached: true },
+    {
+      label: 'Pembayaran berhasil',
+      date: order.paidAt ?? eventDate('awaiting_confirmation'),
+      reached: order.paymentStatus === 'paid',
+    },
+    {
+      label: pickup ? 'Siap diambil' : 'Siap dikirim',
+      date: eventDate('packed'),
+      reached: ['packed', 'shipped', 'completed'].includes(order.status),
+    },
+    ...(!pickup ? [{
+      label: 'Dikirim',
+      date: eventDate('shipped'),
+      reached: ['shipped', 'completed'].includes(order.status),
+    }] : []),
+    { label: 'Selesai', date: eventDate('completed'), reached: order.status === 'completed' },
+  ];
+  const steps = stages.map(stage => ({ ...stage, reached: stage.reached || Boolean(stage.date) }));
+  const next = cancelled ? -1 : steps.findIndex(step => !step.reached);
+  const cancelledAt = eventDate('cancelled');
+
+  return (
+    <section className="online-payment order-progress" aria-labelledby="order-progress-title">
+      <h2 id="order-progress-title">Timeline pesanan</h2>
+      <ol className="order-progress-list">
+        {steps.map(({ label, date, reached }, index) => {
+          if (cancelled && !reached) return null;
+          return (
+            <li key={label} className={reached ? 'is-reached' : undefined} aria-current={index === next ? 'step' : undefined}>
+              <span className="order-progress-mark" aria-hidden="true">{reached && <Check size={14} />}</span>
+              <div>
+                <strong>{label}</strong>
+                {date ? <time dateTime={date}>{formatDate(date)}</time> : (
+                  <span>{reached ? 'Tahap tercapai' : index === next ? 'Sedang menunggu' : 'Belum tercapai'}</span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+        {cancelled && (
+          <li className="is-cancelled">
+            <span className="order-progress-mark" aria-hidden="true"><X size={14} /></span>
+            <div>
+              <strong>Pesanan dibatalkan</strong>
+              {cancelledAt && <time dateTime={cancelledAt}>{formatDate(cancelledAt)}</time>}
+            </div>
+          </li>
+        )}
+      </ol>
+    </section>
+  );
+}
 
 export function OrderDetailPage({ paymentOnly = false }: { paymentOnly?: boolean }) {
   const { id } = useParams<{ id: string }>();
@@ -131,11 +192,7 @@ function OrderDetails({
                 ? 'Pembayaran berhasil'
                 : 'Detail pesanan'}
           </h1>
-          <p>
-            {awaitingPayment
-              ? 'Pesananmu sudah dibuat. Langsung bayar di halaman ini.'
-              : 'Lihat ringkasan dan perkembangan pesananmu.'}
-          </p>
+          <p>{order.orderNumber} · {formatDate(order.createdAt)}</p>
         </div>
         <span
           className={
@@ -147,6 +204,7 @@ function OrderDetails({
       </header>
       <div className="order-payment-layout">
         <div className="order-payment-main">
+          {!awaitingPayment && !paymentOnly && <OrderTimeline order={order} />}
           {awaitingPayment && order.total === 0 && (
             <section className="online-payment"><h2>Bayar dengan poin member</h2><p>Seluruh tagihan ditutup dengan {(order.pointsRedeemed ?? 0).toLocaleString('id-ID')} poin. Tidak perlu transfer atau scan QRIS.</p><Button variant="teal" disabled={busy || expired} onClick={() => void handlePay()}>{expired ? 'Batas pembayaran berakhir' : busy ? 'Memproses…' : 'Konfirmasi pembayaran poin'}</Button></section>
           )}
@@ -162,11 +220,8 @@ function OrderDetails({
             />
           )}
           {paid && (
-            <section className="online-payment payment-success" role="status">
-              <CheckCircle2 size={42} strokeWidth={1.5} aria-hidden="true" />
-              <h2>Pembayaran diterima</h2>
-              <p>{order.status === 'completed' ? 'Pesanan telah selesai. Terima kasih sudah berbelanja di BagDaily.' : order.status === 'shipped' ? 'Pesanan sudah dikirim. Konfirmasikan setelah barang diterima.' : 'Terima kasih! Pesananmu sedang disiapkan untuk langkah berikutnya.'}</p>
-              <strong className="online-pay-amount">{formatRupiah(order.total)}</strong>
+            <section className="online-payment payment-receipt">
+              <h2><CheckCircle2 size={19} aria-hidden="true" /> Pembayaran diterima</h2>
               <dl>
                 <div>
                   <dt>Metode pembayaran</dt>
@@ -179,9 +234,6 @@ function OrderDetails({
                   <dd>{order.paidAt ? formatDate(order.paidAt) : '—'}</dd>
                 </div>
               </dl>
-              <Button asChild variant="teal">
-                <Link to="/customer/orders">Lihat pesanan saya</Link>
-              </Button>
             </section>
           )}
           {paid && customerUser?.id === order.userId && (order.status === 'shipped' || (order.status === 'packed' && order.deliveryMethod === 'pickup')) && <section className="online-payment"><h2>{order.deliveryMethod === 'pickup' ? 'Barang sudah diambil?' : 'Barang sudah diterima?'}</h2><p>Konfirmasi untuk menyelesaikan pesanan dan menerima poin member.</p><Button variant="teal" disabled={busy} onClick={() => void handleReceive()}>{receive.isPending ? 'Menyelesaikan…' : order.deliveryMethod === 'pickup' ? 'Konfirmasi sudah diambil' : 'Konfirmasi barang diterima'}</Button></section>}
@@ -198,6 +250,7 @@ function OrderDetails({
               </Button>
             </section>
           )}
+          {(awaitingPayment || paymentOnly) && <OrderTimeline order={order} />}
           <section className="order-delivery-details">
             <h2>
               {order.deliveryMethod === 'pickup' ? (
@@ -231,11 +284,12 @@ function OrderDetails({
         </div>
         <aside className="order-payment-summary" aria-labelledby="order-summary-heading">
           <h2 id="order-summary-heading">Ringkasan pesanan</h2>
-          <p className="payment-order-number">{order.orderNumber}</p>
-          <p className="payment-order-date">{formatDate(order.createdAt)}</p>
           <div className="payment-order-items">
             {order.items?.map(item => (
               <div key={item.id}>
+                <div className="payment-item-photo">
+                  <ProductPhoto name={item.productNameSnapshot} src={item.imageUrl} />
+                </div>
                 <div>
                   <strong>{item.productNameSnapshot}</strong>
                   <small>

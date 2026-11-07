@@ -47,6 +47,7 @@ export function ProfilePage({
   const user = useUser();
   const action = useAction();
   const [visible, setVisible] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
   const [editingPassword, setEditingPassword] = useState(false);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -63,6 +64,13 @@ export function ProfilePage({
   if (!user.data) return <ErrorState message="Sesi berakhir. Silakan masuk kembali." />;
   const address = section === 'address';
   const settings = section === 'settings';
+  const profileGated = section === 'profile';
+  const canEditProfile = !profileGated || editingProfile;
+  const profileFields = [
+    { label: 'Nama lengkap', value: user.data.name },
+    { label: 'Nomor telepon', value: user.data.phone },
+    { label: 'Email', value: user.data.email },
+  ];
   const title = address
     ? 'Alamat pengiriman'
     : settings
@@ -95,10 +103,17 @@ export function ProfilePage({
           <p className="muted">{description}</p>
         </div>
       </div>
-      {!address && !settings && <ProfilePhotoEditor src={user.data.avatarUrl} />}
+      {!address && !settings && (
+        <ProfilePhotoEditor
+          key={String(canEditProfile)}
+          src={user.data.avatarUrl}
+          editable={canEditProfile}
+        />
+      )}
       <form
         className="panel account-form"
         onSubmit={form.handleSubmit(async values => {
+          if (!canEditProfile && !editingPassword) return;
           if (editingPassword && !values.password) {
             form.setError(
               'password',
@@ -114,9 +129,9 @@ export function ProfilePage({
               path: '/auth/profile',
               method: 'PATCH',
               body: {
-                name: values.name,
-                phone: values.phone,
-                address: values.address,
+                ...(canEditProfile
+                  ? { name: values.name, phone: values.phone, address: values.address }
+                  : {}),
                 ...(editingPassword && values.password
                   ? { password: values.password, currentPassword: values.currentPassword }
                   : {}),
@@ -129,11 +144,12 @@ export function ProfilePage({
               confirmation: '',
             });
             setEditingPassword(false);
+            setEditingProfile(false);
             setVisible(false);
             toast.success(
               address
                 ? 'Alamat pengiriman berhasil disimpan.'
-                : settings
+                : settings || (profileGated && editingPassword)
                   ? 'Password berhasil diperbarui.'
                   : 'Informasi akun berhasil disimpan.',
             );
@@ -144,58 +160,85 @@ export function ProfilePage({
       >
         {!settings && (
           <>
-            <div className="account-form-title">
-              {address ? <MapPin size={21} /> : <UserRound size={21} />}
-              <div>
-                <h2>{address ? 'Alamat utama' : 'Informasi pribadi'}</h2>
-                <p>
-                  {address
-                    ? 'Alamat ini dapat digunakan saat checkout.'
-                    : 'Pastikan data kontakmu selalu terbaru.'}
-                </p>
+            <div className="account-security-header account-profile-header">
+              <div className="account-form-title">
+                {address ? <MapPin size={21} /> : <UserRound size={21} />}
+                <div>
+                  <h2>{address ? 'Alamat utama' : 'Informasi pribadi'}</h2>
+                  <p>
+                    {address
+                      ? 'Alamat ini dapat digunakan saat checkout.'
+                      : 'Pastikan data kontakmu selalu terbaru.'}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="account-fields">
-              <label className="field">
-                {address ? 'Nama penerima' : 'Nama lengkap'}
-                <input autoComplete="name" {...form.register('name')} />
-                <FieldError name="name" />
-              </label>
-              <label className="field">
-                Nomor telepon
-                <input
-                  type="tel"
-                  placeholder="08xxxxxxxxxx"
-                  autoComplete="tel"
-                  {...form.register('phone')}
-                />
-                <FieldError name="phone" />
-              </label>
-              {!address && (
-                <label className="field account-wide">
-                  Email
-                  <input value={user.data.email} type="email" disabled />
-                  <span className="field-hint">
-                    Email terhubung dengan akun masuk Anda.
-                  </span>
-                </label>
+              {profileGated && !editingProfile && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="border border-[#AEC8B6] bg-[#E5EFE7] text-[#174B3F] hover:border-[#8EAF99] hover:bg-[#D5E6D9]"
+                  disabled={editingPassword || action.isPending}
+                  onClick={() => {
+                    form.reset();
+                    setEditingProfile(true);
+                  }}
+                >
+                  Edit profil
+                </Button>
               )}
-              {(address || section === 'all') && (
-                <label className="field account-wide">
-                  Alamat lengkap
-                  <textarea
-                    placeholder="Nama jalan, nomor rumah, kelurahan, kecamatan, kota, provinsi, dan kode pos"
-                    autoComplete="street-address"
-                    rows={4}
-                    {...form.register('address')}
+            </div>
+            {canEditProfile ? (
+              <div className="account-fields">
+                <label className="field">
+                  {address ? 'Nama penerima' : 'Nama lengkap'}
+                  <input autoComplete="name" {...form.register('name')} />
+                  <FieldError name="name" />
+                </label>
+                <label className="field">
+                  Nomor telepon
+                  <input
+                    type="tel"
+                    placeholder="08xxxxxxxxxx"
+                    autoComplete="tel"
+                    {...form.register('phone')}
                   />
-                  <FieldError name="address" />
-                  <span className="field-hint">
-                    Detail alamat bisa disesuaikan lagi saat checkout.
-                  </span>
+                  <FieldError name="phone" />
                 </label>
-              )}
-            </div>
+                {!address && (
+                  <label className="field account-wide">
+                    Email
+                    <input value={user.data.email} type="email" disabled />
+                    <span className="field-hint">
+                      Email terhubung dengan akun masuk Anda.
+                    </span>
+                  </label>
+                )}
+                {(address || section === 'all') && (
+                  <label className="field account-wide">
+                    Alamat lengkap
+                    <textarea
+                      placeholder="Nama jalan, nomor rumah, kelurahan, kecamatan, kota, provinsi, dan kode pos"
+                      autoComplete="street-address"
+                      rows={4}
+                      {...form.register('address')}
+                    />
+                    <FieldError name="address" />
+                    <span className="field-hint">
+                      Detail alamat bisa disesuaikan lagi saat checkout.
+                    </span>
+                  </label>
+                )}
+              </div>
+            ) : (
+              <dl className="account-fields account-profile-details">
+                {profileFields.map(({ label, value }) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value || 'Belum diisi'}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </>
         )}
         {(settings || section === 'all') && (
@@ -213,7 +256,7 @@ export function ProfilePage({
                 variant="outline"
                 aria-expanded={editingPassword}
                 aria-controls="account-password-fields"
-                disabled={action.isPending}
+                disabled={action.isPending || editingProfile}
                 onClick={() => {
                   if (editingPassword) {
                     form.resetField('currentPassword');
@@ -285,18 +328,33 @@ export function ProfilePage({
             )}
           </div>
         )}
-        {(!settings || editingPassword) && (
+        {((!settings && canEditProfile) || editingPassword) && (
           <div className="account-save">
             <span>Perubahan tersimpan ke akun BagDaily Anda.</span>
-            <Button type="submit" variant="teal" disabled={action.isPending}>
-              {action.isPending
-                ? 'Menyimpan…'
-                : address
-                  ? 'Simpan'
-                  : settings
-                    ? 'Perbarui password'
-                    : 'Simpan perubahan'}
-            </Button>
+            <div className="account-save-actions">
+              {editingProfile && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={action.isPending}
+                  onClick={() => {
+                    form.reset();
+                    setEditingProfile(false);
+                  }}
+                >
+                  Batal
+                </Button>
+              )}
+              <Button type="submit" variant="teal" disabled={action.isPending}>
+                {action.isPending
+                  ? 'Menyimpan…'
+                  : address
+                    ? 'Simpan'
+                    : settings || (profileGated && editingPassword)
+                      ? 'Perbarui password'
+                      : 'Simpan perubahan'}
+              </Button>
+            </div>
           </div>
         )}
       </form>

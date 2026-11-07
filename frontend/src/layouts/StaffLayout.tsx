@@ -181,7 +181,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             </span>
             <strong>{current}</strong>
           </div>
-          {location.pathname !== '/pos' && (
+          {!admin && location.pathname !== '/pos' && (
             <div>
               <span className="system-status">
                 <i /> Stok tersinkronisasi
@@ -190,7 +190,7 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
                 {formatShortDate(new Date().toISOString())}
               </span>
               <Link
-                to={admin ? '/admin/settings' : '/cashier/settings'}
+                to="/cashier/settings"
                 className="staff-avatar"
                 aria-label="Pengaturan akun"
               >
