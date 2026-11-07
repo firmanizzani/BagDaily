@@ -18,7 +18,6 @@ export function StorefrontFooter() {
               <br />
               kerja, dan perjalanan.
             </p>
-            <span className="local-note">Dari usaha lokal, untuk cerita besarmu.</span>
           </div>
           <div>
             <h3>Jelajahi</h3>
@@ -57,9 +56,8 @@ export function StorefrontFooter() {
               year: 'numeric',
               timeZone: APP_TIME_ZONE,
             }).format(new Date())}{' '}
-            BagDaily. Setiap langkah punya cerita.
+            BagDaily. Hak cipta dilindungi.
           </span>
-          <span>Dibuat dengan perhatian, dipakai setiap hari.</span>
         </div>
       </div>
     </footer>

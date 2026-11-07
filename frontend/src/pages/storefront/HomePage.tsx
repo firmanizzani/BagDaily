@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
+  Coins,
   ShieldCheck,
   Truck,
-  Store,
+  Wallet,
   PackageCheck,
   ShoppingCart,
   Tag,
@@ -48,7 +49,7 @@ const promises = [
   },
   { icon: Tag, title: 'Harga bersahabat', text: 'Pilihan terbaik untuk kebutuhanmu' },
   { icon: Truck, title: 'Pengiriman aman', text: 'Kirim ke rumah atau ambil di toko' },
-  { icon: Store, title: 'Dukung UMKM', text: 'Langkah kecil, dampak berarti' },
+  { icon: Wallet, title: 'Bayar dengan mudah', text: 'Pilih QRIS atau transfer bank saat checkout' },
 ];
 export function HomePage() {
   const motionRef = useStorefrontMotion();
@@ -181,7 +182,6 @@ export function HomePage() {
       <section className="shop-width home-section about-section" id="tentang">
         <div className="section-title">
           <h2>Lebih dari sekadar tas.</h2>
-          <span>Untuk langkah besar dan hal-hal kecil.</span>
         </div>
         <div className="reason-grid">
           {[
@@ -201,9 +201,9 @@ export function HomePage() {
               text: 'Pantau proses pesanan sampai tas favoritmu tiba dengan aman.',
             },
             {
-              icon: Store,
-              title: 'Tumbuh bersama lokal',
-              text: 'Setiap pembelianmu ikut mendukung perjalanan usaha lokal.',
+              icon: Coins,
+              title: 'Kumpulkan poin belanja',
+              text: 'Dapatkan poin setelah pesanan selesai dan gunakan untuk potongan di pembelian berikutnya.',
             },
           ].map(({ icon: Icon, title, text }) => (
             <div className="reason" key={title}>

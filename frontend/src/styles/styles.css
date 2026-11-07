@@ -2292,19 +2292,23 @@ textarea {
   }
   .shop-hero,
   .hero-inner {
-    min-height: 555px;
+    min-height: 450px;
+    min-height: clamp(420px, 58svh, 470px);
+  }
+  .hero-inner {
+    align-items: flex-start;
   }
   .hero-scene {
-    object-position: 67% center;
+    object-position: 65% center;
     opacity: 0.66;
   }
   .hero-copy {
     width: 100%;
-    padding: 40px 0 240px;
+    padding: clamp(32px, 9vw, 44px) 0 112px;
   }
   .hero-copy h1 {
-    font-size: 44px;
-    letter-spacing: -1.8px;
+    font-size: clamp(32px, 8.2vw, 34px);
+    letter-spacing: -1.2px;
     line-height: 1.08;
     margin-bottom: 19px;
   }
@@ -2791,10 +2795,6 @@ textarea {
   font-size: 12px;
 }
 @media (max-width: 767px) {
-  .hero-copy h1 {
-    font-size: 36px;
-    letter-spacing: -1.3px;
-  }
   .hero-copy > p {
     font-size: 14px;
   }
