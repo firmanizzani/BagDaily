@@ -173,7 +173,7 @@ function CheckoutForm({ user }: { user: User }) {
               <div className="rounded-xl border border-[#001524]/10 bg-white p-5 shadow-xs space-y-4">
                 <h2 className="text-sm font-bold text-[#001524]">Informasi Pengiriman</h2>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-medium text-[#001524] mb-1">
                       Pilihan Kurir
@@ -272,7 +272,7 @@ function CheckoutForm({ user }: { user: User }) {
                   Lokasi Pengambilan
                 </h2>
                 <p className="text-xs text-[#6E7E8D] leading-relaxed">
-                  Gerai BagDaily: Jl. UMKM Kreatif No. 24, Jakarta Selatan. Bawa bukti
+                  Gerai BagDaily: Jl. Pengadegan No. 24, Jakarta Selatan. Bawa bukti
                   order setelah status berubah menjadi &quot;Siap diambil&quot;.
                 </p>
               </div>

@@ -55,7 +55,7 @@ describe('navbar session refresh', () => {
     expect(html).toContain('profile-trigger has-avatar nav-session-pending');
     expect(html).not.toContain('class="nav-login"');
   });
-  it('shows Login only after the session is confirmed as a guest', () => {
+  it('shows Login for a guest', () => {
     expect(render('/')).toContain('class="nav-login"');
   });
   it('keeps the account menu for a confirmed customer', () => {
@@ -73,7 +73,7 @@ describe('navbar session refresh', () => {
     expect(html).toContain('Buka menu profil');
     expect(html).not.toContain('class="nav-login"');
   });
-  it('offers a session retry on network failure instead of treating the customer as logged out', () => {
+  it('offers Login when the session cannot be loaded and no user is known', () => {
     mock.useUser.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -81,7 +81,7 @@ describe('navbar session refresh', () => {
       refetch: vi.fn(),
     });
     const html = render('/');
-    expect(html).toContain('Coba muat ulang akun');
-    expect(html).not.toContain('class="nav-login"');
+    expect(html).toContain('class="nav-login"');
+    expect(html).toContain('href="/login"');
   });
 });

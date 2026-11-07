@@ -932,9 +932,6 @@ textarea {
   font-size: 10px;
   font-weight: 700;
 }
-.mobile-toggle {
-  display: none;
-}
 .shop-hero {
   position: relative;
   background: #042f35;
@@ -1441,19 +1438,6 @@ textarea {
 .wishlist-empty p {
   font-size: 14px;
   color: #637780;
-}
-.mobile-links {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 20px 24px;
-  background: #073e43;
-  font-size: 13px;
-}
-.mobile-links > a[aria-current] {
-  color: #edcf9d;
-  text-decoration: underline;
-  text-underline-offset: 6px;
 }
 .staff-shell {
   display: flex;
@@ -2196,11 +2180,6 @@ textarea {
   .desktop-links {
     display: none;
   }
-  .mobile-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
   .shop-nav {
     height: 76px;
   }
@@ -2504,6 +2483,7 @@ textarea {
   }
   .footer-grid > div:last-child {
     display: block;
+    grid-column: 1 / -1;
   }
   .footer-grid > div:last-child > * {
     margin-bottom: 12px;
@@ -3350,6 +3330,22 @@ textarea {
   display: grid;
   gap: 16px;
 }
+.customer-order-list:focus-visible {
+  outline: 2px solid #00594f;
+  outline-offset: 3px;
+}
+@media (min-width: 769px) and (pointer: fine) {
+  .customer-order-list {
+    max-height: clamp(280px, 52dvh, 560px);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    padding: 12px;
+    border: 1px solid #dce3df;
+    border-radius: 14px;
+    background: #f0f3ed;
+  }
+}
 .customer-order-card {
   min-width: 0;
   padding: 16px 18px;
@@ -3527,6 +3523,37 @@ textarea {
   color: #52655f;
 }
 @media (max-width: 640px) {
+  .catalog-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .catalog-product-grid .shop-product-info { padding: 9px; }
+  .catalog-product-grid .shop-product-info h3 {
+    font-size: 13px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .catalog-product-grid .shop-product-info > p { margin-top: 2px; }
+  .catalog-product-grid :is(.product-stock, .shop-product-info > strong) { margin-top: 5px; }
+  .catalog-product-grid .product-stock { flex-wrap: wrap; white-space: normal; }
+  .catalog-product-grid .product-actions { gap: 4px; margin-top: 8px; }
+  .catalog-product-grid .buy-now-btn {
+    min-height: 44px;
+    min-width: 0;
+    padding: 3px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .catalog-product-grid .add-to-cart-icon { width: 44px; height: 44px; flex-shrink: 0; }
+  .catalog-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .catalog-filters .search-field { grid-column: 1 / -1; min-width: 0; }
+  .catalog-filters > select { width: 100%; min-width: 0; }
+  .catalog-filters > :is(select, button) { min-height: 44px; }
+  .catalog-filters > .catalog-desktop-filter { display: none; }
   .customer-orders-tools { grid-template-columns: minmax(0, 1fr) 140px; gap: 8px; }
   .customer-order-card { padding: 16px; }
   .customer-order-card > footer { align-items: flex-start; flex-direction: column; }
@@ -3722,7 +3749,7 @@ textarea {
   .profile-trigger {
     padding: 7px 0;
   }
-  .profile-trigger > span {
+  .profile-trigger > span:not(.user-avatar) {
     display: none;
   }
   .profile-dropdown {
@@ -3752,40 +3779,6 @@ textarea {
     gap: 26px;
   }
   .account-sidebar {
-    min-width: 0;
-    padding: 14px;
-    background: #f1f2e9;
-  }
-  .account-identity {
-    padding: 0 0 13px;
-  }
-  .account-identity p {
-    font-size: 11px;
-  }
-  .account-sidebar nav {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 6px;
-    padding-bottom: 3px;
-  }
-  .account-sidebar nav > a {
-    white-space: nowrap;
-    padding: 10px;
-    font-size: 11px;
-    background: #fff;
-    gap: 6px;
-  }
-  .account-sidebar nav > a > svg:last-child {
-    display: none;
-  }
-  .account-sidebar nav > a > svg {
-    width: 16px;
-  }
-  .account-sidebar nav > a.active {
-    background: #00594f;
-    color: white;
-  }
-  .account-help {
     display: none;
   }
   .account-form {
@@ -3983,10 +3976,14 @@ textarea {
 }
 @media (max-width: 600px) {
   .profile-photo-editor {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
     gap: 16px;
     padding: 20px;
+    text-align: center;
+  }
+  .profile-photo-actions {
+    justify-content: center;
   }
 }
 .profile-trigger:not(.has-avatar) {
@@ -4010,7 +4007,10 @@ textarea {
     font-size: 20px;
   }
   .nav-actions {
-    gap: 9px;
+    gap: 14px;
+  }
+  .nav-actions > .cart-nav + .profile-menu-root {
+    margin-inline-start: 0;
   }
   .nav-login {
     font-size: 11px;

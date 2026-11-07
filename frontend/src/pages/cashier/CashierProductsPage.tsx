@@ -2,16 +2,21 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { useApi } from '@/hooks/api';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import type { Product } from '@/types/api';
+import type { Category, Product } from '@/types/api';
 import { ProductPhoto } from '@/components/shared/ProductPhoto';
 import { LoadingState, ErrorState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
 export function CashierProductsPage() {
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
   const settledSearch = useDebouncedValue(search);
-  const products = useApi<Product[]>(
-    `/products?limit=100&search=${encodeURIComponent(settledSearch)}`,
-  );
+  const categories = useApi<Category[]>('/categories');
+  const params = new URLSearchParams({
+    limit: '100',
+    search: settledSearch,
+    ...(category ? { category } : {}),
+  });
+  const products = useApi<Product[]>(`/products?${params}`);
   return (
     <div>
       <div className="page-heading">
@@ -20,15 +25,31 @@ export function CashierProductsPage() {
           <p className="muted">Cek koleksi dan ketersediaan stok toko.</p>
         </div>
       </div>
-      <label className="search-field block mb-6">
-        <Search size={18} />
-        <input
-          placeholder="Cari nama produk…"
-          aria-label="Cari produk"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-      </label>
+      <div className="filter-bar">
+        <label className="search-field">
+          <Search size={18} />
+          <input
+            placeholder="Cari nama produk…"
+            aria-label="Cari produk"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </label>
+        <div className="field">
+          <select
+            aria-label="Filter kategori produk"
+            value={category}
+            onChange={event => setCategory(event.target.value)}
+          >
+            <option value="">Semua kategori</option>
+            {categories.data?.data.map(item => (
+              <option key={item.id} value={item.slug}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       {products.isLoading ? (
         <LoadingState />
       ) : products.isError ? (

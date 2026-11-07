@@ -25,7 +25,7 @@ export function CustomerOrdersPage() {
   const receive = useAction<Order>();
   const params = new URLSearchParams({
     page: String(page),
-    limit: '10',
+    limit: '4',
     tab,
     ...(settledSearch.trim() ? { search: settledSearch.trim() } : {}),
   });
@@ -39,6 +39,11 @@ export function CustomerOrdersPage() {
   const orders = ordersData?.data || [];
   const pagination = ordersData?.pagination;
   const filtered = tab !== 'all' || Boolean(search.trim());
+
+  const changePage = (nextPage: number) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0 });
+  };
 
   const confirmReceived = async (order: Order) => {
     if (
@@ -131,7 +136,13 @@ export function CustomerOrdersPage() {
             to={filtered ? undefined : '/catalog'}
           />
         ) : (
-          <div className="customer-order-list">
+          <div
+            key={page}
+            className="customer-order-list"
+            role="region"
+            aria-label="Daftar pesanan"
+            tabIndex={0}
+          >
             {orders.map(order => {
               const action = customerOrderAction(order);
               const name = order.productName || 'Produk pesanan';
@@ -237,7 +248,7 @@ export function CustomerOrdersPage() {
           <Button
             variant="outline"
             disabled={page <= 1 || isFetching}
-            onClick={() => setPage(value => Math.max(1, value - 1))}
+            onClick={() => changePage(page - 1)}
           >
             Sebelumnya
           </Button>
@@ -247,7 +258,7 @@ export function CustomerOrdersPage() {
           <Button
             variant="outline"
             disabled={page >= pagination.totalPages || isFetching}
-            onClick={() => setPage(value => value + 1)}
+            onClick={() => changePage(page + 1)}
           >
             Selanjutnya
           </Button>

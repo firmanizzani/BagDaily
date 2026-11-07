@@ -1,9 +1,12 @@
 /* BagDaily management workspace */
+.admin-shell,
+.staff-order-period {
+  --admin-border: #e7e7df;
+}
 .admin-shell {
   background: #f6f5f0;
   color: #102f40;
   font-size: 13px;
-  --admin-border: #e7e7df;
   --admin-muted: #6d8391;
 }
 .admin-shell .staff-sidebar {
@@ -156,6 +159,14 @@ button:disabled {
 }
 .admin-date-range {
   position: relative;
+}
+.staff-order-period .admin-date-range summary {
+  min-height: 40px;
+}
+@media (max-width: 767px) {
+  .staff-order-period {
+    flex-basis: 100%;
+  }
 }
 .admin-date-range summary {
   list-style: none;
@@ -1285,6 +1296,10 @@ button:disabled {
   .admin-settings-content {
     padding: 16px;
   }
+  .admin-settings-content > .space-y-6 > .admin-page-heading {
+    row-gap: 16px;
+    margin-bottom: 20px;
+  }
   .admin-products-page > div.overflow-x-auto {
     overflow-x: auto;
     min-height: 250px;
@@ -1551,7 +1566,37 @@ button:disabled {
 .dashboard-metrics-five .admin-metric p, .dashboard-metrics-five .admin-metric a { font-size: 10px; line-height: 1.7; margin-top: 10px; }
 @media (max-width: 1350px) { .admin-dashboard .dashboard-metrics-five { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width: 900px) { .admin-dashboard .dashboard-metrics-five { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media (max-width: 480px) { .admin-dashboard .dashboard-metrics-five { grid-template-columns: minmax(0,1fr); gap: 10px; } .dashboard-metrics-five .admin-metric { padding: 16px; } .dashboard-metrics-five .admin-metric strong { font-size: 22px; } }
+@media (max-width: 767px) {
+  .admin-dashboard .dashboard-metrics-five {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dashboard-metrics-five .admin-metric {
+    grid-column: span 2;
+    min-width: 0;
+    padding: 10px 8px;
+    gap: 6px;
+  }
+  .dashboard-metrics-five .admin-metric:nth-child(-n + 2) {
+    grid-column: span 3;
+    padding-inline: 12px;
+  }
+  .dashboard-metrics-five .admin-metric-icon {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    border-radius: 6px;
+  }
+  .dashboard-metrics-five .admin-metric-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .dashboard-metrics-five .admin-metric strong { font-variant-numeric: tabular-nums; }
+  .dashboard-metrics-five .admin-metric :is(p, a, p.metric-change) {
+    margin-top: 4px;
+    line-height: 1.45;
+  }
+}
 
 .admin-metric p.metric-change, .dashboard-metrics-five .admin-metric p.metric-change, .metric-change { display: flex; align-items: flex-start; gap: 4px; margin-top: 8px; font-size: 11px; font-weight: 600; line-height: 1.6; }
 .metric-change svg { flex-shrink: 0; margin-top: 2px; }

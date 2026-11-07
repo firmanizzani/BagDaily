@@ -9,7 +9,7 @@ const presets: { id: DatePreset; label: string }[] = [
   { id: 'last7', label: '7 hari terakhir' },
   { id: 'last30', label: '30 hari terakhir' },
 ];
-export function DateRangeFilter({ value, onChange }: { value: DateRange; onChange: (range: DateRange) => void }) {
+export function DateRangeFilter({ value, onChange, label = 'Pilih periode laporan' }: { value: DateRange; onChange: (range: DateRange) => void; label?: string }) {
   const root = useRef<HTMLDetailsElement>(null);
   const [draft, setDraft] = useState(value);
   const invalid = Boolean(draft.from && draft.to && draft.from > draft.to);
@@ -18,7 +18,7 @@ export function DateRangeFilter({ value, onChange }: { value: DateRange; onChang
     <summary onClick={() => setDraft(value)}><CalendarDays size={15} /><span>{value.from ? formatShortDate(value.from) : 'Semua tanggal'}{value.to && ` – ${formatShortDate(value.to)}`}</span><ChevronDown size={14} /></summary>
     <form onSubmit={event => { event.preventDefault(); if (invalid) return; onChange({ ...draft, comparison: 'period' }); root.current?.removeAttribute('open'); }}>
       <label className="admin-date-preset-select">Periode
-        <select aria-label="Pilih periode laporan" value={selected ?? ''} onChange={event => {
+        <select aria-label={label} value={selected ?? ''} onChange={event => {
           const preset = event.target.value as DatePreset;
           const range: DateRange = { ...presetDateRange(preset), ...(preset === 'all' ? {} : { comparison: preset === 'today' ? 'day' : preset === 'last7' ? '7days' : '30days' }) };
           setDraft(range); onChange(range); root.current?.removeAttribute('open');

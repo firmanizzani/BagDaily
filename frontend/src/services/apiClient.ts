@@ -66,10 +66,14 @@ export async function request<T>(
     finalBody = JSON.stringify(body);
   }
   let response: Response;
+  const timeoutController = fetchOptions.signal == null ? new AbortController() : null;
+  const timeout = timeoutController
+    ? setTimeout(() => timeoutController.abort(), 15000)
+    : undefined;
   try {
     response = await fetch(url, {
       ...fetchOptions,
-      signal: fetchOptions.signal ?? AbortSignal.timeout(15000),
+      signal: fetchOptions.signal ?? timeoutController?.signal,
       credentials: 'include',
       headers,
       body: finalBody,
@@ -80,6 +84,8 @@ export async function request<T>(
       'API tidak dapat dihubungi. Periksa koneksi lalu coba lagi.',
       'NETWORK_ERROR',
     );
+  } finally {
+    clearTimeout(timeout);
   }
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const payload: Result<T> | null = isJson ? await response.json() : null;
@@ -98,7 +104,14 @@ export async function request<T>(
 }
 
 export function generateUUID(): string {
-  return crypto.randomUUID();
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+
+  // randomUUID requires a secure context, while local Wi-Fi previews use HTTP.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
 }
 
 export async function downloadReport(params: URLSearchParams, kind: 'sales' | 'profit' = 'sales'): Promise<void> {

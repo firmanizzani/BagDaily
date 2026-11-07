@@ -1,6 +1,6 @@
 import { BrandLogo } from '@/components/shared/BrandLogo';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowUpRight, Mail, MapPin } from 'lucide-react';
 import { APP_TIME_ZONE } from '@/lib/utils';
 export function StorefrontFooter() {
   return (
@@ -43,7 +43,11 @@ export function StorefrontFooter() {
             <a className="contact-link" href="mailto:halo@bagdaily.id">
               <Mail size={17} /> halo@bagdaily.id <ArrowUpRight size={17} />
             </a>
-            <p className="footer-small">Senin–Sabtu · 09.00–17.00 WIB</p>
+            <p className="flex items-center gap-2">
+              <MapPin size={17} className="shrink-0" aria-hidden="true" />
+              Jl. Pengadegan No. 24, Jakarta Selatan
+            </p>
+            <p className="footer-small">Senin–Minggu · 09.00–21.00 WIB</p>
           </div>
         </div>
         <div className="footer-bottom">

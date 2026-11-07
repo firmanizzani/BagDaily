@@ -50,7 +50,7 @@ router.post('/register', limiter, a(async (req, res) => {
   res.cookie(
     env.SESSION_COOKIE_NAME,
     createSession(user),
-    { ...cookieOptions, maxAge: 8 * 3600 * 1000 },
+    { ...cookieOptions(req.get('origin')), maxAge: 8 * 3600 * 1000 },
   );
 
   const { passwordHash: _hash, sessionVersion: _version, ...safe } = user;
@@ -71,7 +71,7 @@ router.post('/login', limiter, a(async (req, res) => {
   res.cookie(
     env.SESSION_COOKIE_NAME,
     createSession(user),
-    { ...cookieOptions, maxAge: 8 * 3600 * 1000 },
+    { ...cookieOptions(req.get('origin')), maxAge: 8 * 3600 * 1000 },
   );
 
   const { passwordHash: _hash, sessionVersion: _version, ...safe } = user;
@@ -133,7 +133,7 @@ router.post('/logout', a(async (req, res) => {
     updatedAt: new Date(),
   }).where(eq(users.id, req.user!.id));
 
-  res.clearCookie(env.SESSION_COOKIE_NAME, cookieOptions);
+  res.clearCookie(env.SESSION_COOKIE_NAME, cookieOptions(req.get('origin')));
   res.json({ data: { success: true } });
 }));
 
@@ -163,7 +163,7 @@ router.patch('/profile', a(async (req, res) => {
 
   const [user] = await db.update(users).set(changes).where(eq(users.id, req.user!.id)).returning(publicUser);
   if (password) {
-    res.clearCookie(env.SESSION_COOKIE_NAME, cookieOptions);
+    res.clearCookie(env.SESSION_COOKIE_NAME, cookieOptions(req.get('origin')));
   }
   res.json({ data: user });
 }));

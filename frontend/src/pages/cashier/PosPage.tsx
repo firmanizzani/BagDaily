@@ -46,6 +46,7 @@ export function PosPage() {
   const [category, setCategory] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [syncingStock, setSyncingStock] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [customerMode, setCustomerMode] = useState<'general' | 'registered'>('general');
@@ -85,6 +86,18 @@ export function PosPage() {
   } = useApi<Product[]>(`/products?${queryParams.toString()}`);
 
   const createPosTransaction = useCreatePosTransaction();
+
+  const syncStock = async () => {
+    setSyncingStock(true);
+    try {
+      await refetch({ throwOnError: true });
+      toast.success('Data stok sudah diperbarui.');
+    } catch {
+      toast.error('Stok gagal disinkronkan. Coba lagi.');
+    } finally {
+      setSyncingStock(false);
+    }
+  };
 
   const products = productsData?.data || [];
   const currentSubtotal = subtotal();
@@ -161,8 +174,9 @@ export function PosPage() {
               Struk terakhir
             </Button>
           )}
-          <Button size="sm" variant="outline" onClick={() => void refetch()}>
-            <RefreshCw size={14} /> Sinkronkan stok
+          <Button size="sm" variant="outline" disabled={syncingStock} onClick={() => void syncStock()}>
+            <RefreshCw size={14} aria-hidden="true" className={syncingStock ? 'motion-safe:animate-spin' : undefined} />
+            {syncingStock ? 'Menyinkronkan…' : 'Sinkronkan stok'}
           </Button>
         </div>
       </div>

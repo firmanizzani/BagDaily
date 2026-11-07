@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared/states';
 import { formatDate, formatRupiah } from '@/lib/utils';
 import { orderStatusLabel, statusLabels } from '@/lib/orders';
+import { paymentMethodLabels } from '@/lib/payments';
+import { DateRangeFilter } from '@/components/admin/DateRangeFilter';
+import { dateRangeParams, type DateRange } from '@/lib/dateRange';
 
 export function StaffOrdersPage({ history = false }: { history?: boolean }) {
   const [url] = useSearchParams();
@@ -14,17 +17,17 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
   );
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [range, setRange] = useState<DateRange>({ from: '', to: '' });
   const [page, setPage] = useState(1);
-  const params = new URLSearchParams({
+  const params = dateRangeParams(range);
+  params.delete('all');
+  params.delete('compare');
+  for (const [key, value] of Object.entries({
     ...(search ? { search } : {}),
-    ...(from ? { from } : {}),
-    ...(to ? { to } : {}),
     ...(history && customer ? { customer } : {}),
     page: String(page),
     limit: '12',
-  });
+  })) params.set(key, value);
   if (!history && status) params.set('status', status);
   const query = useApi<Order[]>(
     `${history ? '/cashier/transactions' : '/admin/orders'}?${params}`,
@@ -88,28 +91,17 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
             </select>
           </label>
         )}
-        <label className="field">
-          Dari
-          <input
-            type="date"
-            value={from}
-            onChange={e => {
-              setFrom(e.target.value);
+        <div className="field staff-order-period">
+          <span>Periode</span>
+          <DateRangeFilter
+            label="Pilih periode transaksi"
+            value={range}
+            onChange={value => {
+              setRange(value);
               setPage(1);
             }}
           />
-        </label>
-        <label className="field">
-          Sampai (eksklusif)
-          <input
-            type="date"
-            value={to}
-            onChange={e => {
-              setTo(e.target.value);
-              setPage(1);
-            }}
-          />
-        </label>
+        </div>
       </div>
       {query.isLoading ? (
         <LoadingState />
@@ -129,6 +121,7 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
                 <th>Tanggal</th>
                 {history && <th>Pelanggan</th>}
                 <th>Status</th>
+                {history && <th>Metode pembayaran</th>}
                 <th>Total</th>
                 <th>Detail</th>
               </tr>
@@ -148,6 +141,9 @@ export function StaffOrdersPage({ history = false }: { history?: boolean }) {
                   <td>
                     <span className="badge">{orderStatusLabel(order)}</span>
                   </td>
+                  {history && (
+                    <td>{order.paymentMethod ? paymentMethodLabels[order.paymentMethod] : '—'}</td>
+                  )}
                   <td>{formatRupiah(order.total)}</td>
                   <td>
                     <Button asChild variant="outline" size="sm">

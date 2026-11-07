@@ -21,7 +21,6 @@ import { useUser } from '@/hooks/api';
 import { useLogout } from '@/features/auth/useAuth';
 import { LoadingState } from '@/components/shared/states';
 import { Button } from '@/components/ui/button';
-import { formatShortDate } from '@/lib/utils';
 export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir')[] }) {
   const { data: user, isLoading } = useUser();
   const logout = useLogout();
@@ -116,11 +115,6 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
           </NavLink>
         </nav>
         <div className="sidebar-bottom">
-          {admin && (
-            <Link className="visit-store" to="/pos">
-              <Store size={17} /> Buka kasir <ChevronRight size={15} />
-            </Link>
-          )}
           <Link className="visit-store" to="/">
             <Store size={17} /> Lihat toko online <ChevronRight size={15} />
           </Link>
@@ -181,23 +175,6 @@ export function StaffLayout({ allowedRoles }: { allowedRoles: ('admin' | 'kasir'
             </span>
             <strong>{current}</strong>
           </div>
-          {!admin && location.pathname !== '/pos' && (
-            <div>
-              <span className="system-status">
-                <i /> Stok tersinkronisasi
-              </span>
-              <span className="topbar-date">
-                {formatShortDate(new Date().toISOString())}
-              </span>
-              <Link
-                to="/cashier/settings"
-                className="staff-avatar"
-                aria-label="Pengaturan akun"
-              >
-                <UserAvatar src={user.avatarUrl} />
-              </Link>
-            </div>
-          )}
         </header>
         <main className="staff-content">
           {settingsSection && (

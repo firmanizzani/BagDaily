@@ -34,7 +34,7 @@ export function CatalogPage() {
         </div>
         <span className="badge">{products.data?.pagination?.total ?? '—'} produk</span>
       </div>
-      <div className="filter-bar">
+      <div className="filter-bar catalog-filters">
         <label className="search-field">
           <Search size={18} />
           <input
@@ -58,6 +58,7 @@ export function CatalogPage() {
         </select>
         <select
           aria-label="Ketersediaan"
+          className="catalog-desktop-filter"
           value={params.get('availability') || 'all'}
           onChange={event => change('availability', event.target.value)}
         >
@@ -75,7 +76,11 @@ export function CatalogPage() {
           <option value="price_desc">Harga tertinggi</option>
           <option value="name">Nama A–Z</option>
         </select>
-        <Button variant="ghost" onClick={() => setParams({})}>
+        <Button
+          className="catalog-desktop-filter"
+          variant="ghost"
+          onClick={() => setParams({})}
+        >
           Reset
         </Button>
       </div>
@@ -93,7 +98,7 @@ export function CatalogPage() {
         />
       ) : (
         <>
-          <div className="product-grid">
+          <div className="product-grid catalog-product-grid">
             {products.data.data.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
