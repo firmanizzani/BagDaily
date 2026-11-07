@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAction, useApi, useUser } from '@/hooks/api';
-import type { Courier, Order, ShippingRate, ShippingZone } from '@/types/api';
+import { useUpdateProfile } from '@/features/auth/useAuth';
+import type { Courier, Order, ShippingRate, ShippingZone, User } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { LoadingState } from '@/components/shared/states';
 import { formatRupiah } from '@/lib/utils';
@@ -47,11 +48,21 @@ type FormValues = z.infer<typeof schema>;
 
 export function CheckoutPage() {
   const { data: user, isLoading: userLoading } = useUser();
+
+  if (userLoading) return <LoadingState label="Memeriksa sesi checkout…" />;
+  if (!user) return <Navigate to="/login?from=/checkout" replace />;
+
+  return <CheckoutForm key={user.id} user={user} />;
+}
+
+function CheckoutForm({ user }: { user: User }) {
   const { items, subtotal, clearCart } = useCartStore();
   const rates = useApi<ShippingRate[]>('/shipping/rates');
   const createOrder = useAction<Order>();
-  const wallet = useApi<LoyaltySummary>('/loyalty/me', user?.role === 'pelanggan');
+  const updateProfile = useUpdateProfile();
+  const wallet = useApi<LoyaltySummary>('/loyalty/me', user.role === 'pelanggan');
   const [usePoints, setUsePoints] = useState(false);
+  const [saveShippingDetails, setSaveShippingDetails] = useState(false);
   const [pointsAmount, setPointsAmount] = useState(0);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
@@ -62,21 +73,19 @@ export function CheckoutPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       deliveryMethod: 'shipping',
-      recipientName: user?.name || '',
-      recipientPhone: user?.phone || '',
-      shippingAddress: user?.address || '',
+      recipientName: user.name,
+      recipientPhone: user.phone ?? '',
+      shippingAddress: user.address ?? '',
     },
   });
 
   const deliveryMethod = watch('deliveryMethod');
 
-  if (userLoading) return <LoadingState label="Memeriksa sesi checkout…" />;
-  if (!user) return <Navigate to="/login?from=/checkout" replace />;
   if (createdOrderId) return <Navigate to={`/orders/${createdOrderId}/pay`} replace />;
   if (items.length === 0) return <Navigate to="/cart" replace />;
 
@@ -110,6 +119,13 @@ export function CheckoutPage() {
     };
 
     try {
+      if (data.deliveryMethod === 'shipping' && saveShippingDetails) {
+        await updateProfile.mutateAsync({
+          name: data.recipientName?.trim() ?? '',
+          phone: data.recipientPhone?.trim() ?? '',
+          address: data.shippingAddress?.trim() ?? '',
+        });
+      }
       const res = await createOrder.mutateAsync({
         path: '/orders',
         method: 'POST',
@@ -239,6 +255,16 @@ export function CheckoutPage() {
                     <p className="text-[10px] text-rose-600 mt-1">Alamat wajib diisi</p>
                   ) : null}
                 </div>
+                <label className="flex items-start gap-2 text-xs text-[#001524]">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={saveShippingDetails}
+                    onChange={event => setSaveShippingDetails(event.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  Simpan nama penerima, nomor telepon, dan alamat ke akun untuk pesanan berikutnya
+                </label>
               </div>
             ) : (
               <div className="rounded-xl border border-[#001524]/10 bg-white p-5 shadow-xs">
@@ -314,10 +340,12 @@ export function CheckoutPage() {
                 size="lg"
                 className="w-full"
                 disabled={
-                  createOrder.isPending || (deliveryMethod === 'shipping' && !currentRate)
+                  isSubmitting || (deliveryMethod === 'shipping' && !currentRate)
                 }
               >
-                {createOrder.isPending
+                {updateProfile.isPending
+                  ? 'Menyimpan informasi pengiriman…'
+                  : isSubmitting
                   ? 'Menyiapkan pembayaran…'
                   : 'Lanjut ke pembayaran'}
               </Button>

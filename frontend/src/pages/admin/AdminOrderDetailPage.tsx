@@ -185,10 +185,12 @@ export function AdminOrderDetailPage() {
                         ? 'Pesanan dibuat'
                         : event.newStatus === 'awaiting_confirmation'
                           ? 'Pembayaran berhasil'
-                          : orderStatusLabel({
-                              status: event.newStatus,
-                              deliveryMethod: order.deliveryMethod,
-                            })}
+                          : event.newStatus === 'shipped'
+                            ? 'Dikirim oleh kurir'
+                            : orderStatusLabel({
+                                status: event.newStatus,
+                                deliveryMethod: order.deliveryMethod,
+                              })}
                     </strong>
                     <p>
                       <time dateTime={event.createdAt}>

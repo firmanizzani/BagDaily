@@ -741,6 +741,12 @@ tbody tr:hover {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 90px;
+  /* Keep the same viewport width on short pages, such as an empty cart. */
+  scrollbar-gutter: stable;
+}
+/* Dialog scroll locks already compensate for the scrollbar width. */
+html:has(body[data-scroll-locked]) {
+  scrollbar-gutter: auto;
 }
 button,
 a,

@@ -292,7 +292,7 @@ export function ProfilePage({
               {action.isPending
                 ? 'Menyimpan…'
                 : address
-                  ? 'Simpan alamat'
+                  ? 'Simpan'
                   : settings
                     ? 'Perbarui password'
                     : 'Simpan perubahan'}
