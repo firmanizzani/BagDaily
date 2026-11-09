@@ -3,19 +3,21 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { StorefrontNavbar } from './StorefrontNavbar';
 
-const mock = vi.hoisted(() => ({ useUser: vi.fn() }));
+const mock = vi.hoisted(() => ({ useUser: vi.fn(), hasSessionHint: vi.fn() }));
 vi.mock('@/hooks/api', () => ({ useUser: mock.useUser }));
 vi.mock('@/features/auth/useAuth', () => ({
+  hasSessionHint: mock.hasSessionHint,
   useLogout: () => ({ isPending: false, mutateAsync: vi.fn() }),
 }));
-beforeEach(() =>
+beforeEach(() => {
+  mock.hasSessionHint.mockReturnValue(false);
   mock.useUser.mockReturnValue({
     data: null,
     isLoading: false,
     isError: false,
     refetch: vi.fn(),
-  }),
-);
+  });
+});
 
 function render(path: string) {
   return renderToStaticMarkup(
@@ -47,12 +49,19 @@ describe('storefront section navigation', () => {
 });
 
 describe('navbar session refresh', () => {
-  it('reserves the account icon while validating a session instead of flashing Login', () => {
+  it('shows only Login on the first render while a guest session check is pending', () => {
     mock.useUser.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     const html = render('/');
-    expect(html).toContain('Memeriksa sesi akun');
-    expect(html).toContain('aria-busy="true"');
-    expect(html).toContain('profile-trigger has-avatar nav-session-pending');
+    expect(html).toContain('class="nav-login"');
+    expect(html).not.toContain('profile-trigger');
+    expect(html).not.toContain('nav-session-pending');
+  });
+  it('reserves space without showing Login or a profile until a remembered session is confirmed', () => {
+    mock.hasSessionHint.mockReturnValue(true);
+    mock.useUser.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+    const html = render('/');
+    expect(html).toContain('class="nav-session-pending"');
+    expect(html).not.toContain('profile-trigger');
     expect(html).not.toContain('class="nav-login"');
   });
   it('shows Login for a guest', () => {

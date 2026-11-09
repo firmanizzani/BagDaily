@@ -1,7 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { ApiError, request } from '@/services/apiClient';
 import type { User } from '@/types/api';
+
+const sessionHintKey = 'bagdaily-session-hint';
+
+export function hasSessionHint() {
+  try {
+    return localStorage.getItem(sessionHintKey) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export interface LoginPayload {
   email: string;
@@ -21,7 +32,7 @@ export interface UpdateProfilePayload {
 }
 
 export function useUser() {
-  return useQuery({
+  const session = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
       try {
@@ -34,6 +45,21 @@ export function useUser() {
     retry: false,
     staleTime: 60_000,
   });
+
+  useEffect(() => {
+    if (session.data === undefined) return;
+    const signedIn = session.data !== null;
+    if (signedIn === hasSessionHint()) return;
+    // This flag only guides the navbar while the server checks the session.
+    try {
+      if (signedIn) localStorage.setItem(sessionHintKey, '1');
+      else localStorage.removeItem(sessionHintKey);
+    } catch {
+      // Browsers can disable local storage.
+    }
+  }, [session.data]);
+
+  return session;
 }
 
 export function useLogin() {

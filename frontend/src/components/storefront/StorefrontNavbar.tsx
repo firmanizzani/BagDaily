@@ -2,9 +2,9 @@ import { BrandLogo } from '@/components/shared/BrandLogo';
 import { useState, type FormEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Heart, Search, ShoppingCart } from 'lucide-react';
+import { hasSessionHint } from '@/features/auth/useAuth';
 import { useUser } from '@/hooks/api';
 import { ProfileMenu } from '@/components/storefront/ProfileMenu';
-import { UserAvatar } from '@/components/shared/UserAvatar';
 import { useCartStore } from '@/stores/cartStore';
 export function StorefrontNavbar() {
   const [search, setSearch] = useState('');
@@ -87,18 +87,8 @@ export function StorefrontNavbar() {
           </Link>
           {user ? (
             <ProfileMenu />
-          ) : sessionLoading ? (
-            <div className="profile-menu-root">
-              <button
-                type="button"
-                className="profile-trigger has-avatar nav-session-pending"
-                aria-label="Memeriksa sesi akun"
-                aria-busy="true"
-                disabled
-              >
-                <UserAvatar />
-              </button>
-            </div>
+          ) : sessionLoading && hasSessionHint() ? (
+            <span className="nav-session-pending" aria-hidden="true" />
           ) : (
             <Link className="nav-login" to="/login">
               Login

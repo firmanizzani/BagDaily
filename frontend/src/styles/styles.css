@@ -3993,9 +3993,8 @@ textarea {
 .nav-actions > .cart-nav + .profile-menu-root {
   margin-inline-start: 6px;
 }
-.nav-session-pending:disabled {
-  opacity: 1;
-  cursor: default;
+.nav-session-pending {
+  flex: 0 0 42px;
 }
 @media (min-width: 768px) {
   .shop-nav .nav-actions {
@@ -4011,6 +4010,9 @@ textarea {
   }
   .nav-actions > .cart-nav + .profile-menu-root {
     margin-inline-start: 0;
+  }
+  .nav-session-pending {
+    flex-basis: 33px;
   }
   .nav-login {
     font-size: 11px;
