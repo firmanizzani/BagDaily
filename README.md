@@ -90,9 +90,8 @@ Salin contoh konfigurasi dari [backend/.env.example](backend/.env.example) dan [
 | Backend | `SUPABASE_STORAGE_BUCKET`, `SUPABASE_PROFILE_STORAGE_BUCKET` | Nama bucket foto produk dan foto profil. Default `product-images` dan `profile-images`. |
 | Backend | `DEMO_ADMIN_PASSWORD`, `DEMO_CASHIER_PASSWORD`, `DEMO_CUSTOMER_PASSWORD` | Password yang ditentukan saat membuat akun demo lewat seed. |
 | Frontend | `VITE_API_URL` | Alamat dasar API. Gunakan `/api` untuk proxy lokal dan deploy Vercel. |
-| Frontend | `BAGDAILY_BACKEND_URL` | Khusus deploy Vercel. Isi dengan domain HTTPS backend tanpa akhiran `/api`. |
 
-Untuk deployment Vercel, impor repo sebagai dua proyek dengan Root Directory `backend` dan `frontend`. Pada proyek backend, atur variabel database, sesi, dan Storage, lalu isi `NODE_ENV=production` dan `FRONTEND_URL` dengan domain HTTPS frontend. Setelah domain backend tersedia, masukkan domain tersebut ke `BAGDAILY_BACKEND_URL` di proyek frontend agar permintaan `/api` diteruskan ke backend.
+Untuk deployment Vercel, impor repo sebagai dua proyek dengan Root Directory `backend` dan `frontend`. Pada proyek backend, atur variabel database, sesi, dan Storage, lalu isi `NODE_ENV=production` dan `FRONTEND_URL` dengan domain HTTPS frontend. Konfigurasi [frontend/vercel.json](frontend/vercel.json) meneruskan `/api` ke `https://api-bagdaily.vercel.app`. Jika domain backend berubah, perbarui tujuan rewrite di file tersebut.
 
 ## Demo dan dokumentasi
 
