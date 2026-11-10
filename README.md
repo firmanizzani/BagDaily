@@ -2,6 +2,8 @@
 
 **BagDaily** adalah aplikasi web yang menyatukan toko online dan kasir gerai fisik untuk UMKM tas.
 
+[Buka website live](https://bagdaily.vercel.app/) · [Coba akun demo](https://bagdaily.vercel.app/login)
+
 ## Kompetisi dan tim
 
 | Informasi | Keterangan |
@@ -29,9 +31,11 @@ BagDaily menyatukan katalog, checkout, kasir, inventaris, dan laporan dalam satu
 | --- | --- |
 | **Pelanggan** | Cari dan filter tas, simpan favorit, checkout untuk dikirim atau diambil, bayar lewat simulasi QRIS atau transfer, lacak pesanan, dan gunakan poin member. |
 | **Kasir** | Cari produk, catat transaksi gerai untuk pelanggan umum atau pelanggan terdaftar, pilih metode pembayaran, lihat riwayat, dan cetak ulang struk. |
-| **Admin** | Kelola produk, kategori, stok, pesanan online, akun kasir, dan tarif kirim. Pantau penjualan, keuntungan, produk terlaris, dan riwayat pelanggan. |
+| **Admin** | Kelola produk, kategori, stok, pesanan online, akun kasir, dan tarif kirim. Pantau penjualan, laba kotor, produk terlaris, dan riwayat pelanggan. |
 
-Pesanan online yang melewati batas pembayaran dibatalkan otomatis jika jadwal database sudah aktif. Pembayaran online, QRIS dan rekening contoh, serta nomor resi di lingkungan demo adalah simulasi.
+Laporan admin menggabungkan transaksi toko online dan POS, dengan filter kanal, perbandingan periode, dan unduhan CSV. Laba kotor dihitung untuk transaksi berbayar yang sudah selesai menggunakan harga modal yang tersimpan saat pesanan dibuat. Perhitungan memisahkan ongkos kirim dan memperhitungkan potongan poin.
+
+Pesanan online yang melewati batas pembayaran dibatalkan otomatis jika jadwal database sudah aktif. Pembayaran QRIS dan transfer bank serta nomor resi pada demo bersifat simulasi.
 
 ## Teknologi dan arsitektur
 
@@ -62,7 +66,7 @@ Copy-Item backend/.env.example backend/.env
 Copy-Item frontend/.env.example frontend/.env
 ```
 
-Isi variabel backend sebelum menjalankan migrasi. Untuk membuat akun demo, isi ketiga variabel password demo di bagian konfigurasi. Untuk mengisi katalog dan tarif kirim saja, jalankan `npm run db:seed --prefix backend -- --catalog-only` sebagai pengganti perintah seed di bawah.
+Jika memakai database baru untuk pengembangan lokal, isi konfigurasi koneksi di `backend/.env` sebelum menjalankan migrasi. Untuk membuat akun demo, tambahkan `DEMO_ADMIN_PASSWORD`, `DEMO_CASHIER_PASSWORD`, dan `DEMO_CUSTOMER_PASSWORD` ke file tersebut sebelum menjalankan seed. Untuk mengisi katalog dan tarif kirim saja, gunakan `npm run db:seed --prefix backend -- --catalog-only` sebagai pengganti perintah seed di bawah.
 
 ```powershell
 npm run db:migrate --prefix backend
@@ -91,11 +95,11 @@ Salin contoh konfigurasi dari [backend/.env.example](backend/.env.example) dan [
 | Backend | `DEMO_ADMIN_PASSWORD`, `DEMO_CASHIER_PASSWORD`, `DEMO_CUSTOMER_PASSWORD` | Password yang ditentukan saat membuat akun demo lewat seed. |
 | Frontend | `VITE_API_URL` | Alamat dasar API. Gunakan `/api` untuk proxy lokal dan deploy Vercel. |
 
-Untuk deployment Vercel, impor repo sebagai dua proyek dengan Root Directory `backend` dan `frontend`. Pada proyek backend, atur variabel database, sesi, dan Storage, lalu isi `NODE_ENV=production` dan `FRONTEND_URL` dengan domain HTTPS frontend. Konfigurasi [frontend/vercel.json](frontend/vercel.json) meneruskan `/api` ke `https://api-bagdaily.vercel.app`. Jika domain backend berubah, perbarui tujuan rewrite di file tersebut.
+BagDaily berjalan di dua proyek Vercel dengan Root Directory `backend` dan `frontend`. Backend memakai `NODE_ENV=production` dan `FRONTEND_URL=https://bagdaily.vercel.app`. Konfigurasi [frontend/vercel.json](frontend/vercel.json) meneruskan `/api` ke `https://api-bagdaily.vercel.app`. Untuk deploy ke domain lain, sesuaikan `FRONTEND_URL` di proyek backend dan tujuan rewrite di konfigurasi frontend.
 
 ## Demo dan dokumentasi
 
-**Website live** akan dicantumkan setelah deployment publik tersedia. Untuk mencoba demo lokal, buka [BagDaily di localhost](http://localhost:5173/).
+Buka [halaman Login BagDaily](https://bagdaily.vercel.app/login), klik **Demo Akun**, lalu pilih **Pelanggan**, **Admin**, atau **Kasir**. Pelanggan dapat menjelajahi toko dan membuka Pesanan Saya, admin dapat membuka dasbor serta laporan, dan kasir dapat mencoba antarmuka POS.
 
 Untuk mendemonstrasikan alur utama, pilih satu produk yang stoknya tersedia. Catat stok awal di admin, selesaikan pembayaran simulasi sebagai pelanggan, lalu jual produk yang sama lewat POS. Buka kembali inventaris dan laporan untuk melihat pengurangan stok serta catatan penjualan di kedua kanal.
 
