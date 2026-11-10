@@ -170,43 +170,43 @@ export function CustomerOrdersPage() {
                       {copied === order.id ? <Check size={15} /> : <Copy size={15} />}
                     </button>
                   </div>
-                  <Link className="customer-order-product" to={`/orders/${order.id}`}>
-                    <ProductPhoto name={name} src={order.productImageUrl} />
-                    <div>
-                      <h2>{name}</h2>
-                      {(order.productCount ?? 0) > 1 && (
-                        <p>+{order.productCount! - 1} produk lainnya</p>
-                      )}
-                      {order.totalQuantity != null && (
-                        <span>
-                          {order.totalQuantity} barang
-                          {(order.productCount ?? 0) > 1
-                            ? ` · ${order.productCount} jenis produk`
-                            : ''}
-                        </span>
-                      )}
-                      <small>
-                        {order.channel === 'pos' || order.deliveryMethod === 'pickup' ? (
-                          <Store size={14} />
-                        ) : (
-                          <Truck size={14} />
+                  <div className="customer-order-body">
+                    <div className="customer-order-product">
+                      <ProductPhoto name={name} src={order.productImageUrl} />
+                      <div>
+                        <h2>{name}</h2>
+                        {(order.productCount ?? 0) > 1 && (
+                          <p>+{order.productCount! - 1} produk lainnya</p>
                         )}
-                        {order.channel === 'pos'
-                          ? 'Pembelian di toko'
-                          : order.deliveryMethod === 'pickup'
-                            ? 'Ambil di toko'
-                            : `Pengiriman${order.courier ? ` · ${order.courier}` : ''}`}
-                      </small>
+                        {order.totalQuantity != null && (
+                          <span>
+                            {order.totalQuantity} barang
+                            {(order.productCount ?? 0) > 1
+                              ? ` · ${order.productCount} jenis produk`
+                              : ''}
+                          </span>
+                        )}
+                        <small>
+                          {order.channel === 'pos' ||
+                          order.deliveryMethod === 'pickup' ? (
+                            <Store size={14} />
+                          ) : (
+                            <Truck size={14} />
+                          )}
+                          {order.channel === 'pos'
+                            ? 'Pembelian di toko'
+                            : order.deliveryMethod === 'pickup'
+                              ? 'Ambil di toko'
+                              : `Pengiriman${order.courier ? ` · ${order.courier}` : ''}`}
+                        </small>
+                      </div>
                     </div>
-                    <ArrowRight size={18} aria-hidden="true" />
-                  </Link>
-                  <footer>
                     <div className="customer-order-total">
                       <span>Total pembayaran</span>
                       <strong>{formatRupiah(order.total)}</strong>
                     </div>
                     <div className="customer-order-actions">
-                      {action !== 'view' && (
+                      {action === 'receive' && (
                         <Link
                           className="customer-order-detail"
                           to={`/orders/${order.id}`}
@@ -229,14 +229,22 @@ export function CustomerOrdersPage() {
                         </Button>
                       ) : (
                         <Button asChild variant={action === 'pay' ? 'teal' : 'outline'}>
-                          <Link to={`/orders/${order.id}`}>
+                          <Link
+                            className={
+                              action === 'view' ? 'customer-order-view' : undefined
+                            }
+                            to={`/orders/${order.id}`}
+                          >
                             {action === 'pay' ? 'Bayar sekarang' : 'Lihat pesanan'}
-                            <ArrowRight size={15} aria-hidden="true" />
+                            <ArrowRight
+                              size={action === 'view' ? 13 : 15}
+                              aria-hidden="true"
+                            />
                           </Link>
                         </Button>
                       )}
                     </div>
-                  </footer>
+                  </div>
                 </article>
               );
             })}

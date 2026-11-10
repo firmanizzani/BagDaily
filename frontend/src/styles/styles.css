@@ -3348,7 +3348,7 @@ textarea {
 }
 .customer-order-card {
   min-width: 0;
-  padding: 16px 18px;
+  padding: 14px 18px;
   border: 1px solid #dce3df;
   border-radius: 12px;
   background: #fffefa;
@@ -3425,11 +3425,19 @@ textarea {
 .customer-order-reference button:hover {
   background: #eef2e9;
 }
+.customer-order-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'product total' 'product actions';
+  align-items: center;
+  gap: 8px 18px;
+  margin-top: 8px;
+}
 .customer-order-product {
+  grid-area: product;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 0 16px;
 }
 .customer-order-product > .product-image,
 .customer-order-product > .catalog-photo {
@@ -3448,9 +3456,6 @@ textarea {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
-.customer-order-product:hover h2 {
-  color: #00594f;
-}
 .customer-order-product p,
 .customer-order-product span,
 .customer-order-product small {
@@ -3465,21 +3470,13 @@ textarea {
   margin-top: 5px;
   font-size: 11px;
 }
-.customer-order-product > svg {
-  flex-shrink: 0;
-  color: #00594f;
-}
-.customer-order-card > footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  border-top: 1px solid #e5e9e0;
-  padding-top: 12px;
-}
 .customer-order-total {
+  grid-area: total;
   display: grid;
-  gap: 5px;
+  justify-items: end;
+  align-self: end;
+  gap: 2px;
+  white-space: nowrap;
 }
 .customer-order-total span {
   font-size: 11px;
@@ -3491,10 +3488,12 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .customer-order-actions {
+  grid-area: actions;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 10px;
 }
 .customer-order-actions > button,
 .customer-order-actions > a:not(.customer-order-detail) {
@@ -3507,6 +3506,13 @@ textarea {
   color: #00594f;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+.customer-order-actions > a.customer-order-view {
+  position: relative;
+  gap: 6px;
+  height: 30px;
+  padding-inline: 9px;
+  font-size: 11px;
 }
 .customer-orders-page button:focus-visible,
 .customer-orders-page a:focus-visible {
@@ -3555,12 +3561,16 @@ textarea {
   .catalog-filters > :is(select, button) { min-height: 44px; }
   .catalog-filters > .catalog-desktop-filter { display: none; }
   .customer-orders-tools { grid-template-columns: minmax(0, 1fr) 140px; gap: 8px; }
-  .customer-order-card { padding: 16px; }
-  .customer-order-card > footer { align-items: flex-start; flex-direction: column; }
-  .customer-order-actions { justify-content: flex-end; width: 100%; gap: 12px; }
-  .customer-order-product { gap: 12px; }
+  .customer-order-card { padding: 14px; }
+  .customer-order-body { grid-template-areas: 'product total' 'actions actions'; gap: 10px; }
+  .customer-order-total { align-self: center; }
+  .customer-order-total strong { font-size: 15px; }
+  .customer-order-actions > button,
+  .customer-order-actions > a:not(.customer-order-detail, .customer-order-view) { min-height: 44px; }
+  .customer-order-view::after { content: ''; position: absolute; inset: -7px 0; }
+  .customer-order-product { gap: 10px; }
   .customer-order-product > .product-image,
-  .customer-order-product > .catalog-photo { width: 64px; height: 64px; flex-basis: 64px; }
+  .customer-order-product > .catalog-photo { width: 52px; height: 52px; flex-basis: 52px; }
   .customer-order-product h2 { font-size: 14px; }
   .customer-orders-pagination { flex-wrap: wrap; }
 }

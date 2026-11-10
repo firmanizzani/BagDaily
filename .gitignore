@@ -7,8 +7,6 @@ backend/uploads/
 .env.local
 .env.*.local
 .taste-skill/
-prompt.md
-prd.md
 .qa-session.json
 .qa-complete
 tmp/
