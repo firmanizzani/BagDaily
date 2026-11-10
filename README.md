@@ -1,6 +1,8 @@
 # BagDaily
 
-**BagDaily** adalah aplikasi web yang menyatukan toko online dan kasir gerai fisik untuk UMKM tas.
+**BagDaily** adalah aplikasi web untuk UMKM tas yang berjualan secara online dan di gerai fisik. Pelanggan dapat menjelajahi katalog, memesan tas untuk dikirim atau diambil di toko, dan memantau status pesanan. Di gerai, kasir mencatat pembelian melalui sistem kasir (POS) dan dapat mencetak struk.
+
+Toko online dan kasir menggunakan persediaan yang sama. Pengelola dapat menelusuri perubahan stok, meninjau saran restok berdasarkan penjualan, serta melihat laporan penjualan dan laba kotor dari kedua kanal melalui panel admin.
 
 [Buka website live](https://bagdaily.vercel.app/) · [Coba akun demo](https://bagdaily.vercel.app/login)
 
@@ -39,12 +41,13 @@ Pesanan online yang melewati batas pembayaran dibatalkan otomatis jika jadwal da
 
 ## Teknologi dan arsitektur
 
-| Lapisan | Teknologi dan tanggung jawab |
-| --- | --- |
-| Antarmuka | React, TypeScript, Vite, Tailwind CSS, dan Recharts untuk toko, POS, serta dashboard admin. |
-| API | Node.js, Express, dan Zod untuk validasi, autentikasi, otorisasi, dan aturan bisnis. |
-| Data | Supabase PostgreSQL dan Drizzle ORM untuk pesanan, persediaan, poin, dan laporan. |
-| Media | Supabase Storage privat untuk foto produk dan profil. Foto disajikan melalui API sesuai aksesnya. |
+| Komponen | Teknologi | Fungsi |
+| --- | --- | --- |
+| **Frontend** | React, TypeScript, Vite, Tailwind CSS, dan Recharts | Menampilkan toko online, kasir (POS), dasbor admin, dan grafik laporan. |
+| **Backend** | Node.js, Express, dan Zod | Menyediakan REST API, memvalidasi input, serta menangani autentikasi, hak akses, dan aturan bisnis. |
+| **Database** | Supabase PostgreSQL dan Drizzle ORM | Menyimpan data produk, pesanan, persediaan, dan poin yang digunakan dalam laporan. |
+| **Storage** | Supabase Storage | Menyimpan foto produk dan profil di bucket privat. Akses foto diatur oleh API. |
+| **Deployment** | Vercel | Menjalankan frontend dan backend sebagai dua proyek terpisah. |
 
 ```text
 Browser (toko, kasir, admin)
